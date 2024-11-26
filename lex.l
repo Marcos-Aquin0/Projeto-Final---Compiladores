@@ -26,7 +26,8 @@ SMC 	;
 COMMA 	,
 ATRIB 	= 
 POINT   \.
-
+COMINIT \/\* 
+COMEND  \*\/
 %%
 
 
@@ -38,7 +39,7 @@ POINT   \.
 {WHILE}         printf("WHILE"); 
 {DIGIT}{DIGIT}*		                        printf("INT");
 {DIGIT}{DIGIT}*{POINT}{DIGIT}{DIGIT}*		printf("FLOAT");
-{DIV}{MULT}([^*]|{MULT}[^/])*{MULT}{DIV}	printf("COMMENT");
+{COMINIT}([^*]|{MULT}[^/])*{COMEND}	        printf("COMMENT");
 {LETTER}{LETTER}* 	printf("ID");
 {OPAREN}		printf("OPAREN");
 {CPAREN}		printf("CPAREN");
