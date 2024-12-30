@@ -69,16 +69,20 @@ ERROR   [\:\?\!\@\#\$\%\&\_\~\´\`\"\'\|]
 
 {DIGIT}{DIGIT}*{POINT}[^0-9] {
     fprintf(stdout,"Erro: Numero malformado '%s' na linha %d\n", yytext, linha);
+    exit(1);
 };
 {ERROR} {
     fprintf(stdout,"Erro: Caractere invalido '%s' na linha %d\n", yytext, linha);
+    exit(2);
 }
 {COMINIT}([^*])* {
     fprintf(stdout,"Erro: Comentario nao encerrado iniciado na linha %d\n", linha);
+    exit(3);
 }
 
 {LETTER}+{DIGIT}+{LETTER}* {
     fprintf(stdout,"Erro: Variavel '%s' no formato inválido na linha %d\n", yytext, linha);
+    exit(4);
 } 
 
 \n {
