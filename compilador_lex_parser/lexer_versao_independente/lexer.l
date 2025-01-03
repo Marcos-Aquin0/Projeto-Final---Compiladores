@@ -33,7 +33,10 @@ ATRIB 	=
 POINT   \.
 COMINIT \/\* 
 COMEND  \*\/
-ERROR   [\:\?\!\@\#\$\%\&\_\~\´\`\"\'\|]
+WHITESPACE [ ]
+TAB [\t]
+ENTER [\n]
+ERROR [.]
 %%
 
 
@@ -66,26 +69,27 @@ ERROR   [\:\?\!\@\#\$\%\&\_\~\´\`\"\'\|]
 {COMMA}			printf("COMMA");
 {ATRIB}			printf("ATRIB");
 {NQ}			printf("NQ");
-
+{WHITESPACE}    printf(" ");
+{TAB}           printf("\t");
 {DIGIT}{DIGIT}*{POINT}[^0-9] {
     fprintf(stdout,"Erro: Numero malformado '%s' na linha %d\n", yytext, linha);
-    exit(1);
+    exit(1); //exit 1 é o erro
 };
 {ERROR} {
     fprintf(stdout,"Erro: Caractere invalido '%s' na linha %d\n", yytext, linha);
-    exit(2);
+    exit(1);
 }
 {COMINIT}([^*])* {
     fprintf(stdout,"Erro: Comentario nao encerrado iniciado na linha %d\n", linha);
-    exit(3);
+    exit(1);
 }
 
 {LETTER}+{DIGIT}+{LETTER}* {
     fprintf(stdout,"Erro: Variavel '%s' no formato inválido na linha %d\n", yytext, linha);
-    exit(4);
+    exit(1);
 } 
 
-\n {
+{ENTER} {
     linha++; // Incrementa manualmente ao encontrar uma nova linha
     printf("\n");
 }
