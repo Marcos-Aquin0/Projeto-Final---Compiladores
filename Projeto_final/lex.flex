@@ -1,7 +1,5 @@
 %{
 #include "parser.tab.h"
-
-char error_msg[256];
 %}
 
 DIGIT	[0-9]
@@ -37,7 +35,7 @@ COMEND  \*\/
 WHITESPACE [ ]
 TAB [\t]
 ENTER [\n]
-ERROR .
+ERROR [.]
 
 %%
 
@@ -48,7 +46,7 @@ ERROR .
 {VOID}                                  { return VOID; }
 {WHILE}                                 { return WHILE; } 
 {DIGIT}{DIGIT}*		                    { yylval.ival = atoi(yytext); return NUM; }
-{COMINIT}([^*]|{MULT}[^/])*{COMEND}     /* ignora comentarios */
+{COMINIT}([^*]|{MULT}[^/])*{COMEND}     {yylineno++;} /* ignora comentarios, apenas linha++ */
 {LETTER}{LETTER}* 	                    { yylval.sval = strdup(yytext); return ID; }
 {OPAREN}		                        { return OPAREN; }
 {CPAREN}		                        { return CPAREN; }
@@ -71,27 +69,27 @@ ERROR .
 {NQ}			                        { return NQ; }
 {WHITESPACE}                            { }
 {TAB}                                   { }
-{ENTER}                                 { yylineno++; }
 
+{ENTER} {
+    yylineno++; // Incrementa manualmente ao encontrar uma nova linha
+}
 {DIGIT}{DIGIT}*{POINT}[^0-9] {
-    snprintf(error_msg, sizeof(error_msg), "Número malformado '%s' na linha %d", yytext, yylineno);
-    return ERROR;
-}
-
+    fprintf(stdout,"Erro léxico: Numero malformado '%s' na linha %d\n", yytext, yylineno);
+    exit(1); //exit 1 é o erro
+};
 {ERROR} {
-    snprintf(error_msg, sizeof(error_msg), "Caractere inválido '%s' na linha %d", yytext, yylineno);
-    return ERROR;
+    fprintf(stdout,"Erro léxico: Caractere invalido '%s' na linha %d\n", yytext, yylineno);
+    exit(1);
 }
-
 {COMINIT}([^*])* {
-    snprintf(error_msg, sizeof(error_msg), "Comentário não encerrado iniciado na linha %d", yylineno);
-    return ERROR;
+    fprintf(stdout,"Erro léxico: Comentario nao encerrado iniciado na linha %d\n", yylineno);
+    exit(1);
 }
 
 {LETTER}+{DIGIT}+{LETTER}* {
-    snprintf(error_msg, sizeof(error_msg), "Variável '%s' no formato inválido na linha %d", yytext, yylineno);
-    return ERROR;
-}
+    fprintf(stdout,"Erro léxico: Variavel '%s' no formato inválido na linha %d\n", yytext, yylineno);
+    exit(1);
+} 
 
 %%
 

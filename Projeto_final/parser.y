@@ -6,7 +6,6 @@
 void yyerror(const char *s);
 int yylex();
 
-extern char error_msg[256];
 extern int yylineno;
 %}
 
