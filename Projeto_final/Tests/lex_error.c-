@@ -1,0 +1,11 @@
+int main() {
+    int x = 10;
+    int y = 20;
+    
+    x = y + 5;
+    
+    /* Erro léxico: caractere inválido '%' */
+    x = x @ 2;
+    
+    return 0;
+}
