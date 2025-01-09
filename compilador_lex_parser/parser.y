@@ -1,90 +1,193 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-// Extern para integrar com o léxico
-extern int yylex();
-extern int yyparse();
-extern void yyerror(const char *s);
+void yyerror(const char *s);
+int yylex();
+extern int yylineno;
 
-// Variável global para o valor de tokens
-extern int yylval;
 %}
 
-// Declaração de tokens
-%token ELSE IF INT RETURN VOID WHILE
-%token NUMBER_INT NUMBER_FLOAT ID
-%token OPAREN CPAREN OKEYS CKEYS
-%token OBRACKT CBRACKT SUM SUB DIV MULT
-%token NQ BT BTE LT LTE EQ SMC COMMA ATRIB
+%union {
+    int ival;       // Para números inteiros
+    char *sval;     // Para strings (identificadores)
+}
+
+%token <ival> NUM 
+%token <sval> ID
+%token LETTER ELSE IF INT RETURN VOID WHILE
+%token OPAREN CPAREN OKEYS CKEYS OBRACKT CBRACKT
+%token SUM SUB DIV MULT NQ BT BTE LT LTE EQ SMC COMMA ATRIB
+%token POINT COMINIT COMEND WHITESPACE TAB ENTER ERROR
+
+%left SUM SUB
+%left MULT DIV
+%nonassoc IFX
+%left ELSE
 
 %%
 
-// Regras gramaticais
-programa:
-    declaracoes
+program:
+    decl_list
     ;
 
-declaracoes:
-    declaracao
-    | declaracoes declaracao
+decl_list:
+    decl_list decl
+    | decl
     ;
 
-declaracao:
-    tipo ID SMC
-    | tipo ID OPAREN parametros CPAREN corpo
+decl:
+    var_decl
+    | func_decl
     ;
 
-tipo:
+var_decl:
+    spec_type ID SMC
+    | spec_type ID OBRACKT NUM CBRACKT SMC
+    ;
+
+spec_type:
     INT
     | VOID
     ;
 
-parametros:
-    /* vazio */
-    | tipo ID
-    | parametros COMMA tipo ID
+func_decl:
+    spec_type ID OPAREN params CPAREN compound_decl
     ;
 
-corpo:
-    OKEYS comandos CKEYS
+params:
+    param_list
+    | VOID
     ;
 
-comandos:
-    comando
-    | comandos comando
+param_list:
+    param_list COMMA param
+    | param
     ;
 
-comando:
-    expressao SMC
-    | declaracao
-    | comando_composto
+param:
+    spec_type ID
+    | spec_type ID OBRACKT CBRACKT
     ;
 
-comando_composto:
-    OKEYS comandos CKEYS
+compound_decl:
+    OKEYS local_decl state_list CKEYS
     ;
 
-expressao:
-    ID ATRIB expressao
-    | expressao SUM expressao
-    | expressao SUB expressao
-    | termo
+local_decl:
+    local_decl var_decl
+    |
     ;
 
-termo:
+state_list:
+    state_list statement
+    |
+    ;
+
+statement:
+    expr_decl
+    | compound_decl
+    | select_decl
+    | iter_decl
+    | return_decl
+    ;
+
+expr_decl:
+    expr SMC
+    | SMC
+    ;
+
+select_decl:
+    IF OPAREN expr CPAREN statement %prec IFX
+    | IF OPAREN expr CPAREN statement ELSE statement
+    ;
+
+iter_decl:
+    WHILE OPAREN expr CPAREN statement
+    ;
+
+return_decl:
+    RETURN SMC
+    | RETURN expr SMC
+    ;
+
+expr:
+    var ATRIB expr
+    | simp_expr
+    ;
+
+var:
     ID
-    | NUMBER_INT
-    | NUMBER_FLOAT
+    | ID OBRACKT expr CBRACKT
+    ;
+
+simp_expr:
+    sum_expr relational sum_expr
+    | sum_expr
+    ;
+
+relational:
+    NQ
+    | BT
+    | BTE
+    | LT
+    | LTE
+    | EQ
+    ;
+
+sum_expr:
+    sum_expr sum term
+    | term
+    ;
+
+sum:
+    SUM
+    | SUB
+    ;
+
+term:
+    term mult factor
+    | factor
+    ;
+
+mult:
+    MULT
+    | DIV
+    ;
+
+factor:
+    OPAREN expr CPAREN
+    | var
+    | activation
+    | NUM
+    ;
+
+activation:
+    ID OPAREN args CPAREN
+    ;
+
+args:
+    arg_list
+    |
+    ;
+
+arg_list:
+    arg_list COMMA expr
+    | expr
     ;
 
 %%
 
-// Função de erro
 void yyerror(const char *s) {
-    fprintf(stderr, "Erro: %s\\n", s);
+    fprintf(stderr, "Erro na linha %d: %s\n", yylineno, s);
 }
 
 int main() {
-    return yyparse();
+    if (yyparse() == 0) {
+        printf("Código válido!\n");
+    } else {
+        printf("Código inválido!\n");
+    }
+    return 0;
 }
