@@ -46,6 +46,7 @@ decl:
 var_decl:
     spec_type ID SMC
     | spec_type ID OBRACKT NUM CBRACKT SMC
+    | spec_type error SMC { yyerror("Erro na declaração de variável");}
     ;
 
 spec_type:
@@ -55,6 +56,7 @@ spec_type:
 
 func_decl:
     spec_type ID OPAREN params CPAREN compound_decl
+    | error compound_decl { yyerror("Erro na declaração de função");}
     ;
 
 params:
@@ -74,6 +76,7 @@ param:
 
 compound_decl:
     OKEYS local_decl state_list CKEYS
+    | error CKEYS      { yyerror("Erro no bloco de declarações");}
     ;
 
 local_decl:
@@ -97,20 +100,24 @@ statement:
 expr_decl:
     expr SMC
     | SMC
+    | error SMC        { yyerror("Erro na expressão");}
     ;
 
 select_decl:
     IF OPAREN expr CPAREN statement %prec IFX
     | IF OPAREN expr CPAREN statement ELSE statement
+    | IF error statement { yyerror("Erro na condição do if");}
     ;
 
 iter_decl:
     WHILE OPAREN expr CPAREN statement
+    | WHILE error statement { yyerror("Erro na condição do while");}
     ;
 
 return_decl:
     RETURN SMC
     | RETURN expr SMC
+    | RETURN error SMC  { yyerror("Erro na expressão do return");}
     ;
 
 expr:
@@ -166,6 +173,7 @@ factor:
 
 activation:
     ID OPAREN args CPAREN
+    | ID OPAREN error CPAREN { yyerror("Erro nos argumentos da função");}
     ;
 
 args:
@@ -181,5 +189,8 @@ arg_list:
 %%
 
 void yyerror(const char *s) {
-    fprintf(stderr, "Erro de sintaxe na linha %d: %s\n", yylineno, s);
+    if(strcmp(s, "syntax error") != 0){
+        fprintf(stderr, "Erro sintático na linha %d: %s\n", yylineno, s);
+        exit(2);
+    }
 }

@@ -46,7 +46,13 @@ ERROR [.]
 {VOID}                                  { return VOID; }
 {WHILE}                                 { return WHILE; } 
 {DIGIT}{DIGIT}*		                    { yylval.ival = atoi(yytext); return NUM; }
-{COMINIT}([^*]|{MULT}[^/])*{COMEND}     {yylineno++;} /* ignora comentarios, apenas linha++ */
+{COMINIT}([^*]|{MULT}[^/])*{COMEND}     {
+                                            for (int i = 0; yytext[i] != '\0'; i++) {
+                                                if (yytext[i] == '\n') {
+                                                    yylineno++;
+                                                }
+                                            }
+                                        }
 {LETTER}{LETTER}* 	                    { yylval.sval = strdup(yytext); return ID; }
 {OPAREN}		                        { return OPAREN; }
 {CPAREN}		                        { return CPAREN; }
