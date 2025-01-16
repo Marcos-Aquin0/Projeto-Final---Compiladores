@@ -1,0 +1,247 @@
+Terminais não utilizados na gramática
+
+   ERRO
+
+
+Gramática
+
+    0 $accept: entrada $end
+
+    1 entrada: /* vazio */
+    2        | entrada result
+
+    3 result: FIMLIN
+    4       | exp FIMLIN
+    5       | error FIMLIN
+
+    6 exp: exp '+' termo
+    7    | exp '-' termo
+    8    | termo
+
+    9 termo: termo '*' fator
+   10      | fator
+
+   11 fator: '(' exp ')'
+   12      | NUM
+
+
+Terminais, com as regras onde eles aparecem
+
+$end (0) 0
+'(' (40) 11
+')' (41) 11
+'*' (42) 9
+'+' (43) 6
+'-' (45) 7
+error (256) 5
+NUM (258) 12
+ERRO (259)
+FIMLIN (260) 3 4 5
+
+
+Não-terminais com as regras onde eles aparecem
+
+$accept (11)
+    à esquerda: 0
+entrada (12)
+    à esquerda: 1 2, à direita: 0 2
+result (13)
+    à esquerda: 3 4 5, à direita: 2
+exp (14)
+    à esquerda: 6 7 8, à direita: 4 6 7 11
+termo (15)
+    à esquerda: 9 10, à direita: 6 7 8 9
+fator (16)
+    à esquerda: 11 12, à direita: 9 10
+
+
+estado 0
+
+    0 $accept: . entrada $end
+
+    $padrão  reduzir usando a regra 1 (entrada)
+
+    entrada  ir ao estado 1
+
+
+estado 1
+
+    0 $accept: entrada . $end
+    2 entrada: entrada . result
+
+    $end    deslocar, e ir ao estado 2
+    error   deslocar, e ir ao estado 3
+    NUM     deslocar, e ir ao estado 4
+    FIMLIN  deslocar, e ir ao estado 5
+    '('     deslocar, e ir ao estado 6
+
+    result  ir ao estado 7
+    exp     ir ao estado 8
+    termo   ir ao estado 9
+    fator   ir ao estado 10
+
+
+estado 2
+
+    0 $accept: entrada $end .
+
+    $padrão  aceitar
+
+
+estado 3
+
+    5 result: error . FIMLIN
+
+    FIMLIN  deslocar, e ir ao estado 11
+
+
+estado 4
+
+   12 fator: NUM .
+
+    $padrão  reduzir usando a regra 12 (fator)
+
+
+estado 5
+
+    3 result: FIMLIN .
+
+    $padrão  reduzir usando a regra 3 (result)
+
+
+estado 6
+
+   11 fator: '(' . exp ')'
+
+    NUM  deslocar, e ir ao estado 4
+    '('  deslocar, e ir ao estado 6
+
+    exp    ir ao estado 12
+    termo  ir ao estado 9
+    fator  ir ao estado 10
+
+
+estado 7
+
+    2 entrada: entrada result .
+
+    $padrão  reduzir usando a regra 2 (entrada)
+
+
+estado 8
+
+    4 result: exp . FIMLIN
+    6 exp: exp . '+' termo
+    7    | exp . '-' termo
+
+    FIMLIN  deslocar, e ir ao estado 13
+    '+'     deslocar, e ir ao estado 14
+    '-'     deslocar, e ir ao estado 15
+
+
+estado 9
+
+    8 exp: termo .
+    9 termo: termo . '*' fator
+
+    '*'  deslocar, e ir ao estado 16
+
+    $padrão  reduzir usando a regra 8 (exp)
+
+
+estado 10
+
+   10 termo: fator .
+
+    $padrão  reduzir usando a regra 10 (termo)
+
+
+estado 11
+
+    5 result: error FIMLIN .
+
+    $padrão  reduzir usando a regra 5 (result)
+
+
+estado 12
+
+    6 exp: exp . '+' termo
+    7    | exp . '-' termo
+   11 fator: '(' exp . ')'
+
+    '+'  deslocar, e ir ao estado 14
+    '-'  deslocar, e ir ao estado 15
+    ')'  deslocar, e ir ao estado 17
+
+
+estado 13
+
+    4 result: exp FIMLIN .
+
+    $padrão  reduzir usando a regra 4 (result)
+
+
+estado 14
+
+    6 exp: exp '+' . termo
+
+    NUM  deslocar, e ir ao estado 4
+    '('  deslocar, e ir ao estado 6
+
+    termo  ir ao estado 18
+    fator  ir ao estado 10
+
+
+estado 15
+
+    7 exp: exp '-' . termo
+
+    NUM  deslocar, e ir ao estado 4
+    '('  deslocar, e ir ao estado 6
+
+    termo  ir ao estado 19
+    fator  ir ao estado 10
+
+
+estado 16
+
+    9 termo: termo '*' . fator
+
+    NUM  deslocar, e ir ao estado 4
+    '('  deslocar, e ir ao estado 6
+
+    fator  ir ao estado 20
+
+
+estado 17
+
+   11 fator: '(' exp ')' .
+
+    $padrão  reduzir usando a regra 11 (fator)
+
+
+estado 18
+
+    6 exp: exp '+' termo .
+    9 termo: termo . '*' fator
+
+    '*'  deslocar, e ir ao estado 16
+
+    $padrão  reduzir usando a regra 6 (exp)
+
+
+estado 19
+
+    7 exp: exp '-' termo .
+    9 termo: termo . '*' fator
+
+    '*'  deslocar, e ir ao estado 16
+
+    $padrão  reduzir usando a regra 7 (exp)
+
+
+estado 20
+
+    9 termo: termo '*' fator .
+
+    $padrão  reduzir usando a regra 9 (termo)

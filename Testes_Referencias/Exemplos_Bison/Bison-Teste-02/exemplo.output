@@ -1,0 +1,193 @@
+Gramática
+
+    0 $accept: entrada $end
+
+    1 entrada: exp
+
+    2 exp: exp '+' termo
+    3    | exp '-' termo
+    4    | termo
+
+    5 termo: termo '*' fator
+    6      | fator
+
+    7 fator: '(' exp ')'
+    8      | NUM
+
+
+Terminais, com as regras onde eles aparecem
+
+$end (0) 0
+'(' (40) 7
+')' (41) 7
+'*' (42) 5
+'+' (43) 2
+'-' (45) 3
+error (256)
+NUM (258) 8
+
+
+Não-terminais com as regras onde eles aparecem
+
+$accept (9)
+    à esquerda: 0
+entrada (10)
+    à esquerda: 1, à direita: 0
+exp (11)
+    à esquerda: 2 3 4, à direita: 1 2 3 7
+termo (12)
+    à esquerda: 5 6, à direita: 2 3 4 5
+fator (13)
+    à esquerda: 7 8, à direita: 5 6
+
+
+estado 0
+
+    0 $accept: . entrada $end
+
+    NUM  deslocar, e ir ao estado 1
+    '('  deslocar, e ir ao estado 2
+
+    entrada  ir ao estado 3
+    exp      ir ao estado 4
+    termo    ir ao estado 5
+    fator    ir ao estado 6
+
+
+estado 1
+
+    8 fator: NUM .
+
+    $padrão  reduzir usando a regra 8 (fator)
+
+
+estado 2
+
+    7 fator: '(' . exp ')'
+
+    NUM  deslocar, e ir ao estado 1
+    '('  deslocar, e ir ao estado 2
+
+    exp    ir ao estado 7
+    termo  ir ao estado 5
+    fator  ir ao estado 6
+
+
+estado 3
+
+    0 $accept: entrada . $end
+
+    $end  deslocar, e ir ao estado 8
+
+
+estado 4
+
+    1 entrada: exp .
+    2 exp: exp . '+' termo
+    3    | exp . '-' termo
+
+    '+'  deslocar, e ir ao estado 9
+    '-'  deslocar, e ir ao estado 10
+
+    $padrão  reduzir usando a regra 1 (entrada)
+
+
+estado 5
+
+    4 exp: termo .
+    5 termo: termo . '*' fator
+
+    '*'  deslocar, e ir ao estado 11
+
+    $padrão  reduzir usando a regra 4 (exp)
+
+
+estado 6
+
+    6 termo: fator .
+
+    $padrão  reduzir usando a regra 6 (termo)
+
+
+estado 7
+
+    2 exp: exp . '+' termo
+    3    | exp . '-' termo
+    7 fator: '(' exp . ')'
+
+    '+'  deslocar, e ir ao estado 9
+    '-'  deslocar, e ir ao estado 10
+    ')'  deslocar, e ir ao estado 12
+
+
+estado 8
+
+    0 $accept: entrada $end .
+
+    $padrão  aceitar
+
+
+estado 9
+
+    2 exp: exp '+' . termo
+
+    NUM  deslocar, e ir ao estado 1
+    '('  deslocar, e ir ao estado 2
+
+    termo  ir ao estado 13
+    fator  ir ao estado 6
+
+
+estado 10
+
+    3 exp: exp '-' . termo
+
+    NUM  deslocar, e ir ao estado 1
+    '('  deslocar, e ir ao estado 2
+
+    termo  ir ao estado 14
+    fator  ir ao estado 6
+
+
+estado 11
+
+    5 termo: termo '*' . fator
+
+    NUM  deslocar, e ir ao estado 1
+    '('  deslocar, e ir ao estado 2
+
+    fator  ir ao estado 15
+
+
+estado 12
+
+    7 fator: '(' exp ')' .
+
+    $padrão  reduzir usando a regra 7 (fator)
+
+
+estado 13
+
+    2 exp: exp '+' termo .
+    5 termo: termo . '*' fator
+
+    '*'  deslocar, e ir ao estado 11
+
+    $padrão  reduzir usando a regra 2 (exp)
+
+
+estado 14
+
+    3 exp: exp '-' termo .
+    5 termo: termo . '*' fator
+
+    '*'  deslocar, e ir ao estado 11
+
+    $padrão  reduzir usando a regra 3 (exp)
+
+
+estado 15
+
+    5 termo: termo '*' fator .
+
+    $padrão  reduzir usando a regra 5 (termo)
