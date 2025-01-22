@@ -75,18 +75,18 @@ ERROR [.]
 {NQ}			                        { return NQ; }
 {WHITESPACE}                            { }
 {TAB}                                   { }
+{ENTER}                                 { yylineno++; }
 
-{ENTER} {
-    yylineno++; // Incrementa manualmente ao encontrar uma nova linha
-}
 {DIGIT}{DIGIT}*{POINT}[^0-9] {
     fprintf(stdout,"Erro léxico: Numero malformado '%s' na linha %d\n", yytext, yylineno);
     exit(1); //exit 1 é o erro
 };
-{ERROR} {
+
+. {
     fprintf(stdout,"Erro léxico: Caractere invalido '%s' na linha %d\n", yytext, yylineno);
     exit(1);
 }
+
 {COMINIT}([^*])* {
     fprintf(stdout,"Erro léxico: Comentario nao encerrado iniciado na linha %d\n", yylineno);
     exit(1);
