@@ -35,7 +35,6 @@ COMEND  \*\/
 WHITESPACE [ ]
 TAB [\t]
 ENTER [\n]
-ERROR [.]
 
 %%
 
