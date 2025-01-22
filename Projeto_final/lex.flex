@@ -83,7 +83,7 @@ ERROR [.]
     fprintf(stdout,"Erro léxico: Numero malformado '%s' na linha %d\n", yytext, yylineno);
     exit(1); //exit 1 é o erro
 };
-{ERROR} {
+. {
     fprintf(stdout,"Erro léxico: Caractere invalido '%s' na linha %d\n", yytext, yylineno);
     exit(1);
 }
