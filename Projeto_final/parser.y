@@ -1,12 +1,18 @@
 %{
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "globals.h"
+// #include "util.h"
+// #include "scan.h"
+// #include "parse.h"
+/*podem ser renomeados, da para adicionar um para tabela de simbolos tambem*/
+
+// #define YYSTYPE TreeNode * /*todos os valores semânticos manipulados pelo parser serão nós da árvore sintática*/
+// static char * savedName; /* for use in assignments */
+// static int savedLineNo;  /*linha do token*/
+// static TreeNode * savedTree; /* raiz da arvore */
 
 void yyerror(const char *s);
 int yylex();
 
-extern int yylineno;
 %}
 
 %union {

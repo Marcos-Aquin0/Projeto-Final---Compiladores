@@ -1,5 +1,0 @@
-begin 
-	if A = 25 
-	then print A 
-	else print B 
-end
