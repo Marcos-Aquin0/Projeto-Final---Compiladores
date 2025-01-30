@@ -4,20 +4,19 @@
 
 extern int yyparse();  // Função do Bison
 
-int main() {
+int main(int argc, char *argv[]) {
     printf("Iniciando a análise...\n");
 
     // Realiza a análise sintática
     if (yyparse() == 0) {
         printf("Análise sintática concluída com sucesso!\n\n");
         
-        // Verifica se a árvore foi construída
         if (root != NULL) {
-            printf("Imprimindo a Árvore Sintática Abstrata:\n");
-            printAST(root, 0);
-            
-            printASTVertical(root);
-            // Libera a memória da árvore
+            if (strcmp(argv[1], "--print-tree") == 0) 
+                printReducedAST(root, 0);
+            else if (strcmp(argv[1], "--print-full-tree") == 0) 
+                printASTVertical(root);
+
             freeAST(root);
         } else {
             printf("Aviso: Nenhuma árvore foi construída.\n");
