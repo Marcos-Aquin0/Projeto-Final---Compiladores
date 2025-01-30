@@ -2,10 +2,11 @@
 CC = gcc
 CFLAGS = -Wall -g
 
-# Arquivos
+# Arquivos fonte
 FLEX_FILE = lex.flex
 BISON_FILE = parser.y
 MAIN_FILE = main.c
+AST_FILES = ast.c
 
 # Arquivos gerados
 LEX_C = lex.yy.c
@@ -22,8 +23,8 @@ $(LEX_C): $(FLEX_FILE) $(BISON_H)
 $(BISON_C) $(BISON_H): $(BISON_FILE)
 	bison -d -o $(BISON_C) $(BISON_FILE) -Wcounterexamples
 
-$(EXEC): $(BISON_C) $(LEX_C) $(MAIN_FILE)
-	$(CC) $(CFLAGS) -o $(EXEC) $(BISON_C) $(LEX_C) $(MAIN_FILE) -lfl
+$(EXEC): $(BISON_C) $(LEX_C) $(MAIN_FILE) $(AST_FILES)
+	$(CC) $(CFLAGS) -o $(EXEC) $(BISON_C) $(LEX_C) $(MAIN_FILE) $(AST_FILES) -lfl
 
 # Limpeza
 clean:
