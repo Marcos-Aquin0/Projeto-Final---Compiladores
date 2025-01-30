@@ -1,11 +1,10 @@
-int main() {
-    int x = 10;
-    int y = 20;
-    
-    x = y + 5;
-    
-    /* Erro léxico: caractere inválido '%' */
-    x = x @ 2;
+int main(void) {
+    while (i <= 10)
+    {
+        b = i * 2;
+        a = b + 4;
+        i = i + 1;
+    }
     
     return 0;
 }
