@@ -63,3 +63,114 @@ void freeAST(ASTNode* root) {
     // Libera o nó
     free(root);
 }
+
+
+/*=========================================*/
+#define MAX_HEIGHT 1000
+#define MAX_WIDTH 1000
+
+static void getNodeValue(ASTNode* node, char* buffer) {
+    switch(node->type) {
+        case NODE_RELATIONAL:
+            sprintf(buffer, "%s", node->value ? node->value : "rel");
+            break;
+        case NODE_VAR:
+            sprintf(buffer, "%s", node->value ? node->value : "var");
+            break;
+        case NODE_FACTOR:
+            sprintf(buffer, "%s", node->value ? node->value : "factor");
+            break;
+        case NODE_ITER_DECL:
+            sprintf(buffer, "while");
+            break;
+        case NODE_MULT:
+            sprintf(buffer, "%s", node->value ? node->value : "*");
+            break;
+        case NODE_SUM_EXPR:
+            sprintf(buffer, "%s", node->value ? node->value : "+");
+            break;
+        default:
+            sprintf(buffer, "%s", node->value ? node->value : "node");
+    }
+}
+
+static void printVerticalBranches(int x, int y, int* childrenX, int numChildren) {
+    // Imprime linha vertical a partir do nó pai
+    for(int i = 1; i <= 2; i++) {
+        printf("\033[%d;%dH│", y + i, x + 1);
+    }
+    
+    // Imprime linhas horizontais para os filhos
+    if(numChildren > 0) {
+        printf("\033[%d;%dH├", y + 2, x + 1);
+        for(int i = 1; i < childrenX[0] - x; i++) {
+            printf("─");
+        }
+        
+        // Para os filhos do meio
+        for(int i = 1; i < numChildren - 1; i++) {
+            printf("\033[%d;%dH┤├", y + 2, childrenX[i-1] + 1);
+            for(int j = 1; j < childrenX[i+1] - childrenX[i]; j++) {
+                printf("─");
+            }
+        }
+        
+        // Para o último filho
+        if(numChildren > 1) {
+            printf("\033[%d;%dH┤", y + 2, childrenX[numChildren-2] + 1);
+            for(int i = 1; i < childrenX[numChildren-1] - childrenX[numChildren-2]; i++) {
+                printf("─");
+            }
+        }
+    }
+}
+
+static void _printASTVerticalHelper(ASTNode* root, int x, int y, int width) {
+    if (root == NULL) return;
+
+    char value[50];
+    getNodeValue(root, value);
+    
+    // Imprime o valor do nó na posição (x,y)
+    printf("\033[%d;%dH%s", y, x + 1, value);
+
+    // Se tem filhos, calcula suas posições
+    if (root->left || root->right) {
+        int numChildren = 0;
+        int childrenX[2];  // Máximo de 2 filhos
+        int nextY = y + 3;  // 3 linhas abaixo para as conexões
+        int childWidth = width / 2;
+        
+        if (root->left) {
+            childrenX[numChildren++] = x - childWidth/2;
+        }
+        if (root->right) {
+            childrenX[numChildren++] = x + childWidth/2;
+        }
+
+        // Imprime as conexões
+        printVerticalBranches(x, y, childrenX, numChildren);
+
+        // Recursivamente imprime os filhos
+        if (root->left) {
+            _printASTVerticalHelper(root->left, childrenX[0], nextY, childWidth);
+        }
+        if (root->right) {
+            _printASTVerticalHelper(root->right, childrenX[1], nextY, childWidth);
+        }
+    }
+}
+
+void printASTVertical(ASTNode* root) {
+    if (root == NULL) return;
+    
+    // Limpa a tela
+    printf("\033[2J\033[H");
+    printf("Árvore Vertical:\n\n");
+    
+    // Começa a impressão a partir do centro da tela
+    _printASTVerticalHelper(root, 40, 3, 40);
+    
+    // Move o cursor para depois da árvore
+    printf("\033[40;1H\n");
+}

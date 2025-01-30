@@ -27,4 +27,6 @@ void printAST(ASTNode* root, int depth);
 
 void freeAST(ASTNode* root);
 
+
+void printASTVertical(ASTNode* root);
 #endif

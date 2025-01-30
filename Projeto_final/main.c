@@ -16,6 +16,7 @@ int main() {
             printf("Imprimindo a Árvore Sintática Abstrata:\n");
             printAST(root, 0);
             
+            printASTVertical(root);
             // Libera a memória da árvore
             freeAST(root);
         } else {
