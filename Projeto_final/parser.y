@@ -39,77 +39,77 @@ ASTNode* root = NULL; // Root of the AST
 
 program:
     decl_list                   { 
-        $$ = createNode(NODE_PROGRAM, $1, NULL, NULL);
+        $$ = createNode(NODE_PROGRAM, $1, NULL, NULL, yylineno, NULL);
         root = $$;
     }
     ;
 
 decl_list:
-    decl_list decl             { $$ = createNode(NODE_DECL_LIST, $1, $2, NULL); }
-    | decl                     { $$ = createNode(NODE_DECL_LIST, $1, NULL, NULL); }
+    decl_list decl             { $$ = createNode(NODE_DECL_LIST, $1, $2, NULL, yylineno, NULL); }
+    | decl                     { $$ = createNode(NODE_DECL_LIST, $1, NULL, NULL, yylineno, NULL); }
     ;
 
 decl:
-    var_decl                   { $$ = $1; }
-    | func_decl               { $$ = $1; }
+    func_decl                   { $$ = $1; }
+    | var_decl               { $$ = $1; }
     ;
 
 var_decl:
-    spec_type ID SMC          { $$ = createNode(NODE_VAR_DECL, $1, NULL, $2); }
+    spec_type ID SMC          { $$ = createNode(NODE_VAR_DECL, $1, NULL, $2, yylineno, $1->value); }
     | spec_type ID OBRACKT NUM CBRACKT SMC {
-        ASTNode* idNode = createNode(NODE_VAR, NULL, NULL, $2);
+        ASTNode* idNode = createNode(NODE_VAR, NULL, NULL, $2, yylineno, $1->value);
         char numStr[32];
         sprintf(numStr, "%d", $4);
-        ASTNode* numNode = createNode(NODE_FACTOR, NULL, NULL, numStr);
-        $$ = createNode(NODE_VAR_DECL, $1, createNode(NODE_VAR, idNode, numNode, NULL), NULL);
+        ASTNode* numNode = createNode(NODE_FACTOR, NULL, NULL, numStr, yylineno, NULL);
+        $$ = createNode(NODE_VAR_DECL, $1, createNode(NODE_VAR, idNode, numNode, NULL, yylineno, $1->value), NULL, yylineno, $1->value);
     }
     | spec_type error SMC     { yyerror("Erro na declaração de variável"); $$ = NULL; }
     ;
 
 spec_type:
-    INT                       { $$ = createNode(NODE_SPEC_TYPE, NULL, NULL, "int"); }
-    | VOID                    { $$ = createNode(NODE_SPEC_TYPE, NULL, NULL, "void"); }
+    INT                       { $$ = createNode(NODE_SPEC_TYPE, NULL, NULL, "int", yylineno, NULL); }
+    | VOID                    { $$ = createNode(NODE_SPEC_TYPE, NULL, NULL, "void", yylineno, NULL); }
     ;
 
 func_decl:
     spec_type ID OPAREN params CPAREN compound_decl {
-        ASTNode* idNode = createNode(NODE_VAR, NULL, NULL, $2);
-        $$ = createNode(NODE_FUNC_DECL, createNode(NODE_DECL, $1, idNode, NULL), 
-                       createNode(NODE_DECL, $4, $6, NULL), NULL);
+        ASTNode* idNode = createNode(NODE_FUNC, NULL, NULL, $2, yylineno, $1->value);
+        $$ = createNode(NODE_FUNC_DECL, createNode(NODE_DECL, $1, idNode, NULL, yylineno, NULL), 
+                       createNode(NODE_DECL, $4, $6, NULL, yylineno, NULL), NULL, yylineno, $1->value);
     }
     ;
 
 params:
-    param_list                { $$ = createNode(NODE_PARAMS, $1, NULL, NULL); }
-    | VOID                    { $$ = createNode(NODE_PARAMS, NULL, NULL, "void"); }
+    param_list                { $$ = createNode(NODE_PARAMS, $1, NULL, NULL, yylineno, NULL); }
+    | VOID                    { $$ = createNode(NODE_PARAMS, NULL, NULL, "void", yylineno, NULL); }
     ;
 
 param_list:
-    param_list COMMA param    { $$ = createNode(NODE_PARAM_LIST, $1, $3, NULL); }
-    | param                   { $$ = createNode(NODE_PARAM_LIST, $1, NULL, NULL); }
+    param_list COMMA param    { $$ = createNode(NODE_PARAM_LIST, $1, $3, NULL, yylineno, NULL); }
+    | param                   { $$ = createNode(NODE_PARAM_LIST, $1, NULL, NULL, yylineno, NULL); }
     ;
 
 param:
-    spec_type ID             { $$ = createNode(NODE_PARAM, $1, NULL, $2); }
+    spec_type ID             { $$ = createNode(NODE_PARAM, $1, NULL, $2, yylineno, $1->value); }
     | spec_type ID OBRACKT CBRACKT {
-        ASTNode* idNode = createNode(NODE_VAR, NULL, NULL, $2);
-        $$ = createNode(NODE_PARAM, $1, idNode, NULL);
+        ASTNode* idNode = createNode(NODE_VAR, NULL, NULL, $2, yylineno, $1->value);
+        $$ = createNode(NODE_PARAM, $1, idNode, NULL, yylineno, $1->value);
     }
     ;
 
 compound_decl:
     OKEYS local_decl state_list CKEYS {
-        $$ = createNode(NODE_COMPOUND_DECL, $2, $3, NULL);
+        $$ = createNode(NODE_COMPOUND_DECL, $2, $3, NULL, yylineno, NULL);
     }
     ;
 
 local_decl:
-    local_decl var_decl      { $$ = createNode(NODE_LOCAL_DECL, $1, $2, NULL); }
+    local_decl var_decl      { $$ = createNode(NODE_LOCAL_DECL, $1, $2, NULL, yylineno, NULL); }
     |                        { $$ = NULL; }
     ;
 
 state_list:
-    state_list statement     { $$ = createNode(NODE_STATE_LIST, $1, $2, NULL); }
+    state_list statement     { $$ = createNode(NODE_STATE_LIST, $1, $2, NULL, yylineno, NULL); }
     |                        { $$ = NULL; }
     ;
 
@@ -122,78 +122,78 @@ statement:
     ;
 
 expr_decl:
-    expr SMC               { $$ = createNode(NODE_EXPR_DECL, $1, NULL, NULL); }
+    expr SMC               { $$ = createNode(NODE_EXPR_DECL, $1, NULL, NULL, yylineno, NULL); }
     | SMC                  { $$ = NULL; }
     ;
 
 select_decl:
     IF OPAREN expr CPAREN statement %prec IFX {
-        $$ = createNode(NODE_SELECT_DECL, $3, $5, NULL);
+        $$ = createNode(NODE_SELECT_DECL, $3, $5, NULL, yylineno, NULL);
     }
     | IF OPAREN expr CPAREN statement ELSE statement {
         $$ = createNode(NODE_SELECT_DECL, $3, 
-            createNode(NODE_STATEMENT, $5, $7, NULL), NULL);
+            createNode(NODE_STATEMENT, $5, $7, NULL, yylineno, NULL), NULL, yylineno, NULL);
     }
     ;
 
 iter_decl:
     WHILE OPAREN expr CPAREN statement {
-        $$ = createNode(NODE_ITER_DECL, $3, $5, NULL);
+        $$ = createNode(NODE_ITER_DECL, $3, $5, NULL, yylineno, NULL);
     }
     ;
 
 return_decl:
-    RETURN SMC             { $$ = createNode(NODE_RETURN_DECL, NULL, NULL, NULL); }
-    | RETURN expr SMC      { $$ = createNode(NODE_RETURN_DECL, $2, NULL, NULL); }
+    RETURN SMC             { $$ = createNode(NODE_RETURN_DECL, NULL, NULL, NULL, yylineno, NULL); }
+    | RETURN expr SMC      { $$ = createNode(NODE_RETURN_DECL, $2, NULL, NULL, yylineno, NULL); }
     ;
 
 expr:
-    var ATRIB expr        { $$ = createNode(NODE_EXPR, $1, $3, "="); }
+    var ATRIB expr        { $$ = createNode(NODE_EXPR, $1, $3, "=", yylineno, NULL); }
     | simp_expr           { $$ = $1; }
     ;
 
 var:
-    ID                    { $$ = createNode(NODE_VAR, NULL, NULL, $1); }
+    ID                    { $$ = createNode(NODE_VAR, NULL, NULL, $1, yylineno, NULL); }
     | ID OBRACKT expr CBRACKT {
-        ASTNode* idNode = createNode(NODE_VAR, NULL, NULL, $1);
-        $$ = createNode(NODE_VAR, idNode, $3, NULL);
+        ASTNode* idNode = createNode(NODE_VAR, NULL, NULL, $1, yylineno, NULL);
+        $$ = createNode(NODE_VAR, idNode, $3, NULL, yylineno, NULL);
     }
     ;
 
 simp_expr:
     sum_expr relational sum_expr {
-        $$ = createNode(NODE_SIMP_EXPR, $1, createNode(NODE_RELATIONAL, $2, $3, NULL), NULL);
+        $$ = createNode(NODE_SIMP_EXPR, $1, createNode(NODE_RELATIONAL, $2, $3, NULL, yylineno, NULL), NULL, yylineno, NULL);
     }
     | sum_expr            { $$ = $1; }
     ;
 
 relational:
-    NQ                    { $$ = createNode(NODE_RELATIONAL, NULL, NULL, "!="); }
-    | BT                  { $$ = createNode(NODE_RELATIONAL, NULL, NULL, ">"); }
-    | BTE                 { $$ = createNode(NODE_RELATIONAL, NULL, NULL, ">="); }
-    | LT                  { $$ = createNode(NODE_RELATIONAL, NULL, NULL, "<"); }
-    | LTE                 { $$ = createNode(NODE_RELATIONAL, NULL, NULL, "<="); }
-    | EQ                  { $$ = createNode(NODE_RELATIONAL, NULL, NULL, "=="); }
+    NQ                    { $$ = createNode(NODE_RELATIONAL, NULL, NULL, "!=", yylineno, NULL); }
+    | BT                  { $$ = createNode(NODE_RELATIONAL, NULL, NULL, ">", yylineno, NULL); }
+    | BTE                 { $$ = createNode(NODE_RELATIONAL, NULL, NULL, ">=", yylineno, NULL); }
+    | LT                  { $$ = createNode(NODE_RELATIONAL, NULL, NULL, "<", yylineno, NULL); }
+    | LTE                 { $$ = createNode(NODE_RELATIONAL, NULL, NULL, "<=", yylineno, NULL); }
+    | EQ                  { $$ = createNode(NODE_RELATIONAL, NULL, NULL, "==", yylineno, NULL); }
     ;
 
 sum_expr:
-    sum_expr sum term     { $$ = createNode(NODE_SUM_EXPR, $1, $3, $2->value); }
+    sum_expr sum term     { $$ = createNode(NODE_SUM_EXPR, $1, $3, $2->value, yylineno, NULL); }
     | term               { $$ = $1; }
     ;
 
 sum:
-    SUM                  { $$ = createNode(NODE_SUM_EXPR, NULL, NULL, "+"); }
-    | SUB               { $$ = createNode(NODE_SUM_EXPR, NULL, NULL, "-"); }
+    SUM                  { $$ = createNode(NODE_SUM_EXPR, NULL, NULL, "+", yylineno, NULL); }
+    | SUB               { $$ = createNode(NODE_SUM_EXPR, NULL, NULL, "-", yylineno, NULL); }
     ;
 
 term:
-    term mult factor     { $$ = createNode(NODE_TERM, $1, $3, $2->value); }
+    term mult factor     { $$ = createNode(NODE_TERM, $1, $3, $2->value, yylineno, NULL); }
     | factor            { $$ = $1; }
     ;
 
 mult:
-    MULT                { $$ = createNode(NODE_MULT, NULL, NULL, "*"); }
-    | DIV              { $$ = createNode(NODE_MULT, NULL, NULL, "/"); }
+    MULT                { $$ = createNode(NODE_MULT, NULL, NULL, "*", yylineno, NULL); }
+    | DIV              { $$ = createNode(NODE_MULT, NULL, NULL, "/", yylineno, NULL); }
     ;
 
 factor:
@@ -203,25 +203,25 @@ factor:
     | NUM             {
         char numStr[32];
         sprintf(numStr, "%d", $1);
-        $$ = createNode(NODE_FACTOR, NULL, NULL, numStr);
+        $$ = createNode(NODE_FACTOR, NULL, NULL, numStr, yylineno, NULL);
     }
     ;
 
 activation:
     ID OPAREN args CPAREN {
-        ASTNode* idNode = createNode(NODE_VAR, NULL, NULL, $1);
-        $$ = createNode(NODE_ACTIVATION, idNode, $3, NULL);
+        ASTNode* idNode = createNode(NODE_VAR, NULL, NULL, $1, yylineno, NULL);
+        $$ = createNode(NODE_ACTIVATION, idNode, $3, NULL, yylineno, NULL);
     }
     ;
 
 args:
-    arg_list           { $$ = createNode(NODE_ARGS, $1, NULL, NULL); }
+    arg_list           { $$ = createNode(NODE_ARGS, $1, NULL, NULL, yylineno, NULL); }
     |                  { $$ = NULL; }
     ;
 
 arg_list:
-    arg_list COMMA expr { $$ = createNode(NODE_ARG_LIST, $1, $3, NULL); }
-    | expr             { $$ = createNode(NODE_ARG_LIST, $1, NULL, NULL); }
+    arg_list COMMA expr { $$ = createNode(NODE_ARG_LIST, $1, $3, NULL, yylineno, NULL); }
+    | expr             { $$ = createNode(NODE_ARG_LIST, $1, NULL, NULL, yylineno, NULL); }
     ;
 
 %%
