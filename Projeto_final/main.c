@@ -1,6 +1,8 @@
 #include "globals.h"
 #include "ast.h"
 #include "parser.h"
+#include "analyze.h"
+#include "symtab.h"
 
 extern int yyparse();  // Função do Bison
 
@@ -17,6 +19,8 @@ int main(int argc, char *argv[]) {
             else if (strcmp(argv[1], "--print-full-tree") == 0) 
                 printASTVertical(root);
 
+
+            buildSymtab(root);
             freeAST(root);
         } else {
             printf("Aviso: Nenhuma árvore foi construída.\n");
