@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "globals.h": "c",
+        "analyze.h": "c",
+        "ast.h": "c"
+    }
+}
