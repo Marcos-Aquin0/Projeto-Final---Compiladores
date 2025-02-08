@@ -1,7 +1,7 @@
 #include "ast.h"
 
 // Função para criar nós da árvore
-ASTNode* createNode(NodeType type, ASTNode* left, ASTNode* right, char* value) {
+ASTNode* createNode(NodeType type, ASTNode* left, ASTNode* right, char* value, int lineno, char *idType) {
     ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
     if (!node) {
         fprintf(stderr, "Erro ao alocar memória para ASTNode.\n");
@@ -11,6 +11,8 @@ ASTNode* createNode(NodeType type, ASTNode* left, ASTNode* right, char* value) {
     node->left = left;
     node->right = right;
     node->value = value ? strdup(value) : NULL;
+    node->lineno = lineno;
+    node->idType = idType;
     return node;
 }
 
@@ -54,6 +56,7 @@ static const char* nodeTypeToString(NodeType type) {
         case NODE_ACTIVATION: return "Activation";
         case NODE_ARGS: return "Args";
         case NODE_ARG_LIST: return "ArgList";
+        case NODE_FUNC: return "Func";
         default: return "UnknownNode";
     }
 }
