@@ -7,6 +7,8 @@ FLEX_FILE = lex.flex
 BISON_FILE = parser.y
 MAIN_FILE = main.c
 AST_FILES = ast.c
+SYMTAB_FILES = symtab.c
+ANALYZE_FILES = analyze.c
 
 # Arquivos gerados
 LEX_C = lex.yy.c
@@ -23,8 +25,8 @@ $(LEX_C): $(FLEX_FILE) $(BISON_H)
 $(BISON_C) $(BISON_H): $(BISON_FILE)
 	bison -d -o $(BISON_C) $(BISON_FILE) -Wcounterexamples
 
-$(EXEC): $(BISON_C) $(LEX_C) $(MAIN_FILE) $(AST_FILES)
-	$(CC) $(CFLAGS) -o $(EXEC) $(BISON_C) $(LEX_C) $(MAIN_FILE) $(AST_FILES) -lfl
+$(EXEC): $(BISON_C) $(LEX_C) $(MAIN_FILE) $(AST_FILES) $(SYMTAB_FILES) $(ANALYZE_FILES)
+	$(CC) $(CFLAGS) -o $(EXEC) $(BISON_C) $(LEX_C) $(MAIN_FILE) $(AST_FILES) $(SYMTAB_FILES) $(ANALYZE_FILES) -lfl
 
 # Limpeza
 clean:
