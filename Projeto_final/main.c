@@ -14,11 +14,10 @@ int main(int argc, char *argv[]) {
         printf("Análise sintática concluída com sucesso!\n\n");
         
         if (root != NULL) {
-            if (strcmp(argv[1], "--print-tree") == 0) 
+            if (argc > 1 && strcmp(argv[1], "--print-tree") == 0) 
                 printReducedAST(root, 0);
-            else if (strcmp(argv[1], "--print-full-tree") == 0) 
+            else if (argc > 1 && strcmp(argv[1], "--print-full-tree") == 0) 
                 printASTVertical(root);
-
 
             buildSymtab(root);
             freeAST(root);

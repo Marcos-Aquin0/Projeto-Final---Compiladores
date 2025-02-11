@@ -43,68 +43,72 @@ static void nullProc(ASTNode *t) {
     else return;
 }
 
-/* Procedure insertNode inserts 
- * identifiers stored in t into 
- * the symbol table 
- */
 static void insertNode(ASTNode *t) {
     if (t == NULL || t->value == NULL)
         return;
 
-    char *scope = current_scope(); // Obtém o escopo atual
+    char *scope = current_scope(); // Gets current scope
+    
+    // Ensure we have a valid scope
+    if (scope == NULL) {
+        scope = "global";  // Default to global scope if none is set
+    }
 
     switch (t->type) {
         case NODE_VAR_DECL:
-            // Inserir variável na tabela de símbolos
-            if (st_lookup(t->value) == NULL) { // Símbolo não está na tabela
-                st_insert(t->value, t->lineno, location++, scope, "var", t->idType);
-            } else { // Símbolo já está na tabela, apenas adiciona o número da linha
-                st_insert(t->value, t->lineno, 0, scope, "var", t->idType);
+            if (st_lookup(t->value) == NULL) {
+                // New variable declaration
+                st_insert(t->value, t->lineno, location++, strdup(scope), "var", t->idType);
+            } else {
+                // Additional line number for existing variable
+                st_insert(t->value, t->lineno, -1, strdup(scope), "var", t->idType);
             }
             break;
 
         case NODE_FUNC_DECL:
-            // Inserir função na tabela de símbolos
-            if (st_lookup(t->value) == NULL) { // Símbolo não está na tabela
-                st_insert(t->value, t->lineno, location++, scope, "func", t->idType);
-            } else { // Símbolo já está na tabela, apenas adiciona o número da linha
-                st_insert(t->value, t->lineno, 0, scope, "func", t->idType);
+            if (st_lookup(t->value) == NULL) {
+                // New function declaration
+                st_insert(t->value, t->lineno, location++, "global", "func", t->idType);
+            } else {
+                // Additional line number for existing function
+                st_insert(t->value, t->lineno, -1, "global", "func", t->idType);
             }
             break;
 
         case NODE_VAR:
-            // Inserir uso de variável na tabela de símbolos
-            if (st_lookup(t->value) == NULL) { // Símbolo não está na tabela
-                st_insert(t->value, t->lineno, location++, scope, "var", t->idType);
-            } else { // Símbolo já está na tabela, apenas adiciona o número da linha
-                st_insert(t->value, t->lineno, 0, scope, "var", t->idType);
+            if (st_lookup(t->value) == NULL) {
+                // New variable usage
+                st_insert(t->value, t->lineno, location++, strdup(scope), "var", t->idType);
+            } else {
+                // Additional line number for existing variable
+                st_insert(t->value, t->lineno, -1, strdup(scope), "var", t->idType);
             }
             break;
 
         case NODE_FUNC:
-            // Inserir uso de variável na tabela de símbolos
-            if (st_lookup(t->value) == NULL) { // Símbolo não está na tabela
-                st_insert(t->value, t->lineno, location++, scope, "func", t->idType);
-            } else { // Símbolo já está na tabela, apenas adiciona o número da linha
-                st_insert(t->value, t->lineno, 0, scope, "func", t->idType);
+            if (st_lookup(t->value) == NULL) {
+                // New function usage
+                st_insert(t->value, t->lineno, location++, "global", "func", t->idType);
+            } else {
+                // Additional line number for existing function
+                st_insert(t->value, t->lineno, -1, "global", "func", t->idType);
             }
             break;
 
         case NODE_PARAM:
-            // Inserir uso de variável na tabela de símbolos
-            if (st_lookup(t->value) == NULL) { // Símbolo não está na tabela
-                st_insert(t->value, t->lineno, location++, scope, "param", t->idType);
-            } else { // Símbolo já está na tabela, apenas adiciona o número da linha
-                st_insert(t->value, t->lineno, 0, scope, "param", t->idType);
+            if (st_lookup(t->value) == NULL) {
+                // New parameter
+                st_insert(t->value, t->lineno, location++, strdup(scope), "param", t->idType);
+            } else {
+                // Additional line number for existing parameter
+                st_insert(t->value, t->lineno, -1, strdup(scope), "param", t->idType);
             }
             break;
 
         default:
-            // Outros tipos de nós não são relevantes para a tabela de símbolos
             break;
     }
 }
-
 /* Function buildSymtab constructs the symbol 
  * table by traversing the syntax tree
  */
