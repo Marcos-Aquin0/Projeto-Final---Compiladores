@@ -11,25 +11,23 @@ static int location = 0;
  * in postorder to tree pointed to by t
  */
 static void traverse(ASTNode *t,
-                     void (*preProc)(ASTNode *),
-                     void (*postProc)(ASTNode *)) {                  
+                    void (*preProc)(ASTNode *),
+                    void (*postProc)(ASTNode *)) {
     if (t != NULL) {
-        // Antes de aplicar preProc, verificar se o nodo introduz um novo escopo
-        if (t->type == NODE_FUNC || t->type == NODE_COMPOUND_DECL) {
-            printf("%s \n", t->value);
-            push_scope(t->value); // Entrar em um novo escopo
-        }
-
-        preProc(t);
-
-        traverse(t->left, preProc, postProc);  // Percorre o filho esquerdo
-        traverse(t->right, preProc, postProc); // Percorre o filho direito
-
-        // Após percorrer os filhos, verificar se o escopo deve ser desempilhado
+        // Verifica se o nodo introduz um novo escopo
         if (t->type == NODE_FUNC_DECL || t->type == NODE_COMPOUND_DECL) {
-            pop_scope(); // Sair do escopo atual
+            push_scope(t->value);  // Entra no novo escopo
         }
-
+        
+        preProc(t);
+        traverse(t->left, preProc, postProc);
+        traverse(t->right, preProc, postProc);
+        
+        // Verifica se deve sair do escopo atual
+        if (t->type == NODE_FUNC_DECL || t->type == NODE_COMPOUND_DECL) {
+            pop_scope();  // Sai do escopo atual
+        }
+        
         postProc(t);
     }
 }
@@ -47,61 +45,56 @@ static void insertNode(ASTNode *t) {
     if (t == NULL || t->value == NULL)
         return;
 
-    char *scope = current_scope(); // Gets current scope
+    char *scope = current_scope();
     
-    // Ensure we have a valid scope
     if (scope == NULL) {
-        scope = "global";  // Default to global scope if none is set
+        scope = "global";
     }
 
     switch (t->type) {
         case NODE_VAR_DECL:
             if (st_lookup(t->value) == NULL) {
-                // New variable declaration
                 st_insert(t->value, t->lineno, location++, strdup(scope), "var", t->idType);
             } else {
-                // Additional line number for existing variable
-                st_insert(t->value, t->lineno, -1, strdup(scope), "var", t->idType);
+                BucketList existing = st_lookup(t->value);
+                st_insert(t->value, t->lineno, existing->memloc, strdup(scope), "var", t->idType);
             }
             break;
 
         case NODE_FUNC_DECL:
             if (st_lookup(t->value) == NULL) {
-                // New function declaration
                 st_insert(t->value, t->lineno, location++, "global", "func", t->idType);
             } else {
-                // Additional line number for existing function
-                st_insert(t->value, t->lineno, -1, "global", "func", t->idType);
+                BucketList existing = st_lookup(t->value);
+                st_insert(t->value, t->lineno, existing->memloc, "global", "func", t->idType);
+            }
+            break;
+
+        case NODE_FUNC:
+            // Chamada de função - deve estar declarada no escopo global
+            if (st_lookup(t->value) == NULL) {
+                st_insert(t->value, t->lineno, location++, "global", "func", t->idType);
+            } else {
+                BucketList existing = st_lookup(t->value);
+                st_insert(t->value, t->lineno, existing->memloc, "global", "func", t->idType);
             }
             break;
 
         case NODE_VAR:
             if (st_lookup(t->value) == NULL) {
-                // New variable usage
                 st_insert(t->value, t->lineno, location++, strdup(scope), "var", t->idType);
             } else {
-                // Additional line number for existing variable
-                st_insert(t->value, t->lineno, -1, strdup(scope), "var", t->idType);
-            }
-            break;
-
-        case NODE_FUNC:
-            if (st_lookup(t->value) == NULL) {
-                // New function usage
-                st_insert(t->value, t->lineno, location++, "global", "func", t->idType);
-            } else {
-                // Additional line number for existing function
-                st_insert(t->value, t->lineno, -1, "global", "func", t->idType);
+                BucketList existing = st_lookup(t->value);
+                st_insert(t->value, t->lineno, existing->memloc, strdup(existing->scope), "var", t->idType);
             }
             break;
 
         case NODE_PARAM:
             if (st_lookup(t->value) == NULL) {
-                // New parameter
                 st_insert(t->value, t->lineno, location++, strdup(scope), "param", t->idType);
             } else {
-                // Additional line number for existing parameter
-                st_insert(t->value, t->lineno, -1, strdup(scope), "param", t->idType);
+                BucketList existing = st_lookup(t->value);
+                st_insert(t->value, t->lineno, existing->memloc, strdup(scope), "param", t->idType);
             }
             break;
 
