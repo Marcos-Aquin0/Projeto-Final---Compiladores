@@ -32,4 +32,7 @@ $(EXEC): $(BISON_C) $(LEX_C) $(MAIN_FILE) $(AST_FILES) $(SYMTAB_FILES) $(ANALYZE
 clean:
 	rm -f $(LEX_C) $(BISON_C) $(BISON_H) $(EXEC)
 
-.PHONY: all clean
+debug: CFLAGS += -DDEBUG
+debug: clean all
+
+.PHONY: all clean debug
