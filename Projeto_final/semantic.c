@@ -11,10 +11,14 @@ static void checkAssignment(ASTNode* node);
 static void checkFunctionCall(ASTNode* node);
 static char* getExpressionType(ASTNode* node);
 static void checkMainFunction(void);
+static void checkAtLeastOneDeclaration(void);
+static void checkLastFunctionIsMain(void);
 
 // Global variable definition
 int hasSemanticError = 0;
 static int hasMainFunction = 0;  // Flag to check if main function exists
+static int hasDeclaration = 0;   // Flag to check if at least one declaration exists
+static ASTNode* lastFunctionNode = NULL;  // Pointer to the last function node
 
 // Estrutura para armazenar informações de tipo
 typedef struct TypeInfo {
@@ -70,6 +74,7 @@ void semanticAnalysis(ASTNode* node) {
             // Armazena informação de tipo na tabela hash
             insertTypeInfo(node->value, node->idType, 0, 0);
             checkVariableDeclaration(node);
+            hasDeclaration = 1;  // Mark that a declaration exists
             break;
             
         case NODE_EXPR:
@@ -83,9 +88,11 @@ void semanticAnalysis(ASTNode* node) {
             break;
 
         case NODE_FUNC_DECL:
+            lastFunctionNode = node;  // Update the last function node
             if (strcmp(node->value, "main") == 0) {
                 hasMainFunction = 1;
             }
+            hasDeclaration = 1;  // Mark that a declaration exists
             break;
     }
     
@@ -95,6 +102,8 @@ void semanticAnalysis(ASTNode* node) {
     // Verifica se a função main foi declarada
     if (node->type == NODE_PROGRAM) {
         checkMainFunction();
+        checkAtLeastOneDeclaration();
+        checkLastFunctionIsMain();
     }
 }
 
@@ -206,6 +215,22 @@ static char* getExpressionType(ASTNode* node) {
 static void checkMainFunction(void) {
     if (!hasMainFunction) {
         fprintf(stderr, "Erro semântico: Função 'main' não declarada.\n");
+        hasSemanticError = 1;
+    }
+}
+
+// Adicionar função para verificar se há pelo menos uma declaração
+static void checkAtLeastOneDeclaration(void) {
+    if (!hasDeclaration) {
+        fprintf(stderr, "Erro semântico: O código deve conter pelo menos uma declaração (função ou variável).\n");
+        hasSemanticError = 1;
+    }
+}
+
+// Adicionar função para verificar se a última função é void main(void)
+static void checkLastFunctionIsMain(void) {
+    if (lastFunctionNode && strcmp(lastFunctionNode->value, "main") != 0) {
+        fprintf(stderr, "Erro semântico: A última declaração de função deve ser 'void main(void)'.\n");
         hasSemanticError = 1;
     }
 }
