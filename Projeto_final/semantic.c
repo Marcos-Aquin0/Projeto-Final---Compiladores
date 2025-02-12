@@ -10,9 +10,11 @@ static void checkVariableDeclaration(ASTNode* node);
 static void checkAssignment(ASTNode* node);
 static void checkFunctionCall(ASTNode* node);
 static char* getExpressionType(ASTNode* node);
+static void checkMainFunction(void);
 
 // Global variable definition
 int hasSemanticError = 0;
+static int hasMainFunction = 0;  // Flag to check if main function exists
 
 // Estrutura para armazenar informações de tipo
 typedef struct TypeInfo {
@@ -79,10 +81,21 @@ void semanticAnalysis(ASTNode* node) {
         case NODE_ACTIVATION:
             checkFunctionCall(node);
             break;
+
+        case NODE_FUNC_DECL:
+            if (strcmp(node->value, "main") == 0) {
+                hasMainFunction = 1;
+            }
+            break;
     }
     
     semanticAnalysis(node->left);
     semanticAnalysis(node->right);
+
+    // Verifica se a função main foi declarada
+    if (node->type == NODE_PROGRAM) {
+        checkMainFunction();
+    }
 }
 
 static void checkVariableDeclaration(ASTNode* node) {
@@ -104,13 +117,32 @@ static void checkAssignment(ASTNode* node) {
     char* leftType = getExpressionType(node->left);
     char* rightType = getExpressionType(node->right);
     
+    // Verifica se a variável do lado esquerdo foi declarada
+    if (leftType == NULL) {
+        fprintf(stderr, "Erro semântico na linha %d: Variável '%s' sendo usada sem ter sido declarada.\n",
+                node->lineno,
+                node->left->value ? node->left->value : "desconhecida");
+        hasSemanticError = 1;
+        return;
+    }
+
+    // Verifica se a variável/expressão do lado direito foi declarada
+    if (rightType == NULL) {
+        fprintf(stderr, "Erro semântico na linha %d: Expressão ou variável '%s' sendo usada sem ter sido declarada.\n",
+                node->lineno,
+                node->right->value ? node->right->value : "desconhecida");
+        hasSemanticError = 1;
+        return;
+    }
+
+    // Se ambos os tipos existem, verifica compatibilidade
     if (!checkTypeCompatibility(leftType, rightType)) {
         fprintf(stderr, "Erro semântico na linha %d: Incompatibilidade de tipos na atribuição. "
                        "Variável '%s' é do tipo '%s' mas está recebendo valor do tipo '%s'.\n",
                 node->lineno,
                 node->left->value ? node->left->value : "desconhecida",
-                leftType ? leftType : "desconhecido",
-                rightType ? rightType : "desconhecido");
+                leftType,
+                rightType);
         hasSemanticError = 1;
     }
 }
@@ -160,9 +192,22 @@ static char* getExpressionType(ASTNode* node) {
                 return l ? l->dataType : NULL;
             }
             break;
+
+        case NODE_SUM_EXPR:
+        case NODE_TERM:
+        case NODE_MULT:
+            // Operadores matemáticos retornam tipo int
+            return "int";
     }
     
     return NULL;
+}
+
+static void checkMainFunction(void) {
+    if (!hasMainFunction) {
+        fprintf(stderr, "Erro semântico: Função 'main' não declarada.\n");
+        hasSemanticError = 1;
+    }
 }
 
 // Adicionar função para liberar a memória da tabela de tipos
