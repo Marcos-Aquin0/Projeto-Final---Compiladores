@@ -6,6 +6,9 @@
 // Main semantic analysis function
 void semanticAnalysis(ASTNode* syntaxTree);
 
+// Function to free type table memory
+void freeTypeTable(void);
+
 // Global error flag
 extern int hasSemanticError;
 

@@ -42,12 +42,31 @@ static int checkTypeCompatibility(const char* type1, const char* type2) {
     return (strcmp(type1, type2) == 0);
 }
 
+// Adicionar funções para gerenciar a tabela de tipos
+static void insertTypeInfo(char* name, char* type, int isArray, int arraySize) {
+    int index = hash(name);
+    TypeInfo* info = (TypeInfo*)malloc(sizeof(TypeInfo));
+    info->type = strdup(type);
+    info->isArray = isArray;
+    info->arraySize = arraySize;
+    typeTable[index] = info;
+    printf("DEBUG: Inserindo tipo '%s' para '%s' na tabela de tipos (hash: %d)\n", 
+           type, name, index);
+}
+
+static TypeInfo* lookupTypeInfo(char* name) {
+    int index = hash(name);
+    return typeTable[index];
+}
+
 // Função principal de análise semântica
 void semanticAnalysis(ASTNode* node) {
     if (node == NULL) return;
     
     switch (node->type) {
         case NODE_VAR_DECL:
+            // Armazena informação de tipo na tabela hash
+            insertTypeInfo(node->value, node->idType, 0, 0);
             checkVariableDeclaration(node);
             break;
             
@@ -120,6 +139,10 @@ static char* getExpressionType(ASTNode* node) {
     switch (node->type) {
         case NODE_VAR:
             {
+                TypeInfo* info = lookupTypeInfo(node->value);
+                if (info) return info->type;
+                
+                // Fallback para a tabela de símbolos se não encontrar na tabela de tipos
                 BucketList l = st_lookup(node->value);
                 return l ? l->dataType : NULL;
             }
@@ -130,6 +153,9 @@ static char* getExpressionType(ASTNode* node) {
             
         case NODE_ACTIVATION:
             if (node->left && node->left->value) {
+                TypeInfo* info = lookupTypeInfo(node->left->value);
+                if (info) return info->type;
+                
                 BucketList l = st_lookup(node->left->value);
                 return l ? l->dataType : NULL;
             }
@@ -137,6 +163,17 @@ static char* getExpressionType(ASTNode* node) {
     }
     
     return NULL;
+}
+
+// Adicionar função para liberar a memória da tabela de tipos
+void freeTypeTable(void) {
+    for (int i = 0; i < TYPE_SIZE; i++) {
+        if (typeTable[i]) {
+            free(typeTable[i]->type);
+            free(typeTable[i]);
+            typeTable[i] = NULL;
+        }
+    }
 }
 
 // Adicionar ao globals.h
