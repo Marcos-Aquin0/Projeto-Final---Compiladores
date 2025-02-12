@@ -9,6 +9,7 @@ MAIN_FILE = main.c
 ASNT_FILES = asnt.c
 SYMTAB_FILES = symtab.c
 ANALYZE_FILES = analyze.c
+SEMANTIC_FILE = semantic.c
 
 # Arquivos gerados
 LEX_C = lex.yy.c
@@ -26,7 +27,7 @@ $(BISON_C) $(BISON_H): $(BISON_FILE)
 	bison -d -o $(BISON_C) $(BISON_FILE) -Wcounterexamples
 
 $(EXEC): $(BISON_C) $(LEX_C) $(MAIN_FILE) $(AST_FILES) $(SYMTAB_FILES) $(ANALYZE_FILES)
-	$(CC) $(CFLAGS) -o $(EXEC) $(BISON_C) $(LEX_C) $(MAIN_FILE) $(ASNT_FILES) $(SYMTAB_FILES) $(ANALYZE_FILES) -lfl
+	$(CC) $(CFLAGS) -o $(EXEC) $(BISON_C) $(LEX_C) $(MAIN_FILE) $(ASNT_FILES) $(SYMTAB_FILES) $(ANALYZE_FILES) $(SEMANTIC_FILE) -lfl
 
 # Limpeza
 clean:
