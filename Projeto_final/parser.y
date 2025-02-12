@@ -79,6 +79,12 @@ func_decl:
                        createNode(NODE_DECL, $4, $6, NULL, yylineno, NULL), $2, yylineno, $1->value);
         // Note that we're passing $2 (function name) as the value for NODE_FUNC_DECL
     }
+    | spec_type ID OPAREN CPAREN compound_decl {
+        ASTNode* idNode = createNode(NODE_FUNC, NULL, NULL, $2, yylineno, $1->value);
+        $$ = createNode(NODE_FUNC_DECL, createNode(NODE_DECL, $1, idNode, NULL, yylineno, NULL), 
+                       createNode(NODE_DECL, NULL, $5, NULL, yylineno, NULL), $2, yylineno, $1->value);
+        // Note that we're passing $2 (function name) as the value for NODE_FUNC_DECL
+    }
     ;
 
 params:
