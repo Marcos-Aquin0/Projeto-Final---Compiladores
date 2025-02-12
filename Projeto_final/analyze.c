@@ -15,8 +15,15 @@ static void traverse(ASTNode *t,
                     void (*postProc)(ASTNode *)) {
     if (t != NULL) {
         // Verifica se o nodo introduz um novo escopo
-        if (t->type == NODE_FUNC_DECL || t->type == NODE_COMPOUND_DECL) {
-            push_scope(t->value);  // Entra no novo escopo
+        if (t->type == NODE_FUNC_DECL) {
+            // Para funções, usamos o nome da função como escopo
+            if (t->left && t->left->right && t->left->right->value) {
+                push_scope(t->left->right->value);
+                printf("DEBUG: Entrando no escopo %s\n", current_scope());
+            }
+        } else if (t->type == NODE_COMPOUND_DECL) {
+            // Para blocos compostos, mantemos o escopo atual
+            push_scope(current_scope());
             printf("DEBUG: Entrando no escopo %s\n", current_scope());
         }
         
@@ -24,10 +31,9 @@ static void traverse(ASTNode *t,
         traverse(t->left, preProc, postProc);
         traverse(t->right, preProc, postProc);
         
-        // Verifica se deve sair do escopo atual
         if (t->type == NODE_FUNC_DECL || t->type == NODE_COMPOUND_DECL) {
             printf("DEBUG: Saindo do escopo %s\n", current_scope());
-            pop_scope();  // Sai do escopo atual
+            pop_scope();
         }
         
         postProc(t);

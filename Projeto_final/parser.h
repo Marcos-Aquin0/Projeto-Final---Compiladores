@@ -1,7 +1,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "ast.h"
+#include "asnt.h"
 
 // Declaração da raiz da árvore sintática
 extern ASTNode* root;

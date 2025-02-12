@@ -1,6 +1,6 @@
 %{
 #include "globals.h"
-#include "ast.h"
+#include "asnt.h"
 
 void yyerror(const char *s);
 int yylex();
@@ -9,7 +9,7 @@ ASTNode* root = NULL; // Root of the AST
 %}
 
 %code requires {
-    #include "ast.h"  /* Necessário para o Bison reconhecer ASTNode na união */
+    #include "asnt.h"  /* Necessário para o Bison reconhecer ASTNode na união */
 }
 
 %union {
@@ -55,13 +55,14 @@ decl:
     ;
 
 var_decl:
-    spec_type ID SMC          { $$ = createNode(NODE_VAR_DECL, $1, NULL, $2, yylineno, $1->value); }
+    spec_type ID SMC          { $$ = createNode(NODE_VAR_DECL, $1, NULL, $2, yylineno, $1->value); $$->scope = current_scope(); }
     | spec_type ID OBRACKT NUM CBRACKT SMC {
         ASTNode* idNode = createNode(NODE_VAR, NULL, NULL, $2, yylineno, $1->value);
         char numStr[32];
         sprintf(numStr, "%d", $4);
         ASTNode* numNode = createNode(NODE_FACTOR, NULL, NULL, numStr, yylineno, NULL);
         $$ = createNode(NODE_VAR_DECL, $1, createNode(NODE_VAR, idNode, numNode, NULL, yylineno, $1->value), NULL, yylineno, $1->value);
+        $$->scope = current_scope();
     }
     | spec_type error SMC     { yyerror("Erro na declaração de variável"); $$ = NULL; }
     ;
@@ -75,7 +76,8 @@ func_decl:
     spec_type ID OPAREN params CPAREN compound_decl {
         ASTNode* idNode = createNode(NODE_FUNC, NULL, NULL, $2, yylineno, $1->value);
         $$ = createNode(NODE_FUNC_DECL, createNode(NODE_DECL, $1, idNode, NULL, yylineno, NULL), 
-                       createNode(NODE_DECL, $4, $6, NULL, yylineno, NULL), NULL, yylineno, $1->value);
+                       createNode(NODE_DECL, $4, $6, NULL, yylineno, NULL), $2, yylineno, $1->value);
+        // Note that we're passing $2 (function name) as the value for NODE_FUNC_DECL
     }
     ;
 
@@ -90,16 +92,18 @@ param_list:
     ;
 
 param:
-    spec_type ID             { $$ = createNode(NODE_PARAM, $1, NULL, $2, yylineno, $1->value); }
+    spec_type ID             { $$ = createNode(NODE_PARAM, $1, NULL, $2, yylineno, $1->value); $$->scope = current_scope(); }
     | spec_type ID OBRACKT CBRACKT {
         ASTNode* idNode = createNode(NODE_VAR, NULL, NULL, $2, yylineno, $1->value);
         $$ = createNode(NODE_PARAM, $1, idNode, NULL, yylineno, $1->value);
+        $$->scope = current_scope();
     }
     ;
 
 compound_decl:
     OKEYS local_decl state_list CKEYS {
         $$ = createNode(NODE_COMPOUND_DECL, $2, $3, NULL, yylineno, NULL);
+        $$->scope = current_scope();  // Define o escopo do bloco composto
     }
     ;
 

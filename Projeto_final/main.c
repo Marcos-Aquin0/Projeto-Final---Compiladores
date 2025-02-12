@@ -1,5 +1,5 @@
 #include "globals.h"
-#include "ast.h"
+#include "asnt.h"
 #include "parser.h"
 #include "analyze.h"
 #include "symtab.h"

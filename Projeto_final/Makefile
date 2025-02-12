@@ -6,7 +6,7 @@ CFLAGS = -Wall -g
 FLEX_FILE = lex.flex
 BISON_FILE = parser.y
 MAIN_FILE = main.c
-AST_FILES = ast.c
+ASNT_FILES = asnt.c
 SYMTAB_FILES = symtab.c
 ANALYZE_FILES = analyze.c
 
@@ -26,7 +26,7 @@ $(BISON_C) $(BISON_H): $(BISON_FILE)
 	bison -d -o $(BISON_C) $(BISON_FILE) -Wcounterexamples
 
 $(EXEC): $(BISON_C) $(LEX_C) $(MAIN_FILE) $(AST_FILES) $(SYMTAB_FILES) $(ANALYZE_FILES)
-	$(CC) $(CFLAGS) -o $(EXEC) $(BISON_C) $(LEX_C) $(MAIN_FILE) $(AST_FILES) $(SYMTAB_FILES) $(ANALYZE_FILES) -lfl
+	$(CC) $(CFLAGS) -o $(EXEC) $(BISON_C) $(LEX_C) $(MAIN_FILE) $(ASNT_FILES) $(SYMTAB_FILES) $(ANALYZE_FILES) -lfl
 
 # Limpeza
 clean:

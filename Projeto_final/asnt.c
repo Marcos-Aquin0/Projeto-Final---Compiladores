@@ -1,4 +1,4 @@
-#include "ast.h"
+#include "asnt.h"
 
 // Função para criar nós da árvore
 ASTNode* createNode(NodeType type, ASTNode* left, ASTNode* right, char* value, int lineno, char *idType) {
@@ -13,6 +13,7 @@ ASTNode* createNode(NodeType type, ASTNode* left, ASTNode* right, char* value, i
     node->value = value ? strdup(value) : NULL;
     node->lineno = lineno;
     node->idType = idType;
+    node->scope = NULL;  // Inicializa o novo campo
     return node;
 }
 

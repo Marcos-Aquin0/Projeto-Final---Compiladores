@@ -21,6 +21,7 @@ typedef struct ASTNode {
     char* value;         // Valor para identificadores e constantes
     int lineno;
     char *idType;
+    char *scope;  // Novo campo para armazenar o escopo
 } ASTNode;
 
 // Funções para criar nós

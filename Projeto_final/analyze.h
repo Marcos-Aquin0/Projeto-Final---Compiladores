@@ -1,7 +1,7 @@
 #ifndef ANALYZE_H
 #define ANALYZE_H
 
-#include "ast.h"
+#include "asnt.h"
 
 void buildSymtab(ASTNode *syntaxTree);
 
