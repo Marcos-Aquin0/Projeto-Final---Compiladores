@@ -13,6 +13,7 @@ static char* getExpressionType(ASTNode* node);
 static void checkMainFunction(void);
 static void checkAtLeastOneDeclaration(void);
 static void checkLastFunctionIsMain(void);
+static void checkArrayAccess(ASTNode* node);
 
 // Global variable definition
 int hasSemanticError = 0;
@@ -113,7 +114,9 @@ static void checkVariableDeclaration(ASTNode* node) {
     char* scope = current_scope();
     BucketList l = st_lookup(node->value);
     
-    if (l != NULL && strcmp(l->scope, scope) == 0) {
+    // Verifica se a variável já foi declarada no mesmo escopo
+    // Ignora a primeira declaração (quando o número da linha coincide)
+    if (l != NULL && strcmp(l->scope, scope) == 0 && l->lines->lineno != node->lineno) {
         fprintf(stderr, "Erro semântico: Variável '%s' já declarada no escopo '%s' (linha %d)\n",
                 node->value, scope, node->lineno);
         hasSemanticError = 1;
@@ -242,6 +245,47 @@ void freeTypeTable(void) {
             free(typeTable[i]->type);
             free(typeTable[i]);
             typeTable[i] = NULL;
+        }
+    }
+}
+
+static void checkArrayAccess(ASTNode* node) {
+    if (!node->value) return;
+    
+    BucketList l = st_lookup(node->value);
+    if (!l) {
+        fprintf(stderr, "Erro semântico: Variável '%s' não declarada (linha %d)\n",
+                node->value, node->lineno);
+        hasSemanticError = 1;
+        return;
+    }
+    
+    printf("DEBUG: Verificando acesso ao array %s (isArray: %d, arraySize: %d)\n", node->value, l->isArray, l->arraySize);
+    
+    if (!l->isArray) {
+        fprintf(stderr, "Erro semântico: Variável '%s' não é um array (linha %d)\n",
+                node->value, node->lineno);
+        hasSemanticError = 1;
+        return;
+    }
+    
+    // Verifica se o índice é uma expressão inteira
+    if (node->right) {
+        char* indexType = getExpressionType(node->right);
+        if (!indexType || strcmp(indexType, "int") != 0) {
+            fprintf(stderr, "Erro semântico: Índice do array deve ser do tipo int (linha %d)\n",
+                    node->lineno);
+            hasSemanticError = 1;
+        }
+        
+        // Se o índice é uma constante, verifica os limites
+        if (node->right->type == NODE_FACTOR && node->right->value) {
+            int index = atoi(node->right->value);
+            if (index < 0 || index >= l->arraySize) {
+                fprintf(stderr, "Erro semântico: Índice %d fora dos limites do array '%s[%d]' (linha %d)\n",
+                        index, node->value, l->arraySize, node->lineno);
+                hasSemanticError = 1;
+            }
         }
     }
 }
