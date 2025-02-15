@@ -107,11 +107,22 @@ param_list:
     ;
 
 param:
-    spec_type ID             { $$ = createNode(NODE_PARAM, $1, NULL, $2, yylineno, $1->value); $$->scope = current_scope(); }
-    | spec_type ID OBRACKT CBRACKT {
-        ASTNode* idNode = createNode(NODE_VAR, NULL, NULL, $2, yylineno, $1->value);
-        $$ = createNode(NODE_PARAM, $1, idNode, NULL, yylineno, $1->value);
+    spec_type ID             { 
+        printf("DEBUG: Declarando parâmetro simples %s\n", $2);
+        $$ = createNode(NODE_PARAM, $1, NULL, $2, yylineno, $1->value); 
         $$->scope = current_scope();
+        $$->isArray = 0;
+        $$->arraySize = 0;
+        $$->value = $2;
+    }
+    | spec_type ID OBRACKT CBRACKT {
+        printf("DEBUG: Declarando parâmetro array %s[]\n", $2);
+        $$ = createNode(NODE_PARAM, $1, NULL, $2, yylineno, $1->value);
+        $$->scope = current_scope();
+        $$->isArray = 1;  // Marca como array
+        $$->arraySize = -1;  // -1 indica array sem tamanho específico (parâmetro de função)
+        $$->value = $2;  // Nome do parâmetro
+        $$->idType = $1->value;  // Tipo do parâmetro (int, void, etc)
     }
     ;
 

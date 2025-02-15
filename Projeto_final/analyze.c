@@ -58,18 +58,16 @@ static void insertNode(ASTNode *t) {
         scope = "global";
     }
 
+    printf("DEBUG: insertNode: Processando nó tipo %d para '%s' no escopo '%s'\n", 
+           t->type, t->value, scope);
+
     switch (t->type) {
         case NODE_VAR_DECL:
-            printf("DEBUG: insertNode: Processando NODE_VAR_DECL para '%s' (isArray=%d, arraySize=%d)\n", 
-                   t->value, t->isArray, t->arraySize);
-            
-            if (st_lookup(t->value) == NULL) {
-                printf("DEBUG: insertNode: Inserindo nova variável na tabela de símbolos\n");
+            // Para declarações de variáveis, não considerar como erro a primeira declaração
+            if (st_lookup(t->value) == NULL || t->lineno == st_lookup(t->value)->lines->lineno) {
+                printf("DEBUG: insertNode: Inserindo nova variável '%s' (isArray=%d, arraySize=%d)\n", 
+                       t->value, t->isArray, t->arraySize);
                 st_insert(t->value, t->lineno, location++, strdup(scope), "var", t->idType, t->isArray, t->arraySize);
-            } else {
-                printf("DEBUG: insertNode: Atualizando variável existente na tabela de símbolos\n");
-                BucketList existing = st_lookup(t->value);
-                st_insert(t->value, t->lineno, existing->memloc, strdup(scope), "var", t->idType, t->isArray, t->arraySize);
             }
             break;
 
@@ -104,13 +102,9 @@ static void insertNode(ASTNode *t) {
             break;
 
         case NODE_PARAM:
-            printf("DEBUG: Inserindo parâmetro %s no escopo %s (isArray: %d, arraySize: %d)\n", t->value, scope, t->isArray, t->arraySize);
-            if (st_lookup(t->value) == NULL) {
-                st_insert(t->value, t->lineno, location++, strdup(scope), "param", t->idType, t->isArray, t->arraySize);
-            } else {
-                BucketList existing = st_lookup(t->value);
-                st_insert(t->value, t->lineno, existing->memloc, strdup(scope), "param", t->idType, t->isArray, t->arraySize);
-            }
+            printf("DEBUG: insertNode: Inserindo parâmetro '%s' (isArray=%d, arraySize=%d)\n", 
+                   t->value, t->isArray, t->arraySize);
+            st_insert(t->value, t->lineno, location++, strdup(scope), "param", t->idType, t->isArray, t->arraySize);
             break;
 
         default:

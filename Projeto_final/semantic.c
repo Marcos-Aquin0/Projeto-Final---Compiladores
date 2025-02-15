@@ -114,7 +114,9 @@ static void checkVariableDeclaration(ASTNode* node) {
     char* scope = current_scope();
     BucketList l = st_lookup(node->value);
     
-    if (l != NULL && strcmp(l->scope, scope) == 0) {
+    // Verifica se a variável já foi declarada no mesmo escopo
+    // Ignora a primeira declaração (quando o número da linha coincide)
+    if (l != NULL && strcmp(l->scope, scope) == 0 && l->lines->lineno != node->lineno) {
         fprintf(stderr, "Erro semântico: Variável '%s' já declarada no escopo '%s' (linha %d)\n",
                 node->value, scope, node->lineno);
         hasSemanticError = 1;
