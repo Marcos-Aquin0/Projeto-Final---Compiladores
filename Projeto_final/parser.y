@@ -54,15 +54,24 @@ decl:
     | var_decl               { $$ = $1; }
     ;
 
+// ...existing code...
+
 var_decl:
-    spec_type ID SMC          { $$ = createNode(NODE_VAR_DECL, $1, NULL, $2, yylineno, $1->value); $$->scope = current_scope(); }
+    spec_type ID SMC          { 
+        printf("DEBUG: Declarando variável simples %s do tipo %s\n", $2, $1->value);
+        $$ = createNode(NODE_VAR_DECL, $1, NULL, $2, yylineno, $1->value); 
+        $$->scope = current_scope(); 
+        $$->isArray = 0; 
+        $$->arraySize = 0; 
+        $$->value = $2;  // Importante: armazenar o nome da variável
+    }
     | spec_type ID OBRACKT NUM CBRACKT SMC {
-        ASTNode* idNode = createNode(NODE_VAR, NULL, NULL, $2, yylineno, $1->value);
-        char numStr[32];
-        sprintf(numStr, "%d", $4);
-        ASTNode* numNode = createNode(NODE_FACTOR, NULL, NULL, numStr, yylineno, NULL);
-        $$ = createNode(NODE_VAR_DECL, $1, createNode(NODE_VAR, idNode, numNode, NULL, yylineno, $1->value), NULL, yylineno, $1->value);
+        printf("DEBUG: Declarando vetor %s do tipo %s com tamanho %d\n", $2, $1->value, $4);
+        $$ = createNode(NODE_VAR_DECL, $1, NULL, $2, yylineno, $1->value);
         $$->scope = current_scope();
+        $$->isArray = 1;  // Indica que é um vetor
+        $$->arraySize = $4;  // Armazena o tamanho do vetor
+        $$->value = $2;  // Importante: armazenar o nome da variável
     }
     | spec_type error SMC     { yyerror("Erro na declaração de variável"); $$ = NULL; }
     ;

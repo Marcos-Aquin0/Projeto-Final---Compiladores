@@ -19,19 +19,18 @@ static int hash(char *key) {
     return temp;
 }
 
-void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char *dataType) {
-    if (name == NULL) {
-        //fprintf(stderr, "Erro: tentativa de inserir variável com nome nulo.\n");
-        return; // Ou lide com o erro conforme a lógica do programa
-    }
+void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char *dataType, int isArray, int arraySize) {
+    if (name == NULL) return;
+    
+    printf("DEBUG: st_insert: Inserindo '%s' (isArray=%d, arraySize=%d)\n", name, isArray, arraySize);
     
     int h = hash(name);
     BucketList l = hashTable[h];
     while ((l != NULL) && (strcmp(name, l->name) != 0))
         l = l->next;
-    if (l == NULL) { // Variável não está na tabela
+    if (l == NULL) {
         l = (BucketList)malloc(sizeof(struct BucketListRec));
-        l->name = name;
+        l->name = strdup(name);  // Use strdup para evitar problemas com ponteiros
         l->scope = scope;
         l->idType = idType;
         l->dataType = dataType;
@@ -39,14 +38,23 @@ void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char 
         l->lines->lineno = lineno;
         l->lines->next = NULL;
         l->memloc = loc;
+        l->isArray = isArray;
+        l->arraySize = arraySize;
         l->next = hashTable[h];
         hashTable[h] = l;
-    } else { // Variável já está na tabela, apenas adiciona o número da linha
+        printf("DEBUG: st_insert: Nova entrada criada para '%s' com isArray=%d, arraySize=%d\n", 
+               name, isArray, arraySize);
+    } else {
+        // Atualiza os valores existentes
+        l->isArray = isArray;
+        l->arraySize = arraySize;
+        // Adiciona nova linha
         LineList t = l->lines;
         while (t->next != NULL) t = t->next;
         t->next = (LineList)malloc(sizeof(struct LineListRec));
         t->next->lineno = lineno;
         t->next->next = NULL;
+        printf("DEBUG: st_insert: Entrada existente atualizada para '%s'\n", name);
     }
 }
 
@@ -60,14 +68,14 @@ BucketList st_lookup(char *name) {
 
 void printSymTab(FILE *listing) {
     int i;
-    fprintf(listing, "Variable Name  Scope  ID Type  Data Type  Location   Line Numbers\n");
-    fprintf(listing, "-------------  -----  -------  ---------  --------   ------------\n");
+    fprintf(listing, "Variable Name  Scope  ID Type  Data Type  Location   Is Array  Array Size  Line Numbers\n");
+    fprintf(listing, "-------------  -----  -------  ---------  --------   --------  ----------  ------------\n");
     for (i = 0; i < SIZE; ++i) {
         if (hashTable[i] != NULL) {
             BucketList l = hashTable[i];
             while (l != NULL) {
                 LineList t = l->lines;
-                fprintf(listing, "%-14s %-8s %-8s %-10s %-8d  ", l->name, l->scope, l->idType, l->dataType, l->memloc);
+                fprintf(listing, "%-14s %-8s %-8s %-10s %-8d  %-8d  %-10d  ", l->name, l->scope, l->idType, l->dataType, l->memloc, l->isArray, l->arraySize);
                 while (t != NULL) {
                     fprintf(listing, "%4d ", t->lineno);
                     t = t->next;

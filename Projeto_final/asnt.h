@@ -21,7 +21,9 @@ typedef struct ASTNode {
     char* value;         // Valor para identificadores e constantes
     int lineno;
     char *idType;
-    char *scope;  // Novo campo para armazenar o escopo
+    char *scope;         // Novo campo para armazenar o escopo
+    int isArray;         // Indica se é um vetor
+    int arraySize;       // Tamanho do vetor
 } ASTNode;
 
 // Funções para criar nós

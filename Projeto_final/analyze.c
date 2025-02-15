@@ -54,65 +54,62 @@ static void insertNode(ASTNode *t) {
         return;
 
     char *scope = current_scope();
-    
     if (scope == NULL) {
         scope = "global";
     }
 
     switch (t->type) {
         case NODE_VAR_DECL:
+            printf("DEBUG: insertNode: Processando NODE_VAR_DECL para '%s' (isArray=%d, arraySize=%d)\n", 
+                   t->value, t->isArray, t->arraySize);
+            
             if (st_lookup(t->value) == NULL) {
-                st_insert(t->value, t->lineno, location++, strdup(scope), "var", t->idType);
-                printf("DEBUG: Inserindo variável %s no escopo %s\n", t->value, scope);
+                printf("DEBUG: insertNode: Inserindo nova variável na tabela de símbolos\n");
+                st_insert(t->value, t->lineno, location++, strdup(scope), "var", t->idType, t->isArray, t->arraySize);
             } else {
+                printf("DEBUG: insertNode: Atualizando variável existente na tabela de símbolos\n");
                 BucketList existing = st_lookup(t->value);
-                st_insert(t->value, t->lineno, existing->memloc, strdup(scope), "var", t->idType);
-                printf("DEBUG: Variável %s já existe no escopo %s, atualizando linha %d\n", t->value, scope, t->lineno);
+                st_insert(t->value, t->lineno, existing->memloc, strdup(scope), "var", t->idType, t->isArray, t->arraySize);
             }
             break;
 
         case NODE_FUNC_DECL:
+            printf("DEBUG: Inserindo função %s no escopo global\n", t->value);
             if (st_lookup(t->value) == NULL) {
-                st_insert(t->value, t->lineno, location++, "global", "func", t->idType);
-                printf("DEBUG: Inserindo função %s no escopo global\n", t->value);
+                st_insert(t->value, t->lineno, location++, "global", "func", t->idType, 0, 0);
             } else {
                 BucketList existing = st_lookup(t->value);
-                st_insert(t->value, t->lineno, existing->memloc, "global", "func", t->idType);
-                printf("DEBUG: Função %s já existe no escopo global, atualizando linha %d\n", t->value, t->lineno);
+                st_insert(t->value, t->lineno, existing->memloc, "global", "func", t->idType, 0, 0);
             }
             break;
 
         case NODE_FUNC:
-            // Chamada de função - deve estar declarada no escopo global
+            printf("DEBUG: Inserindo chamada de função %s no escopo global\n", t->value);
             if (st_lookup(t->value) == NULL) {
-                st_insert(t->value, t->lineno, location++, "global", "func", t->idType);
-                printf("DEBUG: Inserindo chamada de função %s no escopo global\n", t->value);
+                st_insert(t->value, t->lineno, location++, "global", "func", t->idType, 0, 0);
             } else {
                 BucketList existing = st_lookup(t->value);
-                st_insert(t->value, t->lineno, existing->memloc, "global", "func", t->idType);
-                printf("DEBUG: Chamada de função %s já existe no escopo global, atualizando linha %d\n", t->value, t->lineno);
+                st_insert(t->value, t->lineno, existing->memloc, "global", "func", t->idType, 0, 0);
             }
             break;
 
         case NODE_VAR:
+            printf("DEBUG: Inserindo variável %s no escopo %s (isArray: %d, arraySize: %d)\n", t->value, scope, t->isArray, t->arraySize);
             if (st_lookup(t->value) == NULL) {
-                st_insert(t->value, t->lineno, location++, strdup(scope), "var", t->idType);
-                printf("DEBUG: Inserindo variável %s no escopo %s\n", t->value, scope);
+                st_insert(t->value, t->lineno, location++, strdup(scope), "var", t->idType, t->isArray, t->arraySize);
             } else {
                 BucketList existing = st_lookup(t->value);
-                st_insert(t->value, t->lineno, existing->memloc, strdup(existing->scope), "var", t->idType);
-                printf("DEBUG: Variável %s já existe no escopo %s, atualizando linha %d\n", t->value, scope, t->lineno);
+                st_insert(t->value, t->lineno, existing->memloc, strdup(existing->scope), "var", t->idType, t->isArray, t->arraySize);
             }
             break;
 
         case NODE_PARAM:
+            printf("DEBUG: Inserindo parâmetro %s no escopo %s (isArray: %d, arraySize: %d)\n", t->value, scope, t->isArray, t->arraySize);
             if (st_lookup(t->value) == NULL) {
-                st_insert(t->value, t->lineno, location++, strdup(scope), "param", t->idType);
-                printf("DEBUG: Inserindo parâmetro %s no escopo %s\n", t->value, scope);
+                st_insert(t->value, t->lineno, location++, strdup(scope), "param", t->idType, t->isArray, t->arraySize);
             } else {
                 BucketList existing = st_lookup(t->value);
-                st_insert(t->value, t->lineno, existing->memloc, strdup(scope), "param", t->idType);
-                printf("DEBUG: Parâmetro %s já existe no escopo %s, atualizando linha %d\n", t->value, scope, t->lineno);
+                st_insert(t->value, t->lineno, existing->memloc, strdup(scope), "param", t->idType, t->isArray, t->arraySize);
             }
             break;
 
@@ -128,8 +125,8 @@ void buildSymtab(ASTNode *syntaxTree) {
     push_scope("global");
  
     // Adiciona funções predefinidas ao ambiente global
-    st_insert("input", 0, location++, "global", "func", "int");
-    st_insert("output", 0, location++, "global", "func", "void");
+    st_insert("input", 0, location++, "global", "func", "int", 0, 0);
+    st_insert("output", 0, location++, "global", "func", "void", 0, 0);
 
     traverse(syntaxTree, insertNode, nullProc);
     pop_scope();
