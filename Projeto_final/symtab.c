@@ -22,16 +22,20 @@ static int hash(char *key) {
 void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char *dataType, int isArray, int arraySize) {
     if (name == NULL) return;
     
-    printf("DEBUG: st_insert: Inserindo '%s' (isArray=%d, arraySize=%d)\n", name, isArray, arraySize);
+    printf("DEBUG: st_insert: Inserindo '%s' no escopo '%s' (idType=%s, isArray=%d)\n", 
+           name, scope, idType, isArray);
     
     int h = hash(name);
     BucketList l = hashTable[h];
-    while ((l != NULL) && (strcmp(name, l->name) != 0))
+    
+    // Procura exatamente o mesmo nome e escopo
+    while ((l != NULL) && (strcmp(name, l->name) != 0 || strcmp(l->scope, scope) != 0))
         l = l->next;
-    if (l == NULL) {
+        
+    if (l == NULL) {  // Não encontrou - cria nova entrada
         l = (BucketList)malloc(sizeof(struct BucketListRec));
-        l->name = strdup(name);  // Use strdup para evitar problemas com ponteiros
-        l->scope = scope;
+        l->name = strdup(name);
+        l->scope = strdup(scope);
         l->idType = idType;
         l->dataType = dataType;
         l->lines = (LineList)malloc(sizeof(struct LineListRec));
@@ -42,19 +46,16 @@ void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char 
         l->arraySize = arraySize;
         l->next = hashTable[h];
         hashTable[h] = l;
-        printf("DEBUG: st_insert: Nova entrada criada para '%s' com isArray=%d, arraySize=%d\n", 
-               name, isArray, arraySize);
-    } else {
-        // Atualiza os valores existentes
-        l->isArray = isArray;
-        l->arraySize = arraySize;
-        // Adiciona nova linha
-        LineList t = l->lines;
-        while (t->next != NULL) t = t->next;
-        t->next = (LineList)malloc(sizeof(struct LineListRec));
-        t->next->lineno = lineno;
-        t->next->next = NULL;
-        printf("DEBUG: st_insert: Entrada existente atualizada para '%s'\n", name);
+        printf("DEBUG: st_insert: Nova entrada criada para '%s'\n", name);
+    } else {  // Encontrou - apenas adiciona nova linha se não for redefinição
+        if (strcmp(idType, "param") != 0 || l->lines->lineno != lineno) {
+            printf("DEBUG: st_insert: Atualizando linha para '%s'\n", name);
+            LineList t = l->lines;
+            while (t->next != NULL) t = t->next;
+            t->next = (LineList)malloc(sizeof(struct LineListRec));
+            t->next->lineno = lineno;
+            t->next->next = NULL;
+        }
     }
 }
 
@@ -64,6 +65,20 @@ BucketList st_lookup(char *name) {
     while ((l != NULL) && (strcmp(name, l->name) != 0))
         l = l->next;
     return l; // Retorna NULL se não encontrar
+}
+
+BucketList st_lookup_in_scope(char *name, char *scope) {
+    int h = hash(name);
+    BucketList l = hashTable[h];
+    
+    // Search for exact match of both name and scope
+    while (l != NULL) {
+        if (strcmp(name, l->name) == 0 && strcmp(scope, l->scope) == 0) {
+            return l;
+        }
+        l = l->next;
+    }
+    return NULL;
 }
 
 void printSymTab(FILE *listing) {
