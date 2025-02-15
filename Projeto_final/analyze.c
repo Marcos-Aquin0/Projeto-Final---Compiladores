@@ -71,6 +71,14 @@ static void insertNode(ASTNode *t) {
             }
             break;
 
+        case NODE_PARAM:
+            printf("DEBUG: insertNode: Inserindo parâmetro '%s' (isArray=%d, arraySize=%d)\n", 
+                   t->value, t->isArray, t->arraySize);
+            if (st_lookup_in_scope(t->value, scope) == NULL) {
+                st_insert(t->value, t->lineno, location++, strdup(scope), "param", t->idType, t->isArray, t->arraySize);
+            }
+            break;
+
         case NODE_FUNC_DECL:
             printf("DEBUG: Inserindo função %s no escopo global\n", t->value);
             if (st_lookup(t->value) == NULL) {
@@ -99,12 +107,6 @@ static void insertNode(ASTNode *t) {
                 BucketList existing = st_lookup(t->value);
                 st_insert(t->value, t->lineno, existing->memloc, strdup(existing->scope), "var", t->idType, t->isArray, t->arraySize);
             }
-            break;
-
-        case NODE_PARAM:
-            printf("DEBUG: insertNode: Inserindo parâmetro '%s' (isArray=%d, arraySize=%d)\n", 
-                   t->value, t->isArray, t->arraySize);
-            st_insert(t->value, t->lineno, location++, strdup(scope), "param", t->idType, t->isArray, t->arraySize);
             break;
 
         default:
