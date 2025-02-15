@@ -99,9 +99,6 @@ static void insertNode(ASTNode *t) {
                 st_insert(t->value, t->lineno, location++, "global", "func", t->idType, 0, 0);
             }
             break;
-
-        default:
-            break;
     }
 }
 

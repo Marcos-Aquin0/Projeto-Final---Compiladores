@@ -33,6 +33,7 @@ void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char 
         l = l->next;
         
     if (l == NULL) {  // Não encontrou - cria nova entrada
+
         l = (BucketList)malloc(sizeof(struct BucketListRec));
         l->name = strdup(name);
         l->scope = strdup(scope);
@@ -47,6 +48,7 @@ void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char 
         l->next = hashTable[h];
         hashTable[h] = l;
         printf("DEBUG: st_insert: Nova entrada criada para '%s'\n", name);
+
     } else {  // Encontrou - apenas adiciona nova linha se não for redefinição
         if (strcmp(idType, "param") != 0 || l->lines->lineno != lineno) {
             printf("DEBUG: st_insert: Atualizando linha para '%s'\n", name);
@@ -70,7 +72,6 @@ BucketList st_lookup(char *name) {
 BucketList st_lookup_in_scope(char *name, char *scope) {
     int h = hash(name);
     BucketList l = hashTable[h];
-    
     // Search for exact match of both name and scope
     while (l != NULL) {
         if (strcmp(name, l->name) == 0 && strcmp(scope, l->scope) == 0) {
