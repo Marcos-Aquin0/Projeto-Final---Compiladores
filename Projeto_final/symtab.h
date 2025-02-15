@@ -37,7 +37,7 @@ void pop_scope();
 char* current_scope();
 
 BucketList st_lookup(char *name);
-BucketList st_lookup_in_scope(char *name, char *scope);
+BucketList st_lookup_in_scope(char *name, char *scope);  // Add this line
 void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char *dataType, int isArray, int arraySize);
 void printSymTab(FILE *listing);
 

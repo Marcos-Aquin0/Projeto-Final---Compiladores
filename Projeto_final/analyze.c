@@ -58,58 +58,46 @@ static void insertNode(ASTNode *t) {
         scope = "global";
     }
 
+    // Verifica se o símbolo já existe no escopo atual
+    BucketList existing = st_lookup_in_scope(t->value, scope);
+    
     printf("DEBUG: insertNode: Processando nó tipo %d para '%s' no escopo '%s'\n", 
            t->type, t->value, scope);
 
     switch (t->type) {
         case NODE_VAR_DECL:
-            // Para declarações de variáveis, não considerar como erro a primeira declaração
-            if (st_lookup(t->value) == NULL || t->lineno == st_lookup(t->value)->lines->lineno) {
-                printf("DEBUG: insertNode: Inserindo nova variável '%s' (isArray=%d, arraySize=%d)\n", 
-                       t->value, t->isArray, t->arraySize);
+            if (existing == NULL) {
+                printf("DEBUG: insertNode: Inserindo nova variável '%s'\n", t->value);
                 st_insert(t->value, t->lineno, location++, strdup(scope), "var", t->idType, t->isArray, t->arraySize);
             }
             break;
 
         case NODE_PARAM:
-            printf("DEBUG: insertNode: Inserindo parâmetro '%s' (isArray=%d, arraySize=%d)\n", 
-                   t->value, t->isArray, t->arraySize);
-            if (st_lookup_in_scope(t->value, scope) == NULL) {
+            if (existing == NULL) {
+                printf("DEBUG: insertNode: Inserindo parâmetro '%s'\n", t->value);
                 st_insert(t->value, t->lineno, location++, strdup(scope), "param", t->idType, t->isArray, t->arraySize);
             }
             break;
 
-        case NODE_FUNC_DECL:
-            printf("DEBUG: Inserindo função %s no escopo global\n", t->value);
-            if (st_lookup(t->value) == NULL) {
-                st_insert(t->value, t->lineno, location++, "global", "func", t->idType, 0, 0);
-            } else {
-                BucketList existing = st_lookup(t->value);
-                st_insert(t->value, t->lineno, existing->memloc, "global", "func", t->idType, 0, 0);
-            }
-            break;
-
-        case NODE_FUNC:
-            printf("DEBUG: Inserindo chamada de função %s no escopo global\n", t->value);
-            if (st_lookup(t->value) == NULL) {
-                st_insert(t->value, t->lineno, location++, "global", "func", t->idType, 0, 0);
-            } else {
-                BucketList existing = st_lookup(t->value);
-                st_insert(t->value, t->lineno, existing->memloc, "global", "func", t->idType, 0, 0);
-            }
-            break;
-
         case NODE_VAR:
-            printf("DEBUG: Inserindo variável %s no escopo %s (isArray: %d, arraySize: %d)\n", t->value, scope, t->isArray, t->arraySize);
-            if (st_lookup(t->value) == NULL) {
+            if (existing != NULL) {
+                // Se o símbolo já existe, apenas adiciona a linha de uso
+                LineList lines = existing->lines;
+                while (lines->next != NULL) lines = lines->next;
+                lines->next = (LineList)malloc(sizeof(struct LineListRec));
+                lines->next->lineno = t->lineno;
+                lines->next->next = NULL;
+                printf("DEBUG: insertNode: Atualizando uso de '%s' na linha %d\n", t->value, t->lineno);
+            } else if (st_lookup(t->value) == NULL) {
+                // Se não existe em nenhum escopo, cria uma nova entrada
                 st_insert(t->value, t->lineno, location++, strdup(scope), "var", t->idType, t->isArray, t->arraySize);
-            } else {
-                BucketList existing = st_lookup(t->value);
-                st_insert(t->value, t->lineno, existing->memloc, strdup(existing->scope), "var", t->idType, t->isArray, t->arraySize);
             }
             break;
 
-        default:
+        case NODE_FUNC_DECL:
+            if (st_lookup(t->value) == NULL) {
+                st_insert(t->value, t->lineno, location++, "global", "func", t->idType, 0, 0);
+            }
             break;
     }
 }
