@@ -1,6 +1,7 @@
 %{
 #include "globals.h"
 #include "asnt.h"
+#include "symtab.h"
 
 void yyerror(const char *s);
 int yylex();
