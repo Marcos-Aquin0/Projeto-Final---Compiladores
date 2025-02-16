@@ -73,9 +73,8 @@ void semanticAnalysis(ASTNode* node) {
     switch (node->type) {
         case NODE_VAR_DECL:
             // Armazena informação de tipo na tabela hash
-            insertTypeInfo(node->value, node->idType, 0, 0);
             checkVariableDeclaration(node);
-            hasDeclaration = 1;  // Mark that a declaration exists
+            insertTypeInfo(node->value, node->idType, 0, 0);
             break;
             
         case NODE_EXPR:
@@ -89,12 +88,17 @@ void semanticAnalysis(ASTNode* node) {
             break;
 
         case NODE_FUNC_DECL:
+            push_scope(node->value);
             lastFunctionNode = node;  // Update the last function node
             if (strcmp(node->value, "main") == 0) {
                 hasMainFunction = 1;
             }
             hasDeclaration = 1;  // Mark that a declaration exists
             break;
+        
+        default:
+            break;
+            
     }
     
     semanticAnalysis(node->left);
@@ -110,16 +114,29 @@ void semanticAnalysis(ASTNode* node) {
 
 static void checkVariableDeclaration(ASTNode* node) {
     if (!node || !node->value) return;
-    
+
     char* scope = current_scope();
     BucketList l = st_lookup(node->value);
+    BucketList aux = st_lookup_in_scope(node->value, "global");
     
     // Verifica se a variável já foi declarada no mesmo escopo
     // Ignora a primeira declaração (quando o número da linha coincide)
-    if (l != NULL && strcmp(l->scope, scope) == 0 && l->lines->lineno != node->lineno) {
-        fprintf(stderr, "Erro semântico: Variável '%s' já declarada no escopo '%s' (linha %d)\n",
-                node->value, scope, node->lineno);
-        hasSemanticError = 1;
+    if (l != NULL) {
+        if (strcmp(l->scope, scope) == 0 && l->lines->lineno != node->lineno) {
+            fprintf(stderr, "Erro semântico: Variável '%s' já declarada no escopo '%s' (linha %d)\n",
+                    node->value, scope, node->lineno);
+            hasSemanticError = 1;
+        }
+        else if (aux != NULL && strcmp(aux->idType, "func") == 0 && strcmp(aux->name, l->name) == 0) {
+            fprintf(stderr, "Erro semântico: Variável '%s' declarado com nome de função (linha %d)\n",
+                    node->value, node->lineno);
+                hasSemanticError = 1;
+        }
+        else if (strcmp(node->idType,"void") == 0) {
+            fprintf(stderr, "Erro semântico: Variável '%s' declarada com tipo void (linha %d)\n",
+                    node->value, node->lineno);
+            hasSemanticError = 1;
+        }
     }
 }
 
@@ -190,6 +207,7 @@ static char* getExpressionType(ASTNode* node) {
                 BucketList l = st_lookup(node->value);
                 return l ? l->dataType : NULL;
             }
+            break;
         
         case NODE_FACTOR:
             if (node->value) return "int";
