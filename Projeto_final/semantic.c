@@ -30,17 +30,18 @@ typedef struct TypeInfo {
 
 // Hash table para tipos
 #define TYPE_SIZE 211
-static TypeInfo* typeTable[TYPE_SIZE];
+static TypeInfo* typeTable[TYPE_SIZE] = {NULL};  // Inicializa todos os ponteiros como NULL
 
 // Função de hash (mantida do código original)
 static int hash(char* key) {
-    int temp = 0;
-    int i = 0;
-    while (key[i] != '\0') {
-        temp = ((temp << 5) + temp) + key[i];
-        i++;
+    unsigned long hash = 5381;  // Valor inicial para o algoritmo DJB2
+    int c;
+
+    while ((c = *key++)) {
+        hash = ((hash << 5) + hash) + c;  // hash * 33 + c
     }
-    return temp % TYPE_SIZE;
+
+    return hash % TYPE_SIZE;
 }
 
 // Verifica compatibilidade de tipos
@@ -51,60 +52,90 @@ static int checkTypeCompatibility(const char* type1, const char* type2) {
 
 // Adicionar funções para gerenciar a tabela de tipos
 static void insertTypeInfo(char* name, char* type, int isArray, int arraySize) {
+    if (name == NULL || type == NULL) {
+        fprintf(stderr, "Erro: Parâmetros inválidos para insertTypeInfo.\n");
+        return;
+    }
+
     int index = hash(name);
+    if (typeTable[index] != NULL) {
+        // Libera a memória do TypeInfo existente antes de sobrescrever
+        free(typeTable[index]->type);
+        free(typeTable[index]);
+    }
+
     TypeInfo* info = (TypeInfo*)malloc(sizeof(TypeInfo));
+    if (info == NULL) {
+        fprintf(stderr, "Erro: Falha ao alocar memória para TypeInfo.\n");
+        exit(EXIT_FAILURE);
+    }
+
     info->type = strdup(type);
     info->isArray = isArray;
     info->arraySize = arraySize;
     typeTable[index] = info;
-    printf("DEBUG: Inserindo tipo '%s' para '%s' na tabela de tipos (hash: %d)\n", 
-           type, name, index);
+
+    printf("DEBUG: Inserindo tipo '%s' para '%s' na tabela de tipos (hash: %d)\n", type, name, index);
 }
 
 static TypeInfo* lookupTypeInfo(char* name) {
+    if (name == NULL) {
+        return NULL;
+    }
+
     int index = hash(name);
+    if (index < 0 || index >= TYPE_SIZE) {
+        fprintf(stderr, "Erro: Índice inválido na tabela de tipos.\n");
+        return NULL;
+    }
+
     return typeTable[index];
 }
 
 // Função principal de análise semântica
 void semanticAnalysis(ASTNode* node) {
-    if (node == NULL) return;
-    
+    if (node == NULL) {
+        return;
+    }
+
     switch (node->type) {
         case NODE_VAR_DECL:
-            // Armazena informação de tipo na tabela hash
-            checkVariableDeclaration(node);
-            insertTypeInfo(node->value, node->idType, 0, 0);
+            if (node->value != NULL && node->idType != NULL) {
+                checkVariableDeclaration(node);
+                insertTypeInfo(node->value, node->idType, node->isArray, node->arraySize);
+            }
             break;
-            
+
         case NODE_EXPR:
-            if (node->value && strcmp(node->value, "=") == 0) {
+            if (node->value != NULL && strcmp(node->value, "=") == 0) {
                 checkAssignment(node);
             }
             break;
-            
+
         case NODE_ACTIVATION:
             checkFunctionCall(node);
             break;
 
         case NODE_FUNC_DECL:
-            push_scope(node->value);
-            lastFunctionNode = node;  // Update the last function node
-            if (strcmp(node->value, "main") == 0) {
-                hasMainFunction = 1;
+            if (node->value != NULL) {
+                push_scope(node->value);
+                lastFunctionNode = node;
+
+                if (strcmp(node->value, "main") == 0) {
+                    hasMainFunction = 1;
+                }
+
+                hasDeclaration = 1;
             }
-            hasDeclaration = 1;  // Mark that a declaration exists
             break;
-        
+
         default:
             break;
-            
     }
-    
+
     semanticAnalysis(node->left);
     semanticAnalysis(node->right);
 
-    // Verifica se a função main foi declarada
     if (node->type == NODE_PROGRAM) {
         checkMainFunction();
         checkAtLeastOneDeclaration();
@@ -118,9 +149,8 @@ static void checkVariableDeclaration(ASTNode* node) {
     char* scope = current_scope();
     BucketList l = st_lookup(node->value);
     BucketList aux = st_lookup_in_scope(node->value, "global");
-    
+
     // Verifica se a variável já foi declarada no mesmo escopo
-    // Ignora a primeira declaração (quando o número da linha coincide)
     if (l != NULL) {
         if (strcmp(l->scope, scope) == 0 && l->lines->lineno != node->lineno) {
             fprintf(stderr, "Erro semântico: Variável '%s' já declarada no escopo '%s' (linha %d)\n",
@@ -142,10 +172,10 @@ static void checkVariableDeclaration(ASTNode* node) {
 
 static void checkAssignment(ASTNode* node) {
     if (!node->left || !node->right) return;
-    
+
     char* leftType = getExpressionType(node->left);
     char* rightType = getExpressionType(node->right);
-    
+
     // Verifica se a variável do lado esquerdo foi declarada
     if (leftType == NULL) {
         fprintf(stderr, "Erro semântico na linha %d: Variável '%s' sendo usada sem ter sido declarada.\n",
@@ -178,7 +208,7 @@ static void checkAssignment(ASTNode* node) {
 
 static void checkFunctionCall(ASTNode* node) {
     if (!node->left || !node->left->value) return;
-    
+
     BucketList l = st_lookup(node->left->value);
     if (!l) {
         fprintf(stderr, "Erro semântico: Função '%s' não declarada (linha %d)\n",
@@ -186,7 +216,7 @@ static void checkFunctionCall(ASTNode* node) {
         hasSemanticError = 1;
         return;
     }
-    
+
     if (strcmp(l->idType, "func") != 0) {
         fprintf(stderr, "Erro semântico: '%s' não é uma função (linha %d)\n",
                 node->left->value, node->lineno);
@@ -195,29 +225,40 @@ static void checkFunctionCall(ASTNode* node) {
 }
 
 static char* getExpressionType(ASTNode* node) {
-    if (!node) return NULL;
-    
+    if (node == NULL) {
+        return NULL;
+    }
+
     switch (node->type) {
-        case NODE_VAR:
-            {
-                TypeInfo* info = lookupTypeInfo(node->value);
-                if (info) return info->type;
-                
-                // Fallback para a tabela de símbolos se não encontrar na tabela de tipos
-                BucketList l = st_lookup(node->value);
-                return l ? l->dataType : NULL;
+        case NODE_VAR: {
+            if (node->value == NULL) {
+                return NULL;
+            }
+
+            TypeInfo* info = lookupTypeInfo(node->value);
+            if (info != NULL) {
+                return info->type;
+            }
+
+            // Fallback para a tabela de símbolos
+            BucketList l = st_lookup(node->value);
+            return l ? l->dataType : NULL;
+        }
+
+        case NODE_FACTOR:
+            if (node->value != NULL) {
+                return "int";  // Números são do tipo int
             }
             break;
-        
-        case NODE_FACTOR:
-            if (node->value) return "int";
-            break;
-            
+
         case NODE_ACTIVATION:
-            if (node->left && node->left->value) {
+            if (node->left != NULL && node->left->value != NULL) {
                 TypeInfo* info = lookupTypeInfo(node->left->value);
-                if (info) return info->type;
-                
+                if (info != NULL) {
+                    return info->type;
+                }
+
+                // Fallback para a tabela de símbolos
                 BucketList l = st_lookup(node->left->value);
                 return l ? l->dataType : NULL;
             }
@@ -228,8 +269,11 @@ static char* getExpressionType(ASTNode* node) {
         case NODE_MULT:
             // Operadores matemáticos retornam tipo int
             return "int";
+
+        default:
+            break;
     }
-    
+
     return NULL;
 }
 
@@ -269,7 +313,7 @@ void freeTypeTable(void) {
 
 static void checkArrayAccess(ASTNode* node) {
     if (!node->value) return;
-    
+
     BucketList l = st_lookup(node->value);
     if (!l) {
         fprintf(stderr, "Erro semântico: Variável '%s' não declarada (linha %d)\n",
@@ -277,16 +321,14 @@ static void checkArrayAccess(ASTNode* node) {
         hasSemanticError = 1;
         return;
     }
-    
-    printf("DEBUG: Verificando acesso ao array %s (isArray: %d, arraySize: %d)\n", node->value, l->isArray, l->arraySize);
-    
+
     if (!l->isArray) {
         fprintf(stderr, "Erro semântico: Variável '%s' não é um array (linha %d)\n",
                 node->value, node->lineno);
         hasSemanticError = 1;
         return;
     }
-    
+
     // Verifica se o índice é uma expressão inteira
     if (node->right) {
         char* indexType = getExpressionType(node->right);
@@ -295,7 +337,7 @@ static void checkArrayAccess(ASTNode* node) {
                     node->lineno);
             hasSemanticError = 1;
         }
-        
+
         // Se o índice é uma constante, verifica os limites
         if (node->right->type == NODE_FACTOR && node->right->value) {
             int index = atoi(node->right->value);
@@ -307,6 +349,3 @@ static void checkArrayAccess(ASTNode* node) {
         }
     }
 }
-
-// Adicionar ao globals.h
-extern int hasSemanticError;

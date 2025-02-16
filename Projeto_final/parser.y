@@ -55,8 +55,6 @@ decl:
     | var_decl               { $$ = $1; }
     ;
 
-// ...existing code...
-
 var_decl:
     spec_type ID SMC          { 
         printf("DEBUG: Declarando variável simples %s do tipo %s\n", $2, $1->value);
@@ -87,13 +85,11 @@ func_decl:
         ASTNode* idNode = createNode(NODE_FUNC, NULL, NULL, $2, yylineno, $1->value);
         $$ = createNode(NODE_FUNC_DECL, createNode(NODE_DECL, $1, idNode, NULL, yylineno, NULL), 
                        createNode(NODE_DECL, $4, $6, NULL, yylineno, NULL), $2, yylineno, $1->value);
-        // Note that we're passing $2 (function name) as the value for NODE_FUNC_DECL
     }
     | spec_type ID OPAREN CPAREN compound_decl {
         ASTNode* idNode = createNode(NODE_FUNC, NULL, NULL, $2, yylineno, $1->value);
         $$ = createNode(NODE_FUNC_DECL, createNode(NODE_DECL, $1, idNode, NULL, yylineno, NULL), 
                        createNode(NODE_DECL, NULL, $5, NULL, yylineno, NULL), $2, yylineno, $1->value);
-        // Note that we're passing $2 (function name) as the value for NODE_FUNC_DECL
     }
     ;
 
@@ -153,7 +149,15 @@ statement:
     ;
 
 expr_decl:
-    expr SMC               { $$ = createNode(NODE_EXPR_DECL, $1, NULL, NULL, yylineno, NULL); }
+    expr SMC               { 
+        // Verifica se a expressão é uma atribuição ou uma chamada de função
+        if ($1->type == NODE_EXPR || ($1->type == NODE_ACTIVATION)) {
+            $$ = createNode(NODE_EXPR_DECL, $1, NULL, NULL, yylineno, NULL);
+        } else {
+            yyerror("Expressão inválida: uso de vetor sem atribuição ou chamada de função");
+            $$ = NULL;
+        }
+    }
     | SMC                  { $$ = NULL; }
     ;
 
