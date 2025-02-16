@@ -41,6 +41,7 @@ int main(int argc, char *argv[]) {
         }
         printf("Análise semântica concluída com sucesso!\n");
 
+        pop_scope();
         freeAST(root);
         freeTypeTable();  // Libera a tabela de tipos
     } else {
