@@ -8,13 +8,13 @@ static int hash(char* key);
 static int checkTypeCompatibility(const char* type1, const char* type2);
 static void checkVariableDeclaration(ASTNode* node);
 static void checkAssignment(ASTNode* node);
+static char* getArrayElementType(char* arrayType);
 static void checkFunctionCall(ASTNode* node);
 static char* getExpressionType(ASTNode* node);
 static void checkMainFunction(void);
 static void checkAtLeastOneDeclaration(void);
 static void checkLastFunctionIsMain(void);
 static void checkArrayAccess(ASTNode* node);
-
 // variáveis globias
 int hasSemanticError = 0;
 static int hasMainFunction = 0;  // flag para verificar existenia da funcao main
@@ -173,37 +173,61 @@ static void checkVariableDeclaration(ASTNode* node) {
 static void checkAssignment(ASTNode* node) {
     if (!node->left || !node->right) return;
 
+    // Check if left side is array access
+    if (node->left->type == NODE_ARRAY_ACCESS) {
+        checkArrayAccess(node->left);
+    }
+
     char* leftType = getExpressionType(node->left);
     char* rightType = getExpressionType(node->right);
 
-    // Verifica se a variável do lado esquerdo foi declarada
+    // Get scopes
+    char* leftScope = current_scope();
+    char* rightScope = current_scope();
+
+    // Debug information
+    printf("Comparando variáveis na linha %d:\n", node->lineno);
+    printf("Variável esquerda: %s, Tipo: %s, Escopo: %s\n", 
+           node->left->value, leftType, leftScope);
+    printf("Variável direita: %s, Tipo: %s, Escopo: %s\n", 
+           node->right->value, rightType, rightScope);
+
+    // Check left side declaration
     if (leftType == NULL) {
         fprintf(stderr, "Erro semântico na linha %d: Variável '%s' sendo usada sem ter sido declarada.\n",
-                node->lineno,
-                node->left->value ? node->left->value : "desconhecida");
+                node->lineno, node->left->value ? node->left->value : "desconhecida");
         hasSemanticError = 1;
         return;
     }
 
-    // Verifica se a variável/expressão do lado direito foi declarada
+    // Check right side declaration
     if (rightType == NULL) {
         fprintf(stderr, "Erro semântico na linha %d: Expressão ou variável '%s' sendo usada sem ter sido declarada.\n",
-                node->lineno,
-                node->right->value ? node->right->value : "desconhecida");
+                node->lineno, node->right->value ? node->right->value : "desconhecida");
         hasSemanticError = 1;
         return;
     }
 
-    // Se ambos os tipos existem, verifica compatibilidade
+    // Check type compatibility
     if (!checkTypeCompatibility(leftType, rightType)) {
         fprintf(stderr, "Erro semântico na linha %d: Incompatibilidade de tipos na atribuição. "
                        "Variável '%s' é do tipo '%s' mas está recebendo valor do tipo '%s'.\n",
-                node->lineno,
-                node->left->value ? node->left->value : "desconhecida",
-                leftType,
-                rightType);
+                node->lineno, node->left->value ? node->left->value : "desconhecida",
+                leftType, rightType);
         hasSemanticError = 1;
     }
+}
+
+// Helper function to get array element type
+char* getArrayElementType(char* arrayType) {
+    // Remove the [] from the end of the type
+    // For example, "int[]" becomes "int"
+    char* elementType = strdup(arrayType);
+    char* bracketPos = strstr(elementType, "[]");
+    if (bracketPos) {
+        *bracketPos = '\0';
+    }
+    return elementType;
 }
 
 static void checkFunctionCall(ASTNode* node) {
@@ -225,9 +249,7 @@ static void checkFunctionCall(ASTNode* node) {
 }
 
 static char* getExpressionType(ASTNode* node) {
-    if (node == NULL) {
-        return NULL;
-    }
+    if (node == NULL) return NULL;
 
     switch (node->type) {
         case NODE_VAR: {
@@ -235,6 +257,37 @@ static char* getExpressionType(ASTNode* node) {
                 return NULL;
             }
 
+            // Se for um acesso a array (tem filho direito que é o índice)
+            if (node->right != NULL) {
+                TypeInfo* arrayInfo = lookupTypeInfo(node->value);
+                if (arrayInfo != NULL) {
+                    // Verifica se o tipo é um array
+                    if (strstr(arrayInfo->type, "[]") != NULL) {
+                        // Verifica se o índice é um inteiro
+                        char* indexType = getExpressionType(node->right);
+                        if (indexType == NULL || strcmp(indexType, "int") != 0) {
+                            fprintf(stderr, "Erro semântico: índice do array deve ser inteiro\n");
+                            return NULL;
+                        }
+                        // Retorna o tipo base do array (sem os colchetes)
+                        char* baseType = strdup(arrayInfo->type);
+                        char* bracketPos = strstr(baseType, "[]");
+                        if (bracketPos) *bracketPos = '\0';
+                        return baseType;
+                    }
+                }
+                
+                // Fallback para a tabela de símbolos
+                BucketList l = st_lookup(node->value);
+                if (l && strstr(l->dataType, "[]") != NULL) {
+                    char* baseType = strdup(l->dataType);
+                    char* bracketPos = strstr(baseType, "[]");
+                    if (bracketPos) *bracketPos = '\0';
+                    return baseType;
+                }
+            }
+
+            // Caso normal (não é acesso a array)
             TypeInfo* info = lookupTypeInfo(node->value);
             if (info != NULL) {
                 return info->type;
@@ -243,6 +296,21 @@ static char* getExpressionType(ASTNode* node) {
             // Fallback para a tabela de símbolos
             BucketList l = st_lookup(node->value);
             return l ? l->dataType : NULL;
+        }
+
+        case NODE_ARRAY_ACCESS: {
+            if (node->left) {  // left child contains the array identifier
+                BucketList l = st_lookup(node->left->value);
+                if (!l) {
+                    l = st_lookup_in_scope(node->left->value, current_scope());
+                }
+                if (l && l->isArray) {
+                    printf("DEBUG: Array access to '%s' (type: %s)\n", 
+                           node->left->value, l->dataType);
+                    return l->dataType;
+                }
+            }
+            return NULL;
         }
 
         case NODE_FACTOR:

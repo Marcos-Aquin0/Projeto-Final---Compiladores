@@ -194,10 +194,15 @@ expr:
     ;
 
 var:
-    ID                    { $$ = createNode(NODE_VAR, NULL, NULL, $1, yylineno, NULL); }
+    ID                    { 
+        $$ = createNode(NODE_VAR, NULL, NULL, $1, yylineno, NULL); 
+        $$->isArray = 0;
+    }
     | ID OBRACKT expr CBRACKT {
         ASTNode* idNode = createNode(NODE_VAR, NULL, NULL, $1, yylineno, NULL);
-        $$ = createNode(NODE_VAR, idNode, $3, NULL, yylineno, NULL);
+        idNode->isArray = 1;  // Mark base node as array
+        $$ = createNode(NODE_ARRAY_ACCESS, idNode, $3, $1, yylineno, NULL);
+        $$->isArray = 1;  // Mark array access node
     }
     ;
 

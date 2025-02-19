@@ -20,7 +20,7 @@ static int hash(char *key) {
 
 void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char *dataType, int isArray, int arraySize) {
     if (name == NULL || scope == NULL || idType == NULL || dataType == NULL) {
-        fprintf(stderr, "Erro: Parâmetros inválidos para st_insert.\n");
+        fprintf(stderr, "Erro: Parâmetros inválidos para st_insert. %d\n", lineno);
         return;
     } //verifica se os parâmetros são válidos
 

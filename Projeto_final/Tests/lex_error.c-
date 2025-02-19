@@ -1,8 +1,11 @@
 int main(void) {
+    int i;
     while (i <= 10)
     {
+        int a;
+        int b;
         b = i * 2;
-        a = b + 4;
+        a = b * 4;
         i = i + 1;
     }
     

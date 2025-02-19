@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
             printASTVertical(root);
 
         // Construção da tabela de símbolos
-        printf("\nConstruindo tabela de símbolos...\n");
+        printf("\nConstruindo tabela de símbolos...\n"); 
         buildSymtab(root);
         
         // Análise semântica
