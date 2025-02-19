@@ -1,7 +1,7 @@
 %{
 #include "parser.tab.h"
 %}
-
+/*definição dos tokens*/
 DIGIT	[0-9]
 ELSE    else
 IF      if
@@ -36,22 +36,23 @@ WHITESPACE [ ]
 TAB [\t]
 ENTER [\n]
 
-%%
-
+%% //gramática regular
 {ELSE}                                  { return ELSE; }
 {IF}                                    { return IF; }
 {INT}                                   { return INT; }
 {RETURN}                                { return RETURN; } 
 {VOID}                                  { return VOID; }
 {WHILE}                                 { return WHILE; } 
-{DIGIT}{DIGIT}*		                    { yylval.ival = atoi(yytext); return NUM; }
+{DIGIT}{DIGIT}*		                    { yylval.ival = atoi(yytext); return NUM; } 
+
 {COMINIT}([^*]|{MULT}[^/])*{COMEND}     {
                                             for (int i = 0; yytext[i] != '\0'; i++) {
                                                 if (yytext[i] == '\n') {
                                                     yylineno++;
                                                 }
                                             }
-                                        }
+                                         } //reconhece a quantidade de linhas dentro do comentário
+                        
 {LETTER}{LETTER}* 	                    { yylval.sval = strdup(yytext); return ID; }
 {OPAREN}		                        { return OPAREN; }
 {CPAREN}		                        { return CPAREN; }
@@ -101,3 +102,10 @@ ENTER [\n]
 int yywrap() {
     return 1;
 }
+//A implementação padrão de yywrap simplesmente retorna 1, indicando que o final da entrada foi alcançado e que não há mais dados a serem processados
+
+//atoi é utilizado para converter uma string que representa um número em um valor do tipo inteiro para ser lido pelo parser
+//yytext contém o texto que corresponde ao token atual
+//yylval é uma união definida no arquivo parser.y que pode armazenar diferentes tipos de valores. ival é o membro da união usado para armazenar valores inteiros
+//A função strdup duplica a string yytext, alocando memória suficiente para armazenar a cópia da string.
+//yylineno é uma variável global que mantém o número da linha atual do arquivo de entrada

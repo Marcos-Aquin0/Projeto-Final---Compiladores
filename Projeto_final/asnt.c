@@ -2,15 +2,15 @@
 
 // Função para criar nós da árvore
 ASTNode* createNode(NodeType type, ASTNode* left, ASTNode* right, char* value, int lineno, char *idType) {
-    ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
-    if (!node) {
+    ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode)); //alocação de memória para o nó
+    if (!node) { //se não funcionar, imprime um erro
         fprintf(stderr, "Erro ao alocar memória para ASTNode.\n");
         exit(EXIT_FAILURE);
     }
     node->type = type;
     node->left = left;
     node->right = right;
-    node->value = value ? strdup(value) : NULL;
+    node->value = value ? strdup(value) : NULL; //Se value não for NULL, duplica a string usando strdup e inicializa o campo value
     node->lineno = lineno;
     node->idType = idType;
     node->scope = NULL;  // Inicializa o novo campo
@@ -62,28 +62,33 @@ static const char* nodeTypeToString(NodeType type) {
     }
 }
 
-// Atualizar a função getNodeValue para utilizar nodeTypeToString
+// Função auxiliar para obter o valor do nó
 static void getNodeValue(ASTNode* node, char* buffer) {
+//ASTNode* node: Ponteiro para o nó da AST cujo valor queremos obter.
+//char* buffer: Ponteiro para um buffer de caracteres onde a representação legível do valor do nó será armazenada.
     if (node->value) {
+        //sprintf: Usa a função sprintf para formatar a string e armazená-la no buffer.
         sprintf(buffer, "%s (%s)", nodeTypeToString(node->type), node->value);
+        //Se node->value não for NULL, formata a string como "<tipo do nó> (<valor do nó>)" e armazena no buffer.
     } else {
         sprintf(buffer, "%s", nodeTypeToString(node->type));
+        //Se node->value for NULL, formata a string apenas com o tipo do nó e armazena no buffer.
     }
 }
 
 // Função básica de impressão com indentação
-void printAST(ASTNode* root, int depth) {
-    if (root == NULL) return;
-    for (int i = 0; i < depth; i++) printf("  ");
+// void printAST(ASTNode* root, int depth) {
+//     if (root == NULL) return; //se não tem raíz, não tem o que imprimir
+//     for (int i = 0; i < depth; i++) printf("  ");
     
-    // Nome do nó baseado no tipo
-    char value[100];
-    getNodeValue(root, value);
-    printf("%s\n", value);
+//     // Nome do nó baseado no tipo
+//     char value[100];
+//     getNodeValue(root, value);
+//     printf("%s\n", value);
 
-    printAST(root->left, depth + 1);
-    printAST(root->right, depth + 1);
-}
+//     printAST(root->left, depth + 1);
+//     printAST(root->right, depth + 1);
+// }
 
 // Função auxiliar recursiva para imprimir a árvore verticalmente com ASCII simples
 static void _printASTVerticalSimpleHelper(ASTNode* root, char* prefix, int isLast) {
@@ -91,13 +96,12 @@ static void _printASTVerticalSimpleHelper(ASTNode* root, char* prefix, int isLas
 
     // Imprimir o prefixo atual
     printf("%s", prefix);
-
     // Escolher o conector baseado se é o último filho ou não
-    printf(isLast ? "\\-- " : "|-- ");
+    printf(isLast ? "\\-- " : "|-- "); // "\\--" : Representa que o nó atual é o último filho.
 
     // Imprimir o valor do nó
     char value[100];
-    getNodeValue(root, value);
+    getNodeValue(root, value); //Obtém a representação legível do valor do nó e armazena no buffer value.
     printf("%s\n", value);
 
     // Preparar o prefixo para os próximos níveis
@@ -133,6 +137,8 @@ void printASTVertical(ASTNode* root) {
     printf("arvore de analise sintatica:\n\n");
 
     _printASTVerticalSimpleHelper(root, "", 1);
+    //"": Prefixo inicial vazio.
+    //1: Indica que o nó raiz é o último nó (não tem irmãos).
 }
 
 int isTerminalNode(ASTNode* node) {
@@ -143,7 +149,7 @@ int isTerminalNode(ASTNode* node) {
 
 
 // Função auxiliar recursiva para imprimir a árvore reduzida verticalmente
-
+//(ainda em desenvolvimento)
 static void _printReducedASTVerticalHelper(ASTNode* root, char* prefix, int isLast) {
     if (root == NULL) return;
 

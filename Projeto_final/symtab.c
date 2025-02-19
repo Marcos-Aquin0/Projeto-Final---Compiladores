@@ -1,10 +1,8 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "globals.h"
 #include "symtab.h"
 
-#define SIZE 211
-#define SHIFT 4
+#define SIZE 211 //tamanho da tabela hash
+#define SHIFT 4 //deslocamento para a função hash
 
 /* the hash table */
 static BucketList hashTable[SIZE];
@@ -24,7 +22,7 @@ void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char 
     if (name == NULL || scope == NULL || idType == NULL || dataType == NULL) {
         fprintf(stderr, "Erro: Parâmetros inválidos para st_insert.\n");
         return;
-    }
+    } //verifica se os parâmetros são válidos
 
     int h = hash(name);
     BucketList l = hashTable[h];
@@ -34,11 +32,11 @@ void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char 
     while (l != NULL && (strcmp(name, l->name) != 0 || strcmp(scope, l->scope) != 0)) {
         prev = l;
         l = l->next;
-    }
+    } //procura pelo símbolo na lista de buckets correspondente ao valor do hash.
 
     if (l == NULL) {
         // Símbolo não encontrado, insere novo
-        l = (BucketList)malloc(sizeof(struct BucketListRec));
+        l = (BucketList)malloc(sizeof(struct BucketListRec)); //aloca memória
         if (l == NULL) {
             fprintf(stderr, "Erro: Falha ao alocar memória para BucketList.\n");
             exit(EXIT_FAILURE);
@@ -57,10 +55,9 @@ void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char 
         l->next = hashTable[h];
         hashTable[h] = l;
 
-        printf("DEBUG: st_insert: Nova entrada criada para '%s' no escopo '%s'\n", name, scope);
-    } else {
-        // Símbolo já existe, atualiza informações
-        printf("DEBUG: st_insert: Atualizando entrada existente para '%s' no escopo '%s'\n", name, scope);
+        // printf("DEBUG: st_insert: Nova entrada criada para '%s' no escopo '%s'\n", name, scope);
+    } else { // Símbolo já existe, atualiza informações
+        // printf("DEBUG: st_insert: Atualizando entrada existente para '%s' no escopo '%s'\n", name, scope);
         l->isArray = isArray;
         l->arraySize = arraySize;
 
@@ -81,7 +78,8 @@ BucketList st_lookup(char *name) {
     BucketList l = hashTable[h];
     while (l != NULL && strcmp(name, l->name) != 0) {
         l = l->next;
-    }
+    } //Percorre a lista de buckets no índice h da tabela hash, comparando o nome do identificador (name) 
+    //com o nome armazenado no bucket (l->name) usando strcmp.
     return l;
 }
 
@@ -120,6 +118,7 @@ void printSymTab(FILE *listing) {
 }
 
 static ScopeNode *scope_stack = NULL;
+// scope_stack: Declara uma pilha de escopos para gerenciar os escopos aninhados. Inicialmente, a pilha está vazia (NULL).
 
 // Função para empilhar um novo escopo
 void push_scope(char *scope_name) {

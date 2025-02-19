@@ -1,9 +1,7 @@
 #ifndef AST_H
 #define AST_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "globals.h"
 
 // Definição dos tipos de nós
 typedef enum {
@@ -16,24 +14,33 @@ typedef enum {
 // Estrutura base para os nós da AST
 typedef struct ASTNode {
     NodeType type;       // Tipo do nó
-    struct ASTNode* left;
+    struct ASTNode* left; //árvore de estrutura binária
     struct ASTNode* right;
-    char* value;         // Valor para identificadores e constantes
-    int lineno;
-    char *idType;
-    char *scope;         // Novo campo para armazenar o escopo
+    char* value;         // String que armazena o valor do nó. Pode ser usado para armazenar identificadores, literais ou outros valores.
+    int lineno;          // Localização do nó no código fonte
+    char *idType;        // String que indica o tipo do identificador. Pode ser "func", "var" ou "param"
+    char *scope;         // String que armazena o escopo onde o identificador foi declarado.
     int isArray;         // Indica se é um vetor
     int arraySize;       // Tamanho do vetor
 } ASTNode;
 
 // Funções para criar nós
 ASTNode* createNode(NodeType type, ASTNode* left, ASTNode* right, char* value, int lineno, char *idType);
-void printAST(ASTNode* root, int depth);
+// Parâmetros: Tipo do nó, ponteiros para os filhos esquerdo e direito, valor do nó, número da linha e tipo do identificador.
+// Retorna um ponteiro para o nó criado.
 
+
+//imprime a árvore de análise sintática
+// void printAST(ASTNode* root, int depth);
+//Parâmetros: Ponteiro para a raiz da AST e profundidade atual.
+
+
+//liberar a memória utilizada para a árvore
 void freeAST(ASTNode* root);
-
+//imprimir a árvore completa
 void printASTVertical(ASTNode* root);
 
+//imprimir a árvore reduzida (ainda em desenvolvimento)
 void printReducedAST(ASTNode* root, int depth);
 
 #endif

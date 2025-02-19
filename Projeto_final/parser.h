@@ -11,7 +11,7 @@ extern int yyparse(void);
 extern int yylex(void);
 extern int yyerror(const char *s);
 
-// Declaração da variável de linha atual (definida no scanner)
+// Declaração da variável de linha atual
 extern int yylineno;
 
 #endif // PARSER_H

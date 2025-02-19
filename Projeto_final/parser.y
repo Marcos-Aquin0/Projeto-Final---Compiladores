@@ -4,9 +4,9 @@
 #include "symtab.h"
 
 void yyerror(const char *s);
-int yylex();
+int yylex(); //lexer
 
-ASTNode* root = NULL; // Root of the AST
+ASTNode* root = NULL; // raiz da árvore sintática
 %}
 
 %code requires {
@@ -14,13 +14,13 @@ ASTNode* root = NULL; // Root of the AST
 }
 
 %union {
-    int ival;           // For integer values
-    char *sval;         // For strings (identifiers)
-    struct ASTNode *node;      // For AST nodes
+    int ival;           // para valor inteiros
+    char *sval;         // para strings (ID)
+    struct ASTNode *node;      // para nós da árvore sintática
 }
 
-%token <ival> NUM 
-%token <sval> ID
+%token <ival> NUM // token para números
+%token <sval> ID // token para identificadores
 %token ELSE IF INT RETURN VOID WHILE
 %token OPAREN CPAREN OKEYS CKEYS OBRACKT CBRACKT
 %token SUM SUB DIV MULT NQ BT BTE LT LTE EQ SMC COMMA ATRIB
@@ -31,10 +31,11 @@ ASTNode* root = NULL; // Root of the AST
 %type <node> return_decl expr var simp_expr relational sum_expr
 %type <node> sum term mult factor activation args arg_list
 
+// Precedência e associatividade
 %left SUM SUB
-%left MULT DIV
-%nonassoc IFX
-%left ELSE
+%left MULT DIV //multiplicação e divisão têm a mesma precedência, mas antes de soma e subtração
+%nonassoc IFX //if sem else
+%left ELSE 
 
 %%
 
@@ -44,6 +45,11 @@ program:
         root = $$;
     }
     ;
+    //O símbolo $$ é usado para armazenar o nó da AST que representa a regra de produção atual.
+    //O símbolo $1 é usado para acessar o nó da AST que representa a primeira regra de produção da regra atual.
+    //createNode: Função que cria um novo nó na AST. Neste caso, está criando um nó do tipo NODE_PROGRAM com decl_list como seu filho.
+    //root = $$;: Define a raiz da AST como o nó criado para program
+    //yylineno é uma variável global que armazena o número da linha atual do arquivo de entrada.
 
 decl_list:
     decl_list decl             { $$ = createNode(NODE_DECL_LIST, $1, $2, NULL, yylineno, NULL); }
@@ -57,7 +63,7 @@ decl:
 
 var_decl:
     spec_type ID SMC          { 
-        printf("DEBUG: Declarando variável simples %s do tipo %s\n", $2, $1->value);
+        //printf("DEBUG: Declarando variável simples %s do tipo %s\n", $2, $1->value);
         $$ = createNode(NODE_VAR_DECL, $1, NULL, $2, yylineno, $1->value); 
         $$->scope = current_scope(); 
         $$->isArray = 0; 
@@ -65,7 +71,7 @@ var_decl:
         $$->value = $2;  // Importante: armazenar o nome da variável
     }
     | spec_type ID OBRACKT NUM CBRACKT SMC {
-        printf("DEBUG: Declarando vetor %s do tipo %s com tamanho %d\n", $2, $1->value, $4);
+        //printf("DEBUG: Declarando vetor %s do tipo %s com tamanho %d\n", $2, $1->value, $4);
         $$ = createNode(NODE_VAR_DECL, $1, NULL, $2, yylineno, $1->value);
         $$->scope = current_scope();
         $$->isArray = 1;  // Indica que é um vetor
@@ -105,7 +111,7 @@ param_list:
 
 param:
     spec_type ID             { 
-        printf("DEBUG: Declarando parâmetro simples %s\n", $2);
+        //printf("DEBUG: Declarando parâmetro simples %s\n", $2);
         $$ = createNode(NODE_PARAM, $1, NULL, $2, yylineno, $1->value); 
         $$->scope = current_scope();
         $$->isArray = 0;
@@ -113,7 +119,7 @@ param:
         $$->value = $2;
     }
     | spec_type ID OBRACKT CBRACKT {
-        printf("DEBUG: Declarando parâmetro array %s[]\n", $2);
+        //printf("DEBUG: Declarando parâmetro array %s[]\n", $2);
         $$ = createNode(NODE_PARAM, $1, NULL, $2, yylineno, $1->value);
         $$->scope = current_scope();
         $$->isArray = 1;  // Marca como array

@@ -3,13 +3,13 @@
 
 #include "asnt.h"
 
-// Main semantic analysis function
+// Função principal de análise semantica
 void semanticAnalysis(ASTNode* syntaxTree);
 
-// Function to free type table memory
+// libera a memória da tabela de tipos
 void freeTypeTable(void);
 
-// Global error flag
+// flag global de erro
 extern int hasSemanticError;
 
 #endif /* _SEMANTIC_H_ */

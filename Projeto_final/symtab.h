@@ -1,25 +1,21 @@
 #ifndef SYMTAB_H
 #define SYMTAB_H
 
-/* the list of line numbers of the source 
- * code in which a variable is referenced
- */
+//A estrutura LineListRec é usada para armazenar uma lista de números de 
+//linha onde um identificador aparece no código fonte.
 typedef struct LineListRec {
     int lineno;
-    struct LineListRec *next;
+    struct LineListRec *next; //next: Ponteiro para o próximo item na lista, permitindo a criação de uma lista encadeada de números de linha.
 } *LineList;
 
+//A estrutura ScopeNode é usada para representar um escopo na tabela de símbolos.
 typedef struct ScopeNode {
     char *scope_id;
     struct ScopeNode *next;
 } ScopeNode;
 
-/* The record in the bucket lists for
- * each variable, including name, 
- * assigned memory location, and
- * the list of line numbers in which
- * it appears in the source code
- */
+//A estrutura BucketListRec é usada para armazenar informações sobre um identificador 
+// na tabela de símbolos. Cada identificador tem um nome, escopo, tipo, localização na memória, etc
 typedef struct BucketListRec {
     char *name;          // Nome do ID
     char *scope;         // Escopo do ID
@@ -32,13 +28,22 @@ typedef struct BucketListRec {
     int arraySize;       // Tamanho do vetor
 } *BucketList;
 
-void push_scope(char *scope_name);
-void pop_scope();
-char* current_scope();
+void push_scope(char *scope_name); //Empilha um novo escopo na pilha de escopos.
+void pop_scope(); //Desempilha o escopo atual da pilha de escopos.
+char* current_scope(); //Retorna o nome do escopo atual.
 
-BucketList st_lookup(char *name);
-BucketList st_lookup_in_scope(char *name, char *scope);
+BucketList st_lookup(char *name); //Procura um identificador na tabela de símbolos.
+//name: Nome do identificador a ser procurado.
+//Retorno: Ponteiro para o bucket do identificador, ou NULL se não encontrado.
+
+BucketList st_lookup_in_scope(char *name, char *scope); //Procura um identificador em um escopo específico na tabela de símbolos.
+//name: Nome do identificador a ser procurado.
+//scope: Nome do escopo onde o identificador deve ser procurado.
+//Retorno: Ponteiro para o bucket do identificador, ou NULL se não encontrado.
+
 void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char *dataType, int isArray, int arraySize);
-void printSymTab(FILE *listing);
+//Insere um novo identificador na tabela de símbolos.
+
+void printSymTab(FILE *listing); //imprime a tabela de símbolos.
 
 #endif

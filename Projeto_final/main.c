@@ -5,7 +5,7 @@
 #include "symtab.h"
 #include "semantic.h"
 
-extern int yyparse();  // Função do Bison
+extern int yyparse(); /*função do parser*/
 
 int main(int argc, char *argv[]) {
     printf("Iniciando a análise...\n");
@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
     if (root != NULL) {
         // Imprime a árvore se solicitado
         if (argc > 1 && strcmp(argv[1], "--print-tree") == 0) 
-            printReducedAST(root, 0);
+            printReducedAST(root, 0); //ainda em desenvolvimento
         else if (argc > 1 && strcmp(argv[1], "--print-full-tree") == 0) 
             printASTVertical(root);
 

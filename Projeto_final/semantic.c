@@ -3,7 +3,7 @@
 #include "analyze.h"
 #include "semantic.h"
 
-// Forward declarations for all static functions
+// Declarações das funções semânticas
 static int hash(char* key);
 static int checkTypeCompatibility(const char* type1, const char* type2);
 static void checkVariableDeclaration(ASTNode* node);
@@ -15,15 +15,15 @@ static void checkAtLeastOneDeclaration(void);
 static void checkLastFunctionIsMain(void);
 static void checkArrayAccess(ASTNode* node);
 
-// Global variable definition
+// variáveis globias
 int hasSemanticError = 0;
-static int hasMainFunction = 0;  // Flag to check if main function exists
-static int hasDeclaration = 0;   // Flag to check if at least one declaration exists
-static ASTNode* lastFunctionNode = NULL;  // Pointer to the last function node
+static int hasMainFunction = 0;  // flag para verificar existenia da funcao main
+static int hasDeclaration = 0;   // Flag para saber se tem pelo menos uma declaração no código
+static ASTNode* lastFunctionNode = NULL;  // Ponteiro para último nó de função na AST
 
 // Estrutura para armazenar informações de tipo
 typedef struct TypeInfo {
-    char* type;
+    char* type; //int ou void
     int isArray;
     int arraySize;
 } TypeInfo;
@@ -50,7 +50,7 @@ static int checkTypeCompatibility(const char* type1, const char* type2) {
     return (strcmp(type1, type2) == 0);
 }
 
-// Adicionar funções para gerenciar a tabela de tipos
+//Insere informações de tipo na tabela de tipos.
 static void insertTypeInfo(char* name, char* type, int isArray, int arraySize) {
     if (name == NULL || type == NULL) {
         fprintf(stderr, "Erro: Parâmetros inválidos para insertTypeInfo.\n");
@@ -75,7 +75,7 @@ static void insertTypeInfo(char* name, char* type, int isArray, int arraySize) {
     info->arraySize = arraySize;
     typeTable[index] = info;
 
-    printf("DEBUG: Inserindo tipo '%s' para '%s' na tabela de tipos (hash: %d)\n", type, name, index);
+    //printf("DEBUG: Inserindo tipo '%s' para '%s' na tabela de tipos (hash: %d)\n", type, name, index);
 }
 
 static TypeInfo* lookupTypeInfo(char* name) {
