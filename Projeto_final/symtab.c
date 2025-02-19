@@ -98,14 +98,14 @@ BucketList st_lookup_in_scope(char *name, char *scope) {
 
 void printSymTab(FILE *listing) {
     int i;
-    fprintf(listing, "Variable Name  Scope  ID Type  Data Type  Location   Is Array  Array Size  Line Numbers\n");
-    fprintf(listing, "-------------  -----  -------  ---------  --------   --------  ----------  ------------\n");
+    fprintf(listing, "Variable Name  Scope  ID Type  Data Type  Location  Line Numbers\n");
+    fprintf(listing, "-------------  -----  -------  ---------  --------  ------------\n");
     for (i = 0; i < SIZE; ++i) {
         if (hashTable[i] != NULL) {
             BucketList l = hashTable[i];
             while (l != NULL) {
                 LineList t = l->lines;
-                fprintf(listing, "%-14s %-8s %-8s %-10s %-8d  %-8d  %-10d  ", l->name, l->scope, l->idType, l->dataType, l->memloc, l->isArray, l->arraySize);
+                fprintf(listing, "%-14s %-8s %-8s %-10s %-8d ", l->name, l->scope, l->idType, l->dataType, l->memloc);
                 while (t != NULL) {
                     fprintf(listing, "%4d ", t->lineno);
                     t = t->next;

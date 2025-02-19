@@ -186,11 +186,11 @@ static void checkAssignment(ASTNode* node) {
     char* rightScope = current_scope();
 
     // Debug information
-    printf("Comparando variáveis na linha %d:\n", node->lineno);
-    printf("Variável esquerda: %s, Tipo: %s, Escopo: %s\n", 
-           node->left->value, leftType, leftScope);
-    printf("Variável direita: %s, Tipo: %s, Escopo: %s\n", 
-           node->right->value, rightType, rightScope);
+    // printf("Comparando variáveis na linha %d:\n", node->lineno);
+    // printf("Variável esquerda: %s, Tipo: %s, Escopo: %s\n", 
+    //        node->left->value, leftType, leftScope);
+    // printf("Variável direita: %s, Tipo: %s, Escopo: %s\n", 
+    //        node->right->value, rightType, rightScope);
 
     // Check left side declaration
     if (leftType == NULL) {
@@ -305,8 +305,8 @@ static char* getExpressionType(ASTNode* node) {
                     l = st_lookup_in_scope(node->left->value, current_scope());
                 }
                 if (l && l->isArray) {
-                    printf("DEBUG: Array access to '%s' (type: %s)\n", 
-                           node->left->value, l->dataType);
+                    // printf("DEBUG: Array access to '%s' (type: %s)\n", 
+                    //       node->left->value, l->dataType);
                     return l->dataType;
                 }
             }
