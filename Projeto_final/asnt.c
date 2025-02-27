@@ -76,20 +76,6 @@ static void getNodeValue(ASTNode* node, char* buffer) {
     }
 }
 
-// Função básica de impressão com indentação
-// void printAST(ASTNode* root, int depth) {
-//     if (root == NULL) return; //se não tem raíz, não tem o que imprimir
-//     for (int i = 0; i < depth; i++) printf("  ");
-    
-//     // Nome do nó baseado no tipo
-//     char value[100];
-//     getNodeValue(root, value);
-//     printf("%s\n", value);
-
-//     printAST(root->left, depth + 1);
-//     printAST(root->right, depth + 1);
-// }
-
 // Função auxiliar recursiva para imprimir a árvore verticalmente com ASCII simples
 static void _printASTVerticalSimpleHelper(ASTNode* root, char* prefix, int isLast) {
     if (root == NULL) return;

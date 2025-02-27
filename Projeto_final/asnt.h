@@ -30,12 +30,6 @@ ASTNode* createNode(NodeType type, ASTNode* left, ASTNode* right, char* value, i
 // Parâmetros: Tipo do nó, ponteiros para os filhos esquerdo e direito, valor do nó, número da linha e tipo do identificador.
 // Retorna um ponteiro para o nó criado.
 
-
-//imprime a árvore de análise sintática
-// void printAST(ASTNode* root, int depth);
-//Parâmetros: Ponteiro para a raiz da AST e profundidade atual.
-
-
 //liberar a memória utilizada para a árvore
 void freeAST(ASTNode* root);
 //imprimir a árvore completa

@@ -4,7 +4,6 @@
 #define SIZE 211 //tamanho da tabela hash
 #define SHIFT 4 //deslocamento para a função hash
 
-/* the hash table */
 static BucketList hashTable[SIZE];
 
 static int hash(char *key) {
