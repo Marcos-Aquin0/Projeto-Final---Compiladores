@@ -76,9 +76,12 @@ Mensagens claras e detalhadas para erros léxicos e sintáticos, incluindo a lin
    make
    ```
 
-4. Execute o compilador com um arquivo de teste:
+4. Execute o compilador com um arquivo de teste e as flags de impressão da árvore:
    ```bash
-   ./cminus_compiler < Tests/sort.c-
+   ./cminus_compiler --print-full-tree < Tests/sort.c-
+   ```
+   ```bash
+   ./cminus_compiler --print-tree < Tests/sort.c-
    ```
 
 5. Apague os executáveis gerados após o uso (opcional):
@@ -90,16 +93,17 @@ Mensagens claras e detalhadas para erros léxicos e sintáticos, incluindo a lin
 
 ## Próximas Etapas
 
-- Implementar a **Análise Semântica**;
-- Finalizar a **Tabela de Símbolos**;
 - Adicionar suporte para **Geração de Código Intermediário**;
 - Adicionar suporte para **otimizações básicas** no código intermediário.
-
+- Arrumar impressão de erros. Mostrar todos os erros, sem parar a execução do código.
+- Adicionar função para impressão da árvore reduzida.
+- Verificar tabela de tipos e referência de vetor como parâmetro (começar pela função main ou ler o código mais uma vez)
+- rever a nomeação e a estrutura dos códigos .c e .h
 ---
 
 ## Contribuidores
 
-Este projeto foi desenvolvido por alunos da UNIFESP para a disciplina de Compiladores. Agradecimentos ao professor e colegas por todo o suporte e aprendizado ao longo do desenvolvimento.
+Este projeto foi desenvolvido por Marcos Aquino e Matheus Esteves, alunos da UNIFESP para a disciplina de Compiladores. Agradecimentos ao professor e colegas por todo o suporte e aprendizado ao longo do desenvolvimento.
 
 ---
 
