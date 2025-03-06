@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
     if (root != NULL) {
         // Imprime a árvore se solicitado
         if (argc > 1 && strcmp(argv[1], "--print-tree") == 0) 
-            printReducedAST(root, 0); //ainda em desenvolvimento
+            printReducedAST(root, 0);
         else if (argc > 1 && strcmp(argv[1], "--print-full-tree") == 0) 
             printASTVertical(root);
 

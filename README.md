@@ -96,7 +96,6 @@ Mensagens claras e detalhadas para erros léxicos e sintáticos, incluindo a lin
 - Adicionar suporte para **Geração de Código Intermediário**;
 - Adicionar suporte para **otimizações básicas** no código intermediário.
 - Arrumar impressão de erros. Mostrar todos os erros, sem parar a execução do código.
-- Adicionar função para impressão da árvore reduzida.
 - Verificar tabela de tipos e referência de vetor como parâmetro (começar pela função main ou ler o código mais uma vez)
 - rever a nomeação e a estrutura dos códigos .c e .h
 ---
