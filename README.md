@@ -27,7 +27,7 @@ A linguagem-alvo, **C-**, é uma versão simplificada da linguagem C, ideal para
 - 1.`lex.flex`: Definições e regras para a análise léxica da linguagem C-;
 - 2.`parser.y` e `parser.h`: Regras de gramática para a análise sintática;
 - 3.`asnt.c` e `asnt.h`: Implementação e impressão da árvore sintática;
-- 4.`analyze.c`, `analyze.h`, `symtab.c` e `symtab.h`: Construção da tabela de símbolos a partir da árvore sintática;
+- 4.`symtab.c` e `symtab.h`: Construção da tabela de símbolos a partir da árvore sintática;
 - 5.`semantic.c`e `semantic.h`: Análise semântica.
 - `main.c`: Arquivo principal para integração e execução do compilador.
 ---

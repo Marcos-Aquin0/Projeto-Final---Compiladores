@@ -1,6 +1,5 @@
 #include "globals.h"
 #include "symtab.h"
-#include "analyze.h"
 #include "semantic.h"
 
 // Declarações das funções semânticas

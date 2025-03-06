@@ -1,6 +1,10 @@
 #ifndef SYMTAB_H
 #define SYMTAB_H
 
+#include "asnt.h"
+//definição da função de construção da tabela de símbolos
+void buildSymtab(ASTNode *syntaxTree);
+
 //A estrutura LineListRec é usada para armazenar uma lista de números de 
 //linha onde um identificador aparece no código fonte.
 typedef struct LineListRec {

@@ -1,7 +1,6 @@
 #include "globals.h"
 #include "asnt.h"
 #include "parser.h"
-#include "analyze.h"
 #include "symtab.h"
 #include "semantic.h"
 
