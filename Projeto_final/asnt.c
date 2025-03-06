@@ -58,6 +58,7 @@ static const char* nodeTypeToString(NodeType type) {
         case NODE_ARGS: return "Args";
         case NODE_ARG_LIST: return "ArgList";
         case NODE_FUNC: return "Func";
+        case NODE_ARRAY_ACCESS: return "ArrayAccess";
         default: return "UnknownNode";
     }
 }
