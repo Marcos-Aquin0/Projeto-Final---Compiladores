@@ -3,6 +3,7 @@
 #include "parser.h"
 #include "symtab.h"
 #include "semantic.h"
+#include "cinter.h"
 
 extern int yyparse(); /*função do parser*/
 
@@ -40,9 +41,15 @@ int main(int argc, char *argv[]) {
         }
         printf("Análise semântica concluída com sucesso!\n");
 
+        // Geração de código intermediário
+        printf("\nGerando código intermediário...\n");
+        ircode_generate(root);
+        printf("Geração de código intermediário concluída!\n");
+
         pop_scope();
         freeAST(root);
         freeTypeTable();  // Libera a tabela de tipos
+        freeIRCode();  // Libera a memória do código intermediário
     } else {
         printf("Aviso: Nenhuma árvore foi construída.\n");
         return 3;
