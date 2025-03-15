@@ -166,6 +166,92 @@ void printIRCode(FILE* listing) {
     fprintf(listing, "------------------------------------------------------------\n");
 }
 
+// Função para imprimir as quadruplas como código intermediário de 3 endereços
+void printThreeAddressCode(FILE* listing) {
+    fprintf(listing, "Código Intermediário de 3 Endereços:\n");
+    fprintf(listing, "-------------------------------------\n");
+    
+    Quadruple* current = irCode.head;
+    while (current != NULL) {
+        switch (current->op) {
+            case OP_ASSIGN:
+                fprintf(listing, "%s = %s\n", current->result, current->arg1);
+                break;
+            case OP_ADD:
+                fprintf(listing, "%s = %s + %s\n", current->result, current->arg1, current->arg2);
+                break;
+            case OP_SUB:
+                fprintf(listing, "%s = %s - %s\n", current->result, current->arg1, current->arg2);
+                break;
+            case OP_MULT:
+                fprintf(listing, "%s = %s * %s\n", current->result, current->arg1, current->arg2);
+                break;
+            case OP_DIV:
+                fprintf(listing, "%s = %s / %s\n", current->result, current->arg1, current->arg2);
+                break;
+            case OP_LT:
+                fprintf(listing, "%s = %s < %s\n", current->result, current->arg1, current->arg2);
+                break;
+            case OP_LTE:
+                fprintf(listing, "%s = %s <= %s\n", current->result, current->arg1, current->arg2);
+                break;
+            case OP_GT:
+                fprintf(listing, "%s = %s > %s\n", current->result, current->arg1, current->arg2);
+                break;
+            case OP_GTE:
+                fprintf(listing, "%s = %s >= %s\n", current->result, current->arg1, current->arg2);
+                break;
+            case OP_EQ:
+                fprintf(listing, "%s = %s == %s\n", current->result, current->arg1, current->arg2);
+                break;
+            case OP_NEQ:
+                fprintf(listing, "%s = %s != %s\n", current->result, current->arg1, current->arg2);
+                break;
+            case OP_LABEL:
+                fprintf(listing, "%s:\n", current->result);
+                break;
+            case OP_JUMP:
+                fprintf(listing, "goto %s\n", current->result);
+                break;
+            case OP_JUMPFALSE:
+                fprintf(listing, "if (!%s) goto %s\n", current->arg1, current->result);
+                break;
+            case OP_JUMPTRUE:
+                fprintf(listing, "if (%s) goto %s\n", current->arg1, current->result);
+                break;
+            case OP_CALL:
+                fprintf(listing, "%s = call %s, %s\n", current->result, current->arg1, current->arg2);
+                break;
+            case OP_PARAM:
+                fprintf(listing, "param %s\n", current->arg1);
+                break;
+            case OP_RETURN:
+                fprintf(listing, "return %s\n", current->arg1 ? current->arg1 : "");
+                break;
+            case OP_ARRAY_LOAD:
+                fprintf(listing, "%s = %s[%s]\n", current->result, current->arg1, current->arg2);
+                break;
+            case OP_ARRAY_STORE:
+                fprintf(listing, "%s[%s] = %s\n", current->result, current->arg2, current->arg1);
+                break;
+            case OP_ALLOC:
+                fprintf(listing, "%s = alloc %s\n", current->result, current->arg1);
+                break;
+            case OP_FUNCTION:
+                fprintf(listing, "function %s\n", current->arg1);
+                break;
+            case OP_END:
+                fprintf(listing, "end %s\n", current->arg1);
+                break;
+            default:
+                fprintf(listing, "unknown operation\n");
+                break;
+        }
+        current = current->next;
+    }
+    fprintf(listing, "-------------------------------------\n");
+}
+
 // Gera código para expressões
 void genExprCode(ASTNode* expr, char* target) {
     if (expr == NULL) return;
@@ -499,6 +585,7 @@ void ircode_generate(ASTNode* syntaxTree) {
     initIRCode();
     generateIRCode(syntaxTree);
     printIRCode(stdout);
+    printThreeAddressCode(stdout);  // Adiciona impressão do código de 3 endereços
     DEBUG_IR("Geração de código intermediário concluída");
 }
 
