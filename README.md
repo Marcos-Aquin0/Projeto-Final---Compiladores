@@ -92,11 +92,24 @@ Mensagens claras e detalhadas para erros léxicos e sintáticos, incluindo a lin
 
 ## Próximas Etapas
 
-- Adicionar suporte para **Geração de Código Intermediário**;
-- Adicionar suporte para **otimizações básicas** no código intermediário.
-- Arrumar impressão de erros. Mostrar todos os erros, sem parar a execução do código.
-- Verificar tabela de tipos e referência de vetor como parâmetro (começar pela função main ou ler o código mais uma vez)
----
+- Não está reconhecendo os parâmetros de chamada de função corretamente (Cinter)
+- gcd(v,a) é aceito mesmo sem declarar a
+- faltam escopos para as chamadas de função
+- flag debug global
+
+- referencia de vetores (ponteiro para saber o tamanho está de acordo com o parâmetro, talvez começar a verificação pela main)
+
+- while não reconhecido (Cinter) 
+- params aparecendo sem atribuição/declaração
+- acesso de vetores
+   - se começa com a[i], reconhece, mas nao se k = a[i]
+   
+- os indices de um vetor devem variar entre 0 e n-1 de um vetor declarado como vetor[n]. o indice nao pode ser negativo nem na declaração nem na atribuição.
+
+- otimização básica do gerador de código intermediário
+- rodar todos os erros sem parar o código
+- bloco else separado do if: erro sem especificação
+- verificar necessidade da tabela de tipos
 
 ## Contribuidores
 
