@@ -255,7 +255,8 @@ factor:
 
 activation:
     ID OPAREN args CPAREN {
-        ASTNode* idNode = createNode(NODE_VAR, NULL, NULL, $1, yylineno, NULL);
+        // Modificar para criar um nó de tipo NODE_FUNC para o identificador de função em vez de NODE_VAR
+        ASTNode* idNode = createNode(NODE_FUNC, NULL, NULL, $1, yylineno, NULL);
         $$ = createNode(NODE_ACTIVATION, idNode, $3, NULL, yylineno, NULL);
     }
     ;
