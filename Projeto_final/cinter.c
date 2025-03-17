@@ -46,6 +46,43 @@ const char* getOpName(OperationType op) {
     }
 }
 
+// Função para obter o nome do tipo de nó baseado em seu valor numérico
+const char* getNodeTypeName(NodeType type) {
+    switch(type) {
+        case NODE_PROGRAM: return "NODE_PROGRAM";
+        case NODE_DECL: return "NODE_DECL";
+        case NODE_DECL_LIST: return "NODE_DECL_LIST";
+        case NODE_VAR_DECL: return "NODE_VAR_DECL";
+        case NODE_SPEC_TYPE: return "NODE_SPEC_TYPE";
+        case NODE_FUNC_DECL: return "NODE_FUNC_DECL";
+        case NODE_PARAMS: return "NODE_PARAMS";
+        case NODE_PARAM_LIST: return "NODE_PARAM_LIST";
+        case NODE_PARAM: return "NODE_PARAM";
+        case NODE_COMPOUND_DECL: return "NODE_COMPOUND_DECL";
+        case NODE_LOCAL_DECL: return "NODE_LOCAL_DECL";
+        case NODE_STATE_LIST: return "NODE_STATE_LIST";
+        case NODE_STATEMENT: return "NODE_STATEMENT";
+        case NODE_EXPR_DECL: return "NODE_EXPR_DECL";
+        case NODE_SELECT_DECL: return "NODE_SELECT_DECL";
+        case NODE_ITER_DECL: return "NODE_ITER_DECL";
+        case NODE_RETURN_DECL: return "NODE_RETURN_DECL";
+        case NODE_EXPR: return "NODE_EXPR";
+        case NODE_VAR: return "NODE_VAR";
+        case NODE_SIMP_EXPR: return "NODE_SIMP_EXPR";
+        case NODE_RELATIONAL: return "NODE_RELATIONAL";
+        case NODE_SUM_EXPR: return "NODE_SUM_EXPR";
+        case NODE_TERM: return "NODE_TERM";
+        case NODE_MULT: return "NODE_MULT";
+        case NODE_FACTOR: return "NODE_FACTOR";
+        case NODE_ACTIVATION: return "NODE_ACTIVATION";
+        case NODE_ARGS: return "NODE_ARGS";
+        case NODE_ARG_LIST: return "NODE_ARG_LIST";
+        case NODE_FUNC: return "NODE_FUNC";
+        case NODE_ARRAY_ACCESS: return "NODE_ARRAY_ACCESS";
+        default: return "UNKNOWN_NODE_TYPE";
+    }
+}
+
 // Inicializa a estrutura de código intermediário
 void initIRCode(void) {
     irCode.head = NULL;
@@ -269,11 +306,21 @@ void printThreeAddressCode(FILE* listing) {
     fprintf(listing, "-------------------------------------\n");
 }
 
-// Gera código para expressões
+// Modificar genExprCode para imprimir o tipo de nó com seu nome
 void genExprCode(ASTNode* expr, char* target) {
     if (expr == NULL) return;
     currentSourceLine = expr->lineno;  // Atualiza com a linha da expressão
-    DEBUG_IR("Gerando código para expressão tipo %d", expr->type);
+    
+    // Debug para mostrar informações da expressão
+    DEBUG_IR("Gerando código para expressão tipo %d: %s na linha %d", 
+             expr->type, getNodeTypeName(expr->type), expr->lineno);
+    if (expr->value) {
+        DEBUG_IR("  Expressão valor: '%s'", expr->value);
+    }
+    if (expr->idType) {
+        DEBUG_IR("  Expressão tipo: '%s'", expr->idType);
+    }
+    DEBUG_IR("  Target: %s", target ? target : "NULL");
     
     char* leftResult = NULL;
     char* rightResult = NULL;
@@ -488,13 +535,28 @@ void genFunctionCode(ASTNode* funcDecl) {
 void genCallCode(ASTNode* call, char* target) {
     if (call == NULL || call->left == NULL || call->left->value == NULL) return;
     
+    DEBUG_IR("Gerando código para chamada de função '%s' (tipo nó: %s) na linha %d", 
+             call->left->value, getNodeTypeName(call->type), call->lineno);
+    DEBUG_IR("  Target da chamada: %s", target ? target : "void (usando tv)");
+    
     // Processa os argumentos da chamada
     ASTNode* args = call->right;
     int argCount = 0;
     
     if (args != NULL) {
         ASTNode* argList = args->left;
+        DEBUG_IR("  Argumentos da chamada:");
+        
         while (argList != NULL) {
+            // Debug para mostrar informações do argumento
+            if (argList->left) {
+                DEBUG_IR("    Arg %d: tipo %d (%s), valor %s", 
+                         argCount + 1, 
+                         argList->left->type, 
+                         getNodeTypeName(argList->left->type),
+                         argList->left->value ? argList->left->value : "expressão");
+            }
+            
             // Gera código para o argumento
             char* argResult = newTemp();
             genExprCode(argList->left, argResult);
@@ -507,6 +569,8 @@ void genCallCode(ASTNode* call, char* target) {
             argCount++;
             argList = argList->right;
         }
+    } else {
+        DEBUG_IR("  Sem argumentos");
     }
     
     // Determina o target para a chamada da função
@@ -516,11 +580,13 @@ void genCallCode(ASTNode* call, char* target) {
     // Neste caso, usamos uma variável temporária especial "tv" para representar a chamada
     if (callTarget == NULL) {
         callTarget = newVoidTemp();
+        DEBUG_IR("  Usando %s para chamada void", callTarget);
     }
     
     // Gera a chamada de função
     char argCountStr[12];
     sprintf(argCountStr, "%d", argCount);
+    DEBUG_IR("  Gerando CALL com %d argumentos", argCount);
     genQuad(OP_CALL, call->left->value, argCountStr, callTarget);
 }
 
@@ -556,8 +622,15 @@ void genArrayAssignCode(ASTNode* arrayAssign) {
     genQuad(OP_ARRAY_STORE, valueResult, indexResult, arrayName);
 }
 
+// Também podemos modificar a função generateIRCode para imprimir tipos dos nós
 void generateIRCode(ASTNode* node) {
     if (node == NULL) return;
+    
+    // Debug para mostrar tipo do nó sendo processado
+    if (node->type != NODE_PROGRAM && node->type != NODE_DECL_LIST && 
+        node->type != NODE_COMPOUND_DECL && node->type != NODE_STATE_LIST) {
+        DEBUG_IR("Processando nó tipo %d: %s", node->type, getNodeTypeName(node->type));
+    }
     
     switch (node->type) {
         case NODE_PROGRAM:
