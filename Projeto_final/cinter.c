@@ -4,6 +4,17 @@
 #include <stdarg.h>
 
 static IRCode irCode;
+static int voidTempCount = 0;
+// Função para gerar um novo nome de variável temporária para chamadas void
+char* newVoidTemp(void) {
+    char* temp = (char*)malloc(12);
+    if (temp == NULL) {
+        fprintf(stderr, "Erro: Falha ao alocar memória para variável temporária void.\n");
+        exit(EXIT_FAILURE);
+    }
+    sprintf(temp, "tv%d", voidTempCount++);
+    return temp;
+}
 
 // Helper para nomes de operações - movido para o início
 const char* getOpName(OperationType op) {
@@ -219,8 +230,14 @@ void printThreeAddressCode(FILE* listing) {
             case OP_JUMPTRUE:
                 fprintf(listing, "if (%s) goto %s\n", current->arg1, current->result);
                 break;
-            case OP_CALL:
-                fprintf(listing, "%s = call %s, %s\n", current->result, current->arg1, current->arg2);
+                case OP_CALL:
+                if (current->result && strncmp(current->result, "tv", 2) == 0) {
+                    // Chamada de função void - não mostra atribuição
+                    fprintf(listing, "call %s, %s\n", current->arg1, current->arg2);
+                } else {
+                    // Chamada de função normal com atribuição
+                    fprintf(listing, "%s = call %s, %s\n", current->result, current->arg1, current->arg2);
+                }
                 break;
             case OP_PARAM:
                 fprintf(listing, "param %s\n", current->arg1);
@@ -467,7 +484,7 @@ void genFunctionCode(ASTNode* funcDecl) {
     genQuad(OP_END, funcDecl->value, NULL, NULL);
 }
 
-// Gera código para chamada de função
+// Modificar genCallCode para usar variáveis temporárias void quando necessário
 void genCallCode(ASTNode* call, char* target) {
     if (call == NULL || call->left == NULL || call->left->value == NULL) return;
     
@@ -492,10 +509,19 @@ void genCallCode(ASTNode* call, char* target) {
         }
     }
     
+    // Determina o target para a chamada da função
+    char* callTarget = target;
+    
+    // Se target for NULL, é uma chamada de função void
+    // Neste caso, usamos uma variável temporária especial "tv" para representar a chamada
+    if (callTarget == NULL) {
+        callTarget = newVoidTemp();
+    }
+    
     // Gera a chamada de função
     char argCountStr[12];
     sprintf(argCountStr, "%d", argCount);
-    genQuad(OP_CALL, call->left->value, argCountStr, target);
+    genQuad(OP_CALL, call->left->value, argCountStr, callTarget);
 }
 
 // Gera código para acesso a elementos de array
@@ -530,7 +556,6 @@ void genArrayAssignCode(ASTNode* arrayAssign) {
     genQuad(OP_ARRAY_STORE, valueResult, indexResult, arrayName);
 }
 
-// Função recursiva principal para geração de código
 void generateIRCode(ASTNode* node) {
     if (node == NULL) return;
     
@@ -549,10 +574,19 @@ void generateIRCode(ASTNode* node) {
         case NODE_EXPR:
             if (node->value != NULL && strcmp(node->value, "=") == 0) {
                 genAssignCode(node);
+            } else if (node->type == NODE_ACTIVATION || 
+                      (node->left != NULL && node->left->type == NODE_ACTIVATION)) {
+                // Chamada de função sem atribuição (possivelmente void)
+                genCallCode(node, NULL);
             } else {
                 char* tempResult = newTemp();
                 genExprCode(node, tempResult);
             }
+            break;
+            
+        case NODE_ACTIVATION:
+            // Chamada de função independente (possivelmente void)
+            genCallCode(node, NULL);
             break;
             
         case NODE_SELECT_DECL:
@@ -578,6 +612,7 @@ void generateIRCode(ASTNode* node) {
             break;
     }
 }
+
 
 // Função de entrada para gerar o código intermediário
 void ircode_generate(ASTNode* syntaxTree) {
