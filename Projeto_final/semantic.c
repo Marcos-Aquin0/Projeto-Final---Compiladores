@@ -111,6 +111,10 @@ void semanticAnalysis(ASTNode* node) {
             }
             break;
 
+        case NODE_ARRAY_ACCESS:
+            checkArrayAccess(node);
+            break;
+
         case NODE_ACTIVATION:
             checkFunctionCall(node);
             break;
@@ -166,6 +170,13 @@ static void checkVariableDeclaration(ASTNode* node) {
                     node->value, node->lineno);
             hasSemanticError = 1;
         }
+    }
+
+    // Verifica se o tamanho do array é válido (maior que 0)
+    if (node->isArray && node->arraySize <= 0) {
+        fprintf(stderr, "Erro semântico: Tamanho do array '%s' deve ser positivo (linha %d)\n",
+                node->value, node->lineno);
+        hasSemanticError = 1;
     }
 }
 
@@ -408,7 +419,12 @@ static void checkArrayAccess(ASTNode* node) {
         // Se o índice é uma constante, verifica os limites
         if (node->right->type == NODE_FACTOR && node->right->value) {
             int index = atoi(node->right->value);
-            if (index < 0 || index >= l->arraySize) {
+            if (index < 0) {
+                fprintf(stderr, "Erro semântico: Índice negativo (%d) no acesso ao array '%s' (linha %d)\n",
+                        index, node->value, node->lineno);
+                hasSemanticError = 1;
+            } 
+            else if (l->arraySize > 0 && index >= l->arraySize) {
                 fprintf(stderr, "Erro semântico: Índice %d fora dos limites do array '%s[%d]' (linha %d)\n",
                         index, node->value, l->arraySize, node->lineno);
                 hasSemanticError = 1;

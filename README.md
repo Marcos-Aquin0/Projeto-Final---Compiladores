@@ -103,8 +103,6 @@ Mensagens claras e detalhadas para erros léxicos e sintáticos, incluindo a lin
 - params aparecendo sem atribuição/declaração
 - acesso de vetores
    - se começa com a[i], reconhece, mas nao se k = a[i]
-   
-- os indices de um vetor devem variar entre 0 e n-1 de um vetor declarado como vetor[n]. o indice nao pode ser negativo nem na declaração nem na atribuição.
 
 - otimização básica do gerador de código intermediário
 - rodar todos os erros sem parar o código
