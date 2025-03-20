@@ -97,25 +97,33 @@ BucketList st_lookup_in_scope(char *name, char *scope) {
 
 void printSymTab(FILE *listing) {
     int i;
-    fprintf(listing, "Variable Name  Scope  ID Type  Data Type  Location  Line Numbers\n");
-    fprintf(listing, "-------------  -----  -------  ---------  --------  ------------\n");
+    fprintf(listing, "Variable Name  Scope       ID Type  Data Type  Location  Line Numbers\n");
+    fprintf(listing, "-------------  ----------  -------  ---------  --------  ------------\n");
     for (i = 0; i < SIZE; ++i) {
         if (hashTable[i] != NULL) {
             BucketList l = hashTable[i];
             while (l != NULL) {
                 LineList t = l->lines;
-                fprintf(listing, "%-14s %-8s %-8s %-10s %-8d ", l->name, l->scope, l->idType, l->dataType, l->memloc);
+                fprintf(listing, "%-14s %-12s %-8s %-10s %-8d ", l->name, l->scope, l->idType, l->dataType, l->memloc);
                 
-                // Para funções, marcar a linha da declaração com um 'D'
-                if (strcmp(l->idType, "func") == 0) {
+                // Para funções no escopo global, a primeira linha é a declaração
+                if (strcmp(l->idType, "func") == 0 && strcmp(l->scope, "global") == 0) {
                     fprintf(listing, "%4d(D) ", t->lineno);
                     t = t->next;
                     // As linhas restantes são chamadas
                     while (t != NULL) {
+                        fprintf(listing, "%4d ", t->lineno);
+                        t = t->next;
+                    }
+                } 
+                // Para funções em outros escopos, todas são chamadas
+                else if (strcmp(l->idType, "func") == 0) {
+                    while (t != NULL) {
                         fprintf(listing, "%4d(C) ", t->lineno);
                         t = t->next;
                     }
-                } else {
+                }
+                else {
                     // Para variáveis, mostrar todas as linhas normalmente
                     while (t != NULL) {
                         fprintf(listing, "%4d ", t->lineno);
@@ -196,10 +204,63 @@ static void traverse(ASTNode *t,
         } else if (t->type == NODE_COMPOUND_DECL) {
             // Para blocos compostos, mantemos o escopo atual
             push_scope(current_scope());
-           DEBUG_SYMTAB("Entrando no escopo %s", current_scope());
+            DEBUG_SYMTAB("Entrando no escopo %s", current_scope());
         }
         
         preProc(t);
+        
+        // Caso especial para NODE_ACTIVATION para garantir que ele seja processado
+        // antes de seus filhos
+        if (t->type == NODE_ACTIVATION) {
+            if (t->left) {
+                char *funcName = t->left->value;
+                char *scope = current_scope();
+                
+                if (funcName) {
+                    DEBUG_SYMTAB("Processando chamada de função '%s' no escopo '%s'", funcName, scope);
+                    
+                    // Procuramos a função na tabela de símbolos global
+                    BucketList func = st_lookup_in_scope(funcName, "global");
+                    
+                    if (func) {
+                        // Registra a chamada de função no escopo atual se não for global
+                        if (strcmp(scope, "global") != 0) {
+                            // Verifica se a função já foi registrada no escopo atual
+                            BucketList funcInScope = st_lookup_in_scope(funcName, scope);
+                            
+                            if (funcInScope) {
+                                // Adiciona a linha de chamada
+                                LineList lines = funcInScope->lines;
+                                while (lines->next != NULL) lines = lines->next;
+                                lines->next = (LineList)malloc(sizeof(struct LineListRec));
+                                lines->next->lineno = t->lineno;
+                                lines->next->next = NULL;
+                            } else {
+                                // Registra nova entrada para a função no escopo atual
+                                DEBUG_SYMTAB("Registrando função '%s' no escopo '%s'", funcName, scope);
+                                st_insert(funcName, t->lineno, location++, scope, "func", func->dataType, 0, 0);
+                            }
+                        } else {
+                            // Adiciona linha à entrada global
+                            LineList lines = func->lines;
+                            while (lines->next != NULL) lines = lines->next;
+                            lines->next = (LineList)malloc(sizeof(struct LineListRec));
+                            lines->next->lineno = t->lineno;
+                            lines->next->next = NULL;
+                        }
+                    } else {
+                        // Se a função não existe, registra-a
+                        DEBUG_SYMTAB("Função '%s' não encontrada, registrando em global e escopo atual", funcName);
+                        st_insert(funcName, t->lineno, location++, "global", "func", "int", 0, 0);
+                        
+                        if (strcmp(scope, "global") != 0) {
+                            st_insert(funcName, t->lineno, location++, scope, "func", "int", 0, 0);
+                        }
+                    }
+                }
+            }
+        }
+        
         traverse(t->left, preProc, postProc);
         traverse(t->right, preProc, postProc);
         
@@ -281,28 +342,7 @@ static void insertNode(ASTNode *t) {
             }
             break;
 
-        case NODE_ACTIVATION:
-            // Adicionar o caso para registrar as chamadas de função
-            if (t->left && t->left->value) {
-                DEBUG_SYMTAB("insertNode: Processando ativação de função '%s' na linha %d", t->left->value, t->lineno);
-                
-                // Procuramos a função na tabela de símbolos
-                BucketList func = st_lookup(t->left->value);
-                if (func) {
-                    // Adiciona a linha da chamada à lista de linhas da função
-                    LineList lines = func->lines;
-                    while (lines->next != NULL) lines = lines->next;
-                    lines->next = (LineList)malloc(sizeof(struct LineListRec));
-                    lines->next->lineno = t->lineno;
-                    lines->next->next = NULL;
-                    DEBUG_SYMTAB("Registrando chamada de função '%s' na linha %d no escopo '%s'", t->left->value, t->lineno, scope);
-                } else {
-                    // Se a função não existe na tabela de símbolos, registra-a agora como função
-                    DEBUG_SYMTAB("Registrando nova função '%s' chamada na linha %d", t->left->value, t->lineno);
-                    st_insert(t->left->value, t->lineno, location++, "global", "func", "int", 0, 0);
-                }
-            }
-            break;
+        // Removido o case NODE_ACTIVATION aqui, pois agora é tratado diretamente na função traverse
 
         default:
             break;

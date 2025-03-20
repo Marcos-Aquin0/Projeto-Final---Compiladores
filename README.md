@@ -94,7 +94,6 @@ Mensagens claras e detalhadas para erros léxicos e sintáticos, incluindo a lin
 
 - Não está reconhecendo os parâmetros de chamada de função corretamente (Cinter)
 - gcd(v,a) é aceito mesmo sem declarar a
-- faltam escopos para as chamadas de função
 
 - referencia de vetores (ponteiro para saber o tamanho está de acordo com o parâmetro, talvez começar a verificação pela main)
 
