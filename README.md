@@ -92,10 +92,9 @@ Mensagens claras e detalhadas para erros léxicos e sintáticos, incluindo a lin
 
 ## Próximas Etapas
 
-- Não está reconhecendo os parâmetros de chamada de função corretamente (Cinter)
+- Não está reconhecendo os parâmetros de chamada de função corretamente, verificar quando tem operações (Cinter)
 - gcd(v,a) é aceito mesmo sem declarar a
-
-- while não reconhecido (Cinter) 
+- while e relational (LT, BT) não reconhecido (Cinter) 
 - params aparecendo sem atribuição/declaração
 - acesso de vetores
    - se começa com a[i], reconhece, mas nao se k = a[i]
