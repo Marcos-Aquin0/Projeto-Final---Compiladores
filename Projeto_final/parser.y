@@ -175,6 +175,10 @@ select_decl:
         $$ = createNode(NODE_SELECT_DECL, $3, 
             createNode(NODE_STATEMENT, $5, $7, NULL, yylineno, NULL), NULL, yylineno, NULL);
     }
+    | ELSE statement {
+        yyerror("Bloco else sem precedência de um bloco if");
+        $$ = NULL;
+    }
     ;
 
 iter_decl:

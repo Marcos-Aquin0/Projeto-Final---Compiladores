@@ -108,7 +108,6 @@ Mensagens claras e detalhadas para erros léxicos e sintáticos, incluindo a lin
 
 - otimização básica do gerador de código intermediário
 - rodar todos os erros sem parar o código
-- bloco else separado do if: erro sem especificação
 - verificar necessidade da tabela de tipos
 
 ## Contribuidores
