@@ -209,8 +209,7 @@ static void traverse(ASTNode *t,
         
         preProc(t);
         
-        // Caso especial para NODE_ACTIVATION para garantir que ele seja processado
-        // antes de seus filhos
+        // Caso especial para NODE_ACTIVATION para garantir que ele seja processado antes de seus filhos
         if (t->type == NODE_ACTIVATION) {
             if (t->left) {
                 char *funcName = t->left->value;

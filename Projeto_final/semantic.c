@@ -195,14 +195,14 @@ static void checkAssignment(ASTNode* node) {
     char* leftScope = current_scope();
     char* rightScope = current_scope();
 
-    // Debug information
+    // Debug vetor
     // printf("Comparando variáveis na linha %d:\n", node->lineno);
     // printf("Variável esquerda: %s, Tipo: %s, Escopo: %s\n", 
     //        node->left->value, leftType, leftScope);
     // printf("Variável direita: %s, Tipo: %s, Escopo: %s\n", 
     //        node->right->value, rightType, rightScope);
 
-    // Check left side declaration
+    // Conferir a declaração do lado esquerdo
     if (leftType == NULL) {
         fprintf(stderr, "Erro semântico na linha %d: Variável '%s' sendo usada sem ter sido declarada.\n",
                 node->lineno, node->left->value ? node->left->value : "desconhecida");
@@ -210,7 +210,7 @@ static void checkAssignment(ASTNode* node) {
         return;
     }
 
-    // Check right side declaration
+    // Conferir a declaração do lado direito
     if (rightType == NULL) {
         fprintf(stderr, "Erro semântico na linha %d: Expressão ou variável '%s' sendo usada sem ter sido declarada.\n",
                 node->lineno, node->right->value ? node->right->value : "desconhecida");
@@ -218,7 +218,7 @@ static void checkAssignment(ASTNode* node) {
         return;
     }
 
-    // Check type compatibility
+    // Checar a compatibilidade de tipos
     if (!checkTypeCompatibility(leftType, rightType)) {
         fprintf(stderr, "Erro semântico na linha %d: Incompatibilidade de tipos na atribuição. "
                        "Variável '%s' é do tipo '%s' mas está recebendo valor do tipo '%s'.\n",
@@ -228,10 +228,9 @@ static void checkAssignment(ASTNode* node) {
     }
 }
 
-// Helper function to get array element type
+// Helper para pegar o tipo do elemento do array
 char* getArrayElementType(char* arrayType) {
-    // Remove the [] from the end of the type
-    // For example, "int[]" becomes "int"
+    // Remove [] do final do tipo
     char* elementType = strdup(arrayType);
     char* bracketPos = strstr(elementType, "[]");
     if (bracketPos) {
@@ -309,13 +308,13 @@ static char* getExpressionType(ASTNode* node) {
         }
 
         case NODE_ARRAY_ACCESS: {
-            if (node->left) {  // left child contains the array identifier
+            if (node->left) {  // filho da esquerda contém o identificador do array
                 BucketList l = st_lookup(node->left->value);
                 if (!l) {
                     l = st_lookup_in_scope(node->left->value, current_scope());
                 }
                 if (l && l->isArray) {
-                    // printf("DEBUG: Array access to '%s' (type: %s)\n", 
+                    // DEBUG_SEMANTIC("Acesso ao array '%s' (type: %s)\n", 
                     //       node->left->value, l->dataType);
                     return l->dataType;
                 }

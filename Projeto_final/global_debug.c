@@ -1,5 +1,6 @@
 #include "globals.h"
 
+// função de print de debug
 void debugPrint(const char* format, ...) {
     #ifdef DEBUG
     va_list args;

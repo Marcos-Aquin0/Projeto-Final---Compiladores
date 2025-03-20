@@ -10,7 +10,7 @@
 /* Variáveis Globais */
 extern int yylineno; // Número da linha para mensagens de erro
 
-// Declare the function (but don't define it here)
+// função e definições de debug
 void debugPrint(const char* format, ...);
 
 #define DEBUG_IR(fmt, ...) debugPrint("IR Debug [%s:%d]: " fmt, __FILE__, __LINE__, ##__VA_ARGS__)

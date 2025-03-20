@@ -700,10 +700,8 @@ void generateIRCode(ASTNode* node) {
 
 // Função de entrada para gerar o código intermediário
 void ircode_generate(ASTNode* syntaxTree) {
-    DEBUG_IR("Iniciando geração de código intermediário");
     initIRCode();
     generateIRCode(syntaxTree);
     printIRCode(stdout);
     printThreeAddressCode(stdout);  // Adiciona impressão do código de 3 endereços
-    DEBUG_IR("Geração de código intermediário concluída");
 }
