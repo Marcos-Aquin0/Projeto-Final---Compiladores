@@ -75,8 +75,4 @@ void generateIRCode(ASTNode* syntaxTree);
 // Adicionar a declaração da função getOpName antes de seu uso
 const char* getOpName(OperationType op);
 
-// Adicionar novas funções de debug
-void debugPrint(const char* format, ...);
-#define DEBUG_IR(fmt, ...) debugPrint("IR Debug [%s:%d]: " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
-
 #endif

@@ -54,9 +54,9 @@ void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char 
         l->next = hashTable[h];
         hashTable[h] = l;
 
-        // printf("DEBUG: st_insert: Nova entrada criada para '%s' no escopo '%s'\n", name, scope);
+        DEBUG_SYMTAB("st_insert: Nova entrada criada para '%s' no escopo '%s'", name, scope);
     } else { // Símbolo já existe, atualiza informações
-        // printf("DEBUG: st_insert: Atualizando entrada existente para '%s' no escopo '%s'\n", name, scope);
+        DEBUG_SYMTAB("st_insert: Atualizando entrada existente para '%s' no escopo '%s'", name, scope);
         l->isArray = isArray;
         l->arraySize = arraySize;
 
@@ -191,12 +191,12 @@ static void traverse(ASTNode *t,
             // Para funções, usamos o nome da função como escopo
             if (t->left && t->left->right && t->left->right->value) {
                 push_scope(t->left->right->value);
-                // printf("DEBUG: Entrando no escopo %s\n", current_scope());
+                DEBUG_SYMTAB("Entrando no escopo %s", current_scope());
             }
         } else if (t->type == NODE_COMPOUND_DECL) {
             // Para blocos compostos, mantemos o escopo atual
             push_scope(current_scope());
-           // printf("DEBUG: Entrando no escopo %s\n", current_scope());
+           DEBUG_SYMTAB("Entrando no escopo %s", current_scope());
         }
         
         preProc(t);
@@ -204,7 +204,7 @@ static void traverse(ASTNode *t,
         traverse(t->right, preProc, postProc);
         
         if (t->type == NODE_FUNC_DECL || t->type == NODE_COMPOUND_DECL) {
-            //printf("DEBUG: Saindo do escopo %s\n", current_scope());
+            DEBUG_SYMTAB("Saindo do escopo %s", current_scope());
             pop_scope();
         }
         
@@ -233,19 +233,19 @@ static void insertNode(ASTNode *t) {
     // Verifica se o símbolo já existe no escopo atual
     BucketList existing = st_lookup_in_scope(t->value, scope);
     
-    // printf("DEBUG: insertNode: Processando nó tipo %d para '%s' no escopo '%s'\n", t->type, t->value, scope);
+    DEBUG_SYMTAB("insertNode: Processando nó tipo %d para '%s' no escopo '%s'", t->type, t->value, scope);
 
     switch (t->type) {
         case NODE_VAR_DECL:
             if (existing == NULL) {
-                // printf("DEBUG: insertNode: Inserindo nova variável '%s'\n", t->value);
+                DEBUG_SYMTAB("insertNode: Inserindo nova variável '%s'", t->value);
                 st_insert(t->value, t->lineno, location++, strdup(scope), "var", t->idType, t->isArray, t->arraySize);
             }
             break;
 
         case NODE_PARAM:
             if (existing == NULL) {
-                // printf("DEBUG: insertNode: Inserindo parâmetro '%s'\n", t->value);
+                DEBUG_SYMTAB("insertNode: Inserindo parâmetro '%s'", t->value);
                 st_insert(t->value, t->lineno, location++, strdup(scope), "param", t->idType, t->isArray, t->arraySize);
             }
             break;
@@ -258,7 +258,7 @@ static void insertNode(ASTNode *t) {
                 lines->next = (LineList)malloc(sizeof(struct LineListRec));
                 lines->next->lineno = t->lineno;
                 lines->next->next = NULL;
-                // printf("DEBUG: insertNode: Atualizando uso de '%s' na linha %d\n", t->value, t->lineno);
+                DEBUG_SYMTAB("insertNode: Atualizando uso de '%s' na linha %d", t->value, t->lineno);
             } else if (st_lookup(t->value) == NULL) {
                 // Se não existe em nenhum escopo, cria uma nova entrada
                 st_insert(t->value, t->lineno, location++, strdup(scope), "var", t->idType, t->isArray, t->arraySize);
@@ -267,14 +267,14 @@ static void insertNode(ASTNode *t) {
 
         case NODE_FUNC_DECL:
             if (st_lookup(t->value) == NULL) {
-                //printf("DEBUG: insertNode: Declarando função '%s' com tipo '%s'\n", t->value, t->idType);
+                DEBUG_SYMTAB("insertNode: Declarando função '%s' com tipo '%s'", t->value, t->idType);
                 st_insert(t->value, t->lineno, location++, "global", "func", t->idType, 0, 0);
             }
             break;
 
         case NODE_FUNC:
             // Adicionar tratamento para nós NODE_FUNC para garantir que sejam registrados corretamente
-            //printf("DEBUG: insertNode: Processando nó FUNC '%s'\n", t->value);
+            DEBUG_SYMTAB("insertNode: Processando nó FUNC '%s'", t->value);
             if (st_lookup(t->value) == NULL) {
                 // Se não existe ainda, tenta registrar como função (tipo será atualizado depois se necessário)
                 st_insert(t->value, t->lineno, location++, "global", "func", "int", 0, 0);
@@ -284,7 +284,7 @@ static void insertNode(ASTNode *t) {
         case NODE_ACTIVATION:
             // Adicionar o caso para registrar as chamadas de função
             if (t->left && t->left->value) {
-                //printf("DEBUG: insertNode: Processando ativação de função '%s' na linha %d\n", t->left->value, t->lineno);
+                DEBUG_SYMTAB("insertNode: Processando ativação de função '%s' na linha %d", t->left->value, t->lineno);
                 
                 // Procuramos a função na tabela de símbolos
                 BucketList func = st_lookup(t->left->value);
@@ -295,10 +295,10 @@ static void insertNode(ASTNode *t) {
                     lines->next = (LineList)malloc(sizeof(struct LineListRec));
                     lines->next->lineno = t->lineno;
                     lines->next->next = NULL;
-                    //printf("DEBUG: Registrando chamada de função '%s' na linha %d no escopo '%s'\n", t->left->value, t->lineno, scope);
+                    DEBUG_SYMTAB("Registrando chamada de função '%s' na linha %d no escopo '%s'", t->left->value, t->lineno, scope);
                 } else {
                     // Se a função não existe na tabela de símbolos, registra-a agora como função
-                    //printf("DEBUG: Registrando nova função '%s' chamada na linha %d\n", t->left->value, t->lineno);
+                    DEBUG_SYMTAB("Registrando nova função '%s' chamada na linha %d", t->left->value, t->lineno);
                     st_insert(t->left->value, t->lineno, location++, "global", "func", "int", 0, 0);
                 }
             }

@@ -696,15 +696,3 @@ void ircode_generate(ASTNode* syntaxTree) {
     printThreeAddressCode(stdout);  // Adiciona impressão do código de 3 endereços
     DEBUG_IR("Geração de código intermediário concluída");
 }
-
-// Adiciona função de debug
-void debugPrint(const char* format, ...) {
-    #ifdef DEBUG
-    va_list args;
-    va_start(args, format);
-    fprintf(stderr, "\033[33m"); // Amarelo para debug
-    vfprintf(stderr, format, args);
-    fprintf(stderr, "\033[0m\n");
-    va_start(args, format);
-    #endif
-}
