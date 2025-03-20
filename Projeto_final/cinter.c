@@ -475,29 +475,40 @@ void genIfCode(ASTNode* ifStmt) {
 // Gera código para loops (while)
 void genWhileCode(ASTNode* whileStmt) {
     if (whileStmt == NULL) return;
+    currentSourceLine = whileStmt->lineno;  // Atualiza com a linha do while
     
-    // Cria rótulos para o início e fim do loop
-    char* startLabel = newLabel();
-    char* endLabel = newLabel();
+    // Cria rótulos para o início da verificação da condição e fim do loop
+    char* condLabel = newLabel();  // Rótulo para verificação da condição
+    char* bodyLabel = newLabel();  // Rótulo para o corpo do loop
+    char* endLabel = newLabel();   // Rótulo para o fim do loop
     
-    // Marca o início do loop
-    genQuad(OP_LABEL, NULL, NULL, startLabel);
+    // 1. Marca o ponto de início da verificação da condição
+    genQuad(OP_LABEL, NULL, NULL, condLabel);
     
-    // Gera código para a condição
+    // 2. Gera código para a condição
     char* condResult = newTemp();
     genExprCode(whileStmt->left, condResult);
     
-    // Gera salto condicional para o fim do loop
-    genQuad(OP_JUMPFALSE, condResult, NULL, endLabel);
+    // 3. Gera salto condicional:
+    //    - Se verdadeiro, executar o corpo do loop (bodyLabel)
+    //    - Se falso, pular para o fim do loop (endLabel)
+    genQuad(OP_JUMPTRUE, condResult, NULL, bodyLabel);
+    genQuad(OP_JUMP, NULL, NULL, endLabel);
     
-    // Gera código para o corpo do loop
+    // 4. Marca o início do corpo do loop
+    genQuad(OP_LABEL, NULL, NULL, bodyLabel);
+    
+    // 5. Gera código para o corpo do loop
     generateIRCode(whileStmt->right);
     
-    // Salta de volta para o início do loop
-    genQuad(OP_JUMP, NULL, NULL, startLabel);
+    // 6. Salta de volta para a verificação da condição
+    genQuad(OP_JUMP, NULL, NULL, condLabel);
     
-    // Marca o fim do loop
+    // 7. Marca o fim do loop
     genQuad(OP_LABEL, NULL, NULL, endLabel);
+    
+    DEBUG_IR("Gerado código para while: cond=%s, corpo=%s, fim=%s", 
+             condLabel, bodyLabel, endLabel);
 }
 
 // Gera código para retorno de função
