@@ -28,7 +28,9 @@ A linguagem-alvo, **C-**, é uma versão simplificada da linguagem C, ideal para
 - 2.`parser.y` e `parser.h`: Regras de gramática para a análise sintática;
 - 3.`asnt.c` e `asnt.h`: Implementação e impressão da árvore sintática;
 - 4.`symtab.c` e `symtab.h`: Construção da tabela de símbolos a partir da árvore sintática;
-- 5.`semantic.c`e `semantic.h`: Análise semântica.
+- 5.`semantic.c` e `semantic.h`: Análise semântica.
+- 6.`cinter.c` e `cinter.h`: gerador de código intermediário.
+- `global_debug.c` definição das funções glboais de debug para utilizar a flag
 - `main.c`: Arquivo principal para integração e execução do compilador.
 ---
 
@@ -46,6 +48,9 @@ Verifica a conformidade do código com a gramática definida para a linguagem C-
 
 ### 3. **Mecanismo de Erros**
 Mensagens claras e detalhadas para erros léxicos e sintáticos, incluindo a linha do erro.
+
+### 4. **Gerador de Código Intermediário**
+Traduz o código de entrada C- em código de três endereços, similar ao assembly em MIPS.
 
 ---
 
