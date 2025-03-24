@@ -14,6 +14,7 @@ static void checkMainFunction(void);
 static void checkAtLeastOneDeclaration(void);
 static void checkLastFunctionIsMain(void);
 static void checkArrayAccess(ASTNode* node);
+static void validateExpressionVariables(ASTNode* expr);
 // variáveis globias
 int hasSemanticError = 0;
 static int hasMainFunction = 0;  // flag para verificar existenia da funcao main
@@ -254,7 +255,75 @@ static void checkFunctionCall(ASTNode* node) {
         fprintf(stderr, "Erro semântico: '%s' não é uma função (linha %d)\n",
                 node->left->value, node->lineno);
         hasSemanticError = 1;
+        return;
     }
+
+    // Verificar os argumentos da chamada de função
+    ASTNode* args = node->right;
+    while (args != NULL) {
+        // Para cada argumento, verificar se está declarado
+        if (args->type == NODE_VAR || args->type == NODE_EXPR) {
+            // Obter o nome da variável do argumento
+            char* argName = NULL;
+            if (args->type == NODE_VAR) {
+                argName = args->value;
+            } else if (args->left && args->left->type == NODE_VAR) {
+                argName = args->left->value;
+            }
+
+            if (argName != NULL) {
+                // Verificar se a variável está declarada
+                BucketList argVar = st_lookup(argName);
+                if (!argVar) {
+                    fprintf(stderr, "Erro semântico: Argumento '%s' usado na chamada da função '%s' não foi declarado (linha %d)\n",
+                            argName, node->left->value, node->lineno);
+                    hasSemanticError = 1;
+                }
+            }
+        }
+        // Se for uma expressão mais complexa, devemos validar recursivamente
+        // que todos os componentes estão declarados
+        else if (args->type == NODE_ARRAY_ACCESS) {
+            // Verificar acesso ao array
+            checkArrayAccess(args);
+        }
+        else if (args->type == NODE_ACTIVATION) {
+            // Verificar chamada de função aninhada
+            checkFunctionCall(args);
+        }
+        else if (args->left != NULL) {
+            // Validar variáveis em expressões mais complexas
+            validateExpressionVariables(args);
+        }
+
+        // Avançar para o próximo argumento
+        args = args->left;
+    }
+}
+
+// Nova função auxiliar para validar variáveis em expressões
+static void validateExpressionVariables(ASTNode* expr) {
+    if (expr == NULL) return;
+
+    // Verificar o nó atual se for uma variável
+    if (expr->type == NODE_VAR && expr->value != NULL) {
+        BucketList var = st_lookup(expr->value);
+        if (!var) {
+            fprintf(stderr, "Erro semântico: Variável '%s' usada em expressão não foi declarada (linha %d)\n",
+                    expr->value, expr->lineno);
+            hasSemanticError = 1;
+        }
+    }
+    else if (expr->type == NODE_ARRAY_ACCESS) {
+        checkArrayAccess(expr);
+    }
+    else if (expr->type == NODE_ACTIVATION) {
+        checkFunctionCall(expr);
+    }
+
+    // Validar recursivamente os filhos da expressão
+    validateExpressionVariables(expr->left);
+    validateExpressionVariables(expr->right);
 }
 
 static char* getExpressionType(ASTNode* node) {
