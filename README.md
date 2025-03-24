@@ -92,9 +92,7 @@ Mensagens claras e detalhadas para erros léxicos e sintáticos, incluindo a lin
 
 ## Próximas Etapas
 
-- Não está reconhecendo os parâmetros de chamada de função corretamente, verificar quando tem operações (Cinter)
 - while e relational (LT, BT) não reconhecido (Cinter) 
-- params aparecendo sem atribuição/declaração
 - acesso de vetores
    - se começa com a[i], reconhece, mas nao se k = a[i]
 

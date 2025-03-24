@@ -554,31 +554,75 @@ void genCallCode(ASTNode* call, char* target) {
     ASTNode* args = call->right;
     int argCount = 0;
     
+    // Verifica se a função é um caso especial como 'gcd' ou 'input'
+    int isSpecialFunction = 
+        (strcmp(call->left->value, "gcd") == 0) ||
+        (strcmp(call->left->value, "input") == 0) ||
+        (strcmp(call->left->value, "output") == 0);
+    
+    // Nova lógica para processar os argumentos corretamente
     if (args != NULL) {
-        ASTNode* argList = args->left;
-        DEBUG_IR("  Argumentos da chamada:");
+        // O nó args pode ser NODE_ARGS ou diretamente o primeiro argumento
+        DEBUG_IR("  Processando argumentos (tipo nó: %s)", getNodeTypeName(args->type));
         
-        while (argList != NULL) {
-            // Debug para mostrar informações do argumento
-            if (argList->left) {
-                DEBUG_IR("    Arg %d: tipo %d (%s), valor %s", 
-                         argCount + 1, 
-                         argList->left->type, 
-                         getNodeTypeName(argList->left->type),
-                         argList->left->value ? argList->left->value : "expressão");
+        if (args->type == NODE_ARGS) {
+            // Para nós do tipo NODE_ARGS, o primeiro argumento está em args->left
+            ASTNode* argList = args->left;
+            
+            while (argList != NULL) {
+                // Verifica se este é um nó de argumento válido
+                if (argList->type == NODE_ARG_LIST && argList->left != NULL) {
+                    // Debug para mostrar informações do argumento
+                    DEBUG_IR("    Arg %d: tipo %d (%s), valor %s", 
+                            argCount + 1, 
+                            argList->left->type, 
+                            getNodeTypeName(argList->left->type),
+                            argList->left->value ? argList->left->value : "expressão");
+                    
+                    // Gera código para o argumento
+                    char* argResult = newTemp();
+                    genExprCode(argList->left, argResult);
+                    
+                    // Passa o argumento para a função
+                    char argNum[12];
+                    sprintf(argNum, "%d", argCount);
+                    genQuad(OP_PARAM, argResult, argNum, NULL);
+                    
+                    argCount++;
+                    // Próximo argumento está em argList->right
+                    argList = argList->right;
+                } else {
+                    // Se não for um nó de lista de argumentos, verifica se é um argumento direto
+                    if (argList->type != NODE_ARG_LIST) {
+                        DEBUG_IR("    Arg direto %d: tipo %d (%s)", 
+                                argCount + 1, argList->type, getNodeTypeName(argList->type));
+                        
+                        // Gera código para o argumento
+                        char* argResult = newTemp();
+                        genExprCode(argList, argResult);
+                        
+                        // Passa o argumento para a função
+                        char argNum[12];
+                        sprintf(argNum, "%d", argCount);
+                        genQuad(OP_PARAM, argResult, argNum, NULL);
+                        
+                        argCount++;
+                    }
+                    break; // Sai do loop, já processou todos os argumentos
+                }
             }
+        } else {
+            // Caso em que args é diretamente o único argumento
+            DEBUG_IR("    Arg único: tipo %d (%s)", args->type, getNodeTypeName(args->type));
             
-            // Gera código para o argumento
             char* argResult = newTemp();
-            genExprCode(argList->left, argResult);
+            genExprCode(args, argResult);
             
-            // Passa o argumento para a função
             char argNum[12];
             sprintf(argNum, "%d", argCount);
             genQuad(OP_PARAM, argResult, argNum, NULL);
             
             argCount++;
-            argList = argList->right;
         }
     } else {
         DEBUG_IR("  Sem argumentos");
@@ -597,6 +641,7 @@ void genCallCode(ASTNode* call, char* target) {
     // Gera a chamada de função
     char argCountStr[12];
     sprintf(argCountStr, "%d", argCount);
+    
     DEBUG_IR("  Gerando CALL com %d argumentos", argCount);
     genQuad(OP_CALL, call->left->value, argCountStr, callTarget);
 }
