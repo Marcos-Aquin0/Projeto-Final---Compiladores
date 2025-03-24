@@ -93,16 +93,15 @@ Mensagens claras e detalhadas para erros léxicos e sintáticos, incluindo a lin
 ## Próximas Etapas
 
 - Não está reconhecendo os parâmetros de chamada de função corretamente, verificar quando tem operações (Cinter)
-- gcd(v,a) é aceito mesmo sem declarar a
 - while e relational (LT, BT) não reconhecido (Cinter) 
 - params aparecendo sem atribuição/declaração
 - acesso de vetores
    - se começa com a[i], reconhece, mas nao se k = a[i]
 
 - referencia de vetores (ponteiro para saber o tamanho está de acordo com o parâmetro, talvez começar a verificação pela main)
-- otimização básica do gerador de código intermediário
-- rodar todos os erros sem parar o código
 - verificar necessidade da tabela de tipos
+- rodar todos os erros sem parar o código
+- otimização básica do gerador de código intermediário
 
 ## Contribuidores
 

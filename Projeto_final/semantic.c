@@ -32,6 +32,14 @@ typedef struct TypeInfo {
 #define TYPE_SIZE 211
 static TypeInfo* typeTable[TYPE_SIZE] = {NULL};  // Inicializa todos os ponteiros como NULL
 
+// Estrutura para rastrear variáveis já reportadas com erro
+#define ERROR_TRACK_SIZE 211
+static struct {
+    char* name;
+    int lineno;
+    int reported;
+} errorTracker[ERROR_TRACK_SIZE] = {{NULL, 0, 0}};
+
 // Função de hash (mantida do código original)
 static int hash(char* key) {
     unsigned long hash = 5381;  // Valor inicial para o algoritmo DJB2
@@ -92,10 +100,51 @@ static TypeInfo* lookupTypeInfo(char* name) {
     return typeTable[index];
 }
 
+// Função para verificar se um erro já foi reportado para uma variável
+static int errorAlreadyReported(char* name, int lineno) {
+    if (!name) return 0;
+    
+    int index = hash(name) % ERROR_TRACK_SIZE;
+    
+    if (errorTracker[index].name && 
+        strcmp(errorTracker[index].name, name) == 0 && 
+        errorTracker[index].reported) {
+        return 1;
+    }
+    
+    // Registrar este erro
+    if (errorTracker[index].name) {
+        free(errorTracker[index].name);
+    }
+    
+    errorTracker[index].name = strdup(name);
+    errorTracker[index].lineno = lineno;
+    errorTracker[index].reported = 1;
+    
+    return 0;
+}
+
+// Função para limpar o rastreador de erros
+static void clearErrorTracker(void) {
+    for (int i = 0; i < ERROR_TRACK_SIZE; i++) {
+        if (errorTracker[i].name) {
+            free(errorTracker[i].name);
+            errorTracker[i].name = NULL;
+            errorTracker[i].lineno = 0;
+            errorTracker[i].reported = 0;
+        }
+    }
+}
+
 // Função principal de análise semântica
 void semanticAnalysis(ASTNode* node) {
     if (node == NULL) {
         return;
+    }
+
+    // Limpar o rastreador de erros quando começamos a análise da AST
+    if (node->type == NODE_PROGRAM) {
+        clearErrorTracker();
     }
 
     switch (node->type) {
@@ -245,16 +294,20 @@ static void checkFunctionCall(ASTNode* node) {
 
     BucketList l = st_lookup(node->left->value);
     if (!l) {
-        fprintf(stderr, "Erro semântico: Função '%s' não declarada (linha %d)\n",
-                node->left->value, node->lineno);
-        hasSemanticError = 1;
+        if (!errorAlreadyReported(node->left->value, node->lineno)) {
+            fprintf(stderr, "Erro semântico: Função '%s' não declarada (linha %d)\n",
+                    node->left->value, node->lineno);
+            hasSemanticError = 1;
+        }
         return;
     }
 
     if (strcmp(l->idType, "func") != 0) {
-        fprintf(stderr, "Erro semântico: '%s' não é uma função (linha %d)\n",
-                node->left->value, node->lineno);
-        hasSemanticError = 1;
+        if (!errorAlreadyReported(node->left->value, node->lineno)) {
+            fprintf(stderr, "Erro semântico: '%s' não é uma função (linha %d)\n",
+                    node->left->value, node->lineno);
+            hasSemanticError = 1;
+        }
         return;
     }
 
@@ -274,7 +327,7 @@ static void checkFunctionCall(ASTNode* node) {
             if (argName != NULL) {
                 // Verificar se a variável está declarada
                 BucketList argVar = st_lookup(argName);
-                if (!argVar) {
+                if (!argVar && !errorAlreadyReported(argName, node->lineno)) {
                     fprintf(stderr, "Erro semântico: Argumento '%s' usado na chamada da função '%s' não foi declarado (linha %d)\n",
                             argName, node->left->value, node->lineno);
                     hasSemanticError = 1;
@@ -308,7 +361,7 @@ static void validateExpressionVariables(ASTNode* expr) {
     // Verificar o nó atual se for uma variável
     if (expr->type == NODE_VAR && expr->value != NULL) {
         BucketList var = st_lookup(expr->value);
-        if (!var) {
+        if (!var && !errorAlreadyReported(expr->value, expr->lineno)) {
             fprintf(stderr, "Erro semântico: Variável '%s' usada em expressão não foi declarada (linha %d)\n",
                     expr->value, expr->lineno);
             hasSemanticError = 1;
@@ -455,6 +508,7 @@ void freeTypeTable(void) {
             typeTable[i] = NULL;
         }
     }
+    clearErrorTracker();
 }
 
 static void checkArrayAccess(ASTNode* node) {
