@@ -576,11 +576,7 @@ void genCallCode(ASTNode* call, char* target) {
     ASTNode* args = call->right;
     int argCount = 0;
     
-    // Verifica se a função é um caso especial como 'gcd' ou 'input'
-    int isSpecialFunction = 
-        (strcmp(call->left->value, "gcd") == 0) ||
-        (strcmp(call->left->value, "input") == 0) ||
-        (strcmp(call->left->value, "output") == 0);
+    // Removendo variável não utilizada isSpecialFunction
     
     // Nova lógica para processar os argumentos corretamente
     if (args != NULL) {

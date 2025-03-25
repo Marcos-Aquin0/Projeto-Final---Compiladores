@@ -7,7 +7,6 @@ static int hash(char* key);
 static int checkTypeCompatibility(const char* type1, const char* type2);
 static void checkVariableDeclaration(ASTNode* node);
 static void checkAssignment(ASTNode* node);
-static char* getArrayElementType(char* arrayType);
 static void checkFunctionCall(ASTNode* node);
 static char* getExpressionType(ASTNode* node);
 static void checkMainFunction(void);
@@ -215,17 +214,6 @@ static void checkAssignment(ASTNode* node) {
                 leftType, rightType);
         hasSemanticError = 1;
     }
-}
-
-// Helper para pegar o tipo do elemento do array
-char* getArrayElementType(char* arrayType) {
-    // Remove [] do final do tipo
-    char* elementType = strdup(arrayType);
-    char* bracketPos = strstr(elementType, "[]");
-    if (bracketPos) {
-        *bracketPos = '\0';
-    }
-    return elementType;
 }
 
 static void checkFunctionCall(ASTNode* node) {
