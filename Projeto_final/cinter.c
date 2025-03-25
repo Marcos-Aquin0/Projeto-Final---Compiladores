@@ -306,7 +306,7 @@ void printThreeAddressCode(FILE* listing) {
     fprintf(listing, "-------------------------------------\n");
 }
 
-// Modificar genExprCode para imprimir o tipo de nó com seu nome
+// Modificar genExprCode para tratar corretamente acesso a arrays
 void genExprCode(ASTNode* expr, char* target) {
     if (expr == NULL) return;
     currentSourceLine = expr->lineno;  // Atualiza com a linha da expressão
@@ -341,6 +341,11 @@ void genExprCode(ASTNode* expr, char* target) {
             } else {
                 genQuad(OP_ASSIGN, expr->value, NULL, target);
             }
+            break;
+            
+        case NODE_ARRAY_ACCESS:
+            // Tratar explicitamente NODE_ARRAY_ACCESS
+            genArrayAccessCode(expr, target);
             break;
             
         case NODE_ACTIVATION:
@@ -428,13 +433,30 @@ void genExprCode(ASTNode* expr, char* target) {
 void genAssignCode(ASTNode* assign) {
     if (assign == NULL || assign->value == NULL || strcmp(assign->value, "=") != 0) return;
     
-    if (assign->left->type == NODE_ARRAY_ACCESS) {
-        // Atribuição para elemento de array
+    // Debug info
+    DEBUG_IR("Processando atribuição na linha %d", assign->lineno);
+    DEBUG_IR("  Lado esquerdo: tipo %s, valor %s", 
+             getNodeTypeName(assign->left->type), 
+             assign->left->value ? assign->left->value : "(nulo)");
+    
+    // Verifica se o lado esquerdo da atribuição é um acesso a array
+    if (assign->left->type == NODE_ARRAY_ACCESS || 
+        (assign->left->type == NODE_VAR && assign->left->right != NULL)) {
+        // É um acesso a array (a[i] = ...)
         genArrayAssignCode(assign);
     } else {
-        // Atribuição para variável simples
+        // É uma variável simples (ou outro tipo de expressão)
         char* exprResult = newTemp();
         genExprCode(assign->right, exprResult);
+        
+        // Verifica se o lado direito da atribuição é um acesso a array
+        if (assign->right->type == NODE_ARRAY_ACCESS ||
+            (assign->right->type == NODE_VAR && assign->right->right != NULL)) {
+            // Debug para acesso a array no lado direito (k = a[i])
+            DEBUG_IR("  Lado direito é acesso a array");
+        }
+        
+        // Completa a atribuição
         genQuad(OP_ASSIGN, exprResult, NULL, assign->left->value);
     }
 }
@@ -648,34 +670,83 @@ void genCallCode(ASTNode* call, char* target) {
 
 // Gera código para acesso a elementos de array
 void genArrayAccessCode(ASTNode* arrayAccess, char* target) {
-    if (arrayAccess == NULL || arrayAccess->value == NULL) return;
+    if (arrayAccess == NULL) return;
+    
+    DEBUG_IR("Gerando código para acesso a array tipo %s", getNodeTypeName(arrayAccess->type));
+    
+    // Determinar o tipo correto de nó de acesso a array
+    ASTNode* arrayName = NULL;
+    ASTNode* indexExpr = NULL;
+    
+    if (arrayAccess->type == NODE_ARRAY_ACCESS) {
+        // Formato específico NODE_ARRAY_ACCESS
+        arrayName = arrayAccess->left;
+        indexExpr = arrayAccess->right;
+    } else if (arrayAccess->type == NODE_VAR && arrayAccess->right != NULL) {
+        // Formato NODE_VAR com índice em 'right'
+        arrayName = arrayAccess;
+        indexExpr = arrayAccess->right;
+    } else {
+        DEBUG_IR("ERRO: formato de acesso a array desconhecido!");
+        return;
+    }
+    
+    if (arrayName == NULL || arrayName->value == NULL) {
+        DEBUG_IR("ERRO: nome do array ausente ou inválido!");
+        return;
+    }
+    
+    DEBUG_IR("  Nome do array: %s", arrayName->value);
     
     // Calcula o índice
     char* indexResult = newTemp();
-    genExprCode(arrayAccess->right, indexResult);
+    genExprCode(indexExpr, indexResult);
     
     // Carrega o valor do array
-    genQuad(OP_ARRAY_LOAD, arrayAccess->value, indexResult, target);
+    genQuad(OP_ARRAY_LOAD, arrayName->value, indexResult, target);
 }
 
 // Gera código para atribuição a elementos de array
 void genArrayAssignCode(ASTNode* arrayAssign) {
     if (arrayAssign == NULL || arrayAssign->left == NULL || arrayAssign->right == NULL) return;
     
-    // Obtém o array e o índice
+    DEBUG_IR("Gerando código para atribuição a array");
+    
+    // Determinar o tipo correto de nó de acesso a array
     ASTNode* arrayAccess = arrayAssign->left;
-    char* arrayName = arrayAccess->left->value;
+    ASTNode* arrayName = NULL;
+    ASTNode* indexExpr = NULL;
+    
+    if (arrayAccess->type == NODE_ARRAY_ACCESS) {
+        // Formato específico NODE_ARRAY_ACCESS
+        arrayName = arrayAccess->left;
+        indexExpr = arrayAccess->right;
+    } else if (arrayAccess->type == NODE_VAR && arrayAccess->right != NULL) {
+        // Formato NODE_VAR com índice em 'right'
+        arrayName = arrayAccess;
+        indexExpr = arrayAccess->right;
+    } else {
+        DEBUG_IR("ERRO: formato de acesso a array desconhecido!");
+        return;
+    }
+    
+    if (arrayName == NULL || arrayName->value == NULL) {
+        DEBUG_IR("ERRO: nome do array ausente ou inválido!");
+        return;
+    }
+    
+    DEBUG_IR("  Nome do array: %s", arrayName->value);
     
     // Calcula o índice
     char* indexResult = newTemp();
-    genExprCode(arrayAccess->right, indexResult);
+    genExprCode(indexExpr, indexResult);
     
     // Calcula o valor a ser armazenado
     char* valueResult = newTemp();
     genExprCode(arrayAssign->right, valueResult);
     
     // Armazena o valor no array
-    genQuad(OP_ARRAY_STORE, valueResult, indexResult, arrayName);
+    genQuad(OP_ARRAY_STORE, valueResult, indexResult, arrayName->value);
 }
 
 // Também podemos modificar a função generateIRCode para imprimir tipos dos nós
