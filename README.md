@@ -96,7 +96,6 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 ---
 
 ## Próximas Etapas
-- funções com limites de 2 parâmetros (só o primeiro e o último)
 - while e relational (LT, BT) não reconhecidos (Cinter) 
 
 - referencia de vetores (ponteiro para saber o tamanho está de acordo com o parâmetro, talvez começar a verificação pela main)

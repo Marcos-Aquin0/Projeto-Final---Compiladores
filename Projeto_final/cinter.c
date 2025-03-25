@@ -565,6 +565,155 @@ void genFunctionCode(ASTNode* funcDecl) {
 }
 
 // Modificar genCallCode para usar variáveis temporárias void quando necessário
+// Improved helper function for in-order traversal of argument tree
+void processArguments(ASTNode* argNode, int* argCount) {
+    if (argNode == NULL) return;
+    
+    DEBUG_IR("  > processArguments: nó tipo %s", getNodeTypeName(argNode->type));
+    
+    // In-order traversal: left, current, right
+    if (argNode->left != NULL) {
+        // Handle special case when an argument is a function call
+        if (argNode->left->type == NODE_ACTIVATION) {
+            DEBUG_IR("    Arg %d é uma chamada de função: %s", 
+                    *argCount + 1,
+                    argNode->left->left ? argNode->left->left->value : "unknown");
+            
+            // Generate code for function call and store result in temp
+            char* funcResult = newTemp();
+            genCallCode(argNode->left, funcResult);
+            
+            // Pass function result as parameter
+            char argNum[12];
+            sprintf(argNum, "%d", *argCount);
+            genQuad(OP_PARAM, funcResult, argNum, NULL);
+            
+            (*argCount)++;
+        } 
+        // Handle complex expression as parameter
+        else if (argNode->left->type == NODE_EXPR || 
+                 argNode->left->type == NODE_SUM_EXPR || 
+                 argNode->left->type == NODE_TERM ||
+                 argNode->left->type == NODE_RELATIONAL) {
+            DEBUG_IR("    Arg %d é uma expressão complexa tipo: %s", 
+                    *argCount + 1, 
+                    getNodeTypeName(argNode->left->type));
+            
+            // Generate code for expression and store result in temp
+            char* exprResult = newTemp();
+            genExprCode(argNode->left, exprResult);
+            
+            // Pass expression result as parameter
+            char argNum[12];
+            sprintf(argNum, "%d", *argCount);
+            genQuad(OP_PARAM, exprResult, argNum, NULL);
+            
+            (*argCount)++;
+        }
+        // Normal recursive processing
+        else {
+            processArguments(argNode->left, argCount);
+        }
+    } else {
+        DEBUG_IR("  > processArguments: left é NULL");
+    }
+    
+    // Process current node if it's not a list type node
+    if (argNode->type != NODE_ARG_LIST && argNode->type != NODE_ARGS) {
+        // Process case where current node is a function call
+        if (argNode->type == NODE_ACTIVATION) {
+            DEBUG_IR("    Arg %d é uma chamada de função: %s", 
+                    *argCount + 1,
+                    argNode->left ? argNode->left->value : "unknown");
+            
+            char* funcResult = newTemp();
+            genCallCode(argNode, funcResult);
+            
+            char argNum[12];
+            sprintf(argNum, "%d", *argCount);
+            genQuad(OP_PARAM, funcResult, argNum, NULL);
+            
+            (*argCount)++;
+        }
+        // Process case where current node is a complex expression
+        else if (argNode->type == NODE_EXPR || 
+                argNode->type == NODE_SUM_EXPR || 
+                argNode->type == NODE_TERM ||
+                argNode->type == NODE_RELATIONAL) {
+            DEBUG_IR("    Arg %d é uma expressão complexa tipo: %s", 
+                    *argCount + 1, getNodeTypeName(argNode->type));
+            
+            char* exprResult = newTemp();
+            genExprCode(argNode, exprResult);
+            
+            char argNum[12];
+            sprintf(argNum, "%d", *argCount);
+            genQuad(OP_PARAM, exprResult, argNum, NULL);
+            
+            (*argCount)++;
+        }
+        // Process simple value arguments (constants, variables)
+        else {
+            DEBUG_IR("    Arg %d: tipo %d (%s), valor %s", 
+                    *argCount + 1, 
+                    argNode->type, 
+                    getNodeTypeName(argNode->type),
+                    argNode->value ? argNode->value : "expressão");
+            
+            char* argResult = newTemp();
+            genExprCode(argNode, argResult);
+            
+            char argNum[12];
+            sprintf(argNum, "%d", *argCount);
+            genQuad(OP_PARAM, argResult, argNum, NULL);
+            
+            (*argCount)++;
+        }
+    }
+    
+    // Process right subtree
+    if (argNode->right != NULL) {
+        // Handle special case when right child is a function call
+        if (argNode->right->type == NODE_ACTIVATION) {
+            DEBUG_IR("    Arg %d é uma chamada de função (à direita): %s", 
+                    *argCount + 1,
+                    argNode->right->left ? argNode->right->left->value : "unknown");
+            
+            char* funcResult = newTemp();
+            genCallCode(argNode->right, funcResult);
+            
+            char argNum[12];
+            sprintf(argNum, "%d", *argCount);
+            genQuad(OP_PARAM, funcResult, argNum, NULL);
+            
+            (*argCount)++;
+        }
+        // Handle complex expression as parameter in right child
+        else if (argNode->right->type == NODE_EXPR || 
+                 argNode->right->type == NODE_SUM_EXPR || 
+                 argNode->right->type == NODE_TERM ||
+                 argNode->right->type == NODE_RELATIONAL) {
+            DEBUG_IR("    Arg %d é uma expressão complexa (à direita) tipo: %s", 
+                    *argCount + 1, getNodeTypeName(argNode->right->type));
+            
+            char* exprResult = newTemp();
+            genExprCode(argNode->right, exprResult);
+            
+            char argNum[12];
+            sprintf(argNum, "%d", *argCount);
+            genQuad(OP_PARAM, exprResult, argNum, NULL);
+            
+            (*argCount)++;
+        }
+        // Normal recursive processing
+        else {
+            processArguments(argNode->right, argCount);
+        }
+    } else {
+        DEBUG_IR("  > processArguments: right é NULL");
+    }
+}
+
 void genCallCode(ASTNode* call, char* target) {
     if (call == NULL || call->left == NULL || call->left->value == NULL) return;
     
@@ -573,77 +722,60 @@ void genCallCode(ASTNode* call, char* target) {
     DEBUG_IR("  Target da chamada: %s", target ? target : "void (usando tv)");
     
     // Processa os argumentos da chamada
-    ASTNode* args = call->right;
     int argCount = 0;
     
-    // Removendo variável não utilizada isSpecialFunction
-    
-    // Nova lógica para processar os argumentos corretamente
-    if (args != NULL) {
-        // O nó args pode ser NODE_ARGS ou diretamente o primeiro argumento
-        DEBUG_IR("  Processando argumentos (tipo nó: %s)", getNodeTypeName(args->type));
+    // Verifica se há argumentos na chamada de função
+    if (call->right != NULL) {
+        DEBUG_IR("  Processando argumentos (tipo nó: %s)", getNodeTypeName(call->right->type));
         
-        if (args->type == NODE_ARGS) {
-            // Para nós do tipo NODE_ARGS, o primeiro argumento está em args->left
-            ASTNode* argList = args->left;
+        ASTNode* args = call->right;
+        
+        // Handle case where the argument is a function call
+        if (args->type == NODE_ACTIVATION) {
+            DEBUG_IR("  Argumento é uma chamada de função: %s", 
+                args->left ? args->left->value : "unknown");
             
-            while (argList != NULL) {
-                // Verifica se este é um nó de argumento válido
-                if (argList->type == NODE_ARG_LIST && argList->left != NULL) {
-                    // Debug para mostrar informações do argumento
-                    DEBUG_IR("    Arg %d: tipo %d (%s), valor %s", 
-                            argCount + 1, 
-                            argList->left->type, 
-                            getNodeTypeName(argList->left->type),
-                            argList->left->value ? argList->left->value : "expressão");
-                    
-                    // Gera código para o argumento
-                    char* argResult = newTemp();
-                    genExprCode(argList->left, argResult);
-                    
-                    // Passa o argumento para a função
-                    char argNum[12];
-                    sprintf(argNum, "%d", argCount);
-                    genQuad(OP_PARAM, argResult, argNum, NULL);
-                    
-                    argCount++;
-                    // Próximo argumento está em argList->right
-                    argList = argList->right;
-                } else {
-                    // Se não for um nó de lista de argumentos, verifica se é um argumento direto
-                    if (argList->type != NODE_ARG_LIST) {
-                        DEBUG_IR("    Arg direto %d: tipo %d (%s)", 
-                                argCount + 1, argList->type, getNodeTypeName(argList->type));
-                        
-                        // Gera código para o argumento
-                        char* argResult = newTemp();
-                        genExprCode(argList, argResult);
-                        
-                        // Passa o argumento para a função
-                        char argNum[12];
-                        sprintf(argNum, "%d", argCount);
-                        genQuad(OP_PARAM, argResult, argNum, NULL);
-                        
-                        argCount++;
-                    }
-                    break; // Sai do loop, já processou todos os argumentos
-                }
+            char* funcResult = newTemp();
+            genCallCode(args, funcResult);
+            
+            genQuad(OP_PARAM, funcResult, "0", NULL);
+            argCount = 1;
+        }
+        // Handle case where the argument is a complex expression
+        else if (args->type == NODE_EXPR || 
+                args->type == NODE_SUM_EXPR || 
+                args->type == NODE_TERM ||
+                args->type == NODE_RELATIONAL) {
+            DEBUG_IR("  Argumento é uma expressão complexa tipo: %s", 
+                    getNodeTypeName(args->type));
+            
+            char* exprResult = newTemp();
+            genExprCode(args, exprResult);
+            
+            genQuad(OP_PARAM, exprResult, "0", NULL);
+            argCount = 1;
+        }
+        // Handle standard argument cases
+        else if (args->type == NODE_ARGS) {
+            // Verifica se o nó ARGS tem filhos
+            if (args->left != NULL) {
+                // Usar travessia in-order para processar todos os argumentos na ordem correta
+                processArguments(args, &argCount);
+            } else {
+                DEBUG_IR("  Nó ARGS não tem argumentos (filho left é NULL)");
             }
         } else {
-            // Caso em que args é diretamente o único argumento
+            // Caso em que args é diretamente o único argumento simples
             DEBUG_IR("    Arg único: tipo %d (%s)", args->type, getNodeTypeName(args->type));
             
             char* argResult = newTemp();
             genExprCode(args, argResult);
             
-            char argNum[12];
-            sprintf(argNum, "%d", argCount);
-            genQuad(OP_PARAM, argResult, argNum, NULL);
-            
-            argCount++;
+            genQuad(OP_PARAM, argResult, "0", NULL);
+            argCount = 1;
         }
     } else {
-        DEBUG_IR("  Sem argumentos");
+        DEBUG_IR("  Sem argumentos (call->right é NULL)");
     }
     
     // Determina o target para a chamada da função
