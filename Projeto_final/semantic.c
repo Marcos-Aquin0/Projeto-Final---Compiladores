@@ -21,17 +21,6 @@ static int hasMainFunction = 0;  // flag para verificar existenia da funcao main
 static int hasDeclaration = 0;   // Flag para saber se tem pelo menos uma declaração no código
 static ASTNode* lastFunctionNode = NULL;  // Ponteiro para último nó de função na AST
 
-// Estrutura para armazenar informações de tipo
-typedef struct TypeInfo {
-    char* type; //int ou void
-    int isArray;
-    int arraySize;
-} TypeInfo;
-
-// Hash table para tipos
-#define TYPE_SIZE 211
-static TypeInfo* typeTable[TYPE_SIZE] = {NULL};  // Inicializa todos os ponteiros como NULL
-
 // Estrutura para rastrear variáveis já reportadas com erro
 #define ERROR_TRACK_SIZE 211
 static struct {
@@ -49,55 +38,13 @@ static int hash(char* key) {
         hash = ((hash << 5) + hash) + c;  // hash * 33 + c
     }
 
-    return hash % TYPE_SIZE;
+    return hash % ERROR_TRACK_SIZE;
 }
 
 // Verifica compatibilidade de tipos
 static int checkTypeCompatibility(const char* type1, const char* type2) {
     if (!type1 || !type2) return 0;
     return (strcmp(type1, type2) == 0);
-}
-
-//Insere informações de tipo na tabela de tipos.
-static void insertTypeInfo(char* name, char* type, int isArray, int arraySize) {
-    if (name == NULL || type == NULL) {
-        fprintf(stderr, "Erro: Parâmetros inválidos para insertTypeInfo.\n");
-        return;
-    }
-
-    int index = hash(name);
-    if (typeTable[index] != NULL) {
-        // Libera a memória do TypeInfo existente antes de sobrescrever
-        free(typeTable[index]->type);
-        free(typeTable[index]);
-    }
-
-    TypeInfo* info = (TypeInfo*)malloc(sizeof(TypeInfo));
-    if (info == NULL) {
-        fprintf(stderr, "Erro: Falha ao alocar memória para TypeInfo.\n");
-        exit(EXIT_FAILURE);
-    }
-
-    info->type = strdup(type);
-    info->isArray = isArray;
-    info->arraySize = arraySize;
-    typeTable[index] = info;
-
-    //printf("DEBUG: Inserindo tipo '%s' para '%s' na tabela de tipos (hash: %d)\n", type, name, index);
-}
-
-static TypeInfo* lookupTypeInfo(char* name) {
-    if (name == NULL) {
-        return NULL;
-    }
-
-    int index = hash(name);
-    if (index < 0 || index >= TYPE_SIZE) {
-        fprintf(stderr, "Erro: Índice inválido na tabela de tipos.\n");
-        return NULL;
-    }
-
-    return typeTable[index];
 }
 
 // Função para verificar se um erro já foi reportado para uma variável
@@ -151,7 +98,6 @@ void semanticAnalysis(ASTNode* node) {
         case NODE_VAR_DECL:
             if (node->value != NULL && node->idType != NULL) {
                 checkVariableDeclaration(node);
-                insertTypeInfo(node->value, node->idType, node->isArray, node->arraySize);
             }
             break;
 
@@ -244,13 +190,6 @@ static void checkAssignment(ASTNode* node) {
     // Get scopes
     char* leftScope = current_scope();
     char* rightScope = current_scope();
-
-    // Debug vetor
-    // printf("Comparando variáveis na linha %d:\n", node->lineno);
-    // printf("Variável esquerda: %s, Tipo: %s, Escopo: %s\n", 
-    //        node->left->value, leftType, leftScope);
-    // printf("Variável direita: %s, Tipo: %s, Escopo: %s\n", 
-    //        node->right->value, rightType, rightScope);
 
     // Conferir a declaração do lado esquerdo
     if (leftType == NULL) {
@@ -390,27 +329,16 @@ static char* getExpressionType(ASTNode* node) {
 
             // Se for um acesso a array (tem filho direito que é o índice)
             if (node->right != NULL) {
-                TypeInfo* arrayInfo = lookupTypeInfo(node->value);
-                if (arrayInfo != NULL) {
-                    // Verifica se o tipo é um array
-                    if (strstr(arrayInfo->type, "[]") != NULL) {
-                        // Verifica se o índice é um inteiro
-                        char* indexType = getExpressionType(node->right);
-                        if (indexType == NULL || strcmp(indexType, "int") != 0) {
-                            fprintf(stderr, "Erro semântico: índice do array deve ser inteiro\n");
-                            return NULL;
-                        }
-                        // Retorna o tipo base do array (sem os colchetes)
-                        char* baseType = strdup(arrayInfo->type);
-                        char* bracketPos = strstr(baseType, "[]");
-                        if (bracketPos) *bracketPos = '\0';
-                        return baseType;
-                    }
-                }
-                
-                // Fallback para a tabela de símbolos
+                // Buscar na tabela de símbolos
                 BucketList l = st_lookup(node->value);
                 if (l && strstr(l->dataType, "[]") != NULL) {
+                    // Verifica se o índice é um inteiro
+                    char* indexType = getExpressionType(node->right);
+                    if (indexType == NULL || strcmp(indexType, "int") != 0) {
+                        fprintf(stderr, "Erro semântico: índice do array deve ser inteiro\n");
+                        return NULL;
+                    }
+                    // Retorna o tipo base do array (sem os colchetes)
                     char* baseType = strdup(l->dataType);
                     char* bracketPos = strstr(baseType, "[]");
                     if (bracketPos) *bracketPos = '\0';
@@ -419,12 +347,6 @@ static char* getExpressionType(ASTNode* node) {
             }
 
             // Caso normal (não é acesso a array)
-            TypeInfo* info = lookupTypeInfo(node->value);
-            if (info != NULL) {
-                return info->type;
-            }
-
-            // Fallback para a tabela de símbolos
             BucketList l = st_lookup(node->value);
             return l ? l->dataType : NULL;
         }
@@ -436,8 +358,6 @@ static char* getExpressionType(ASTNode* node) {
                     l = st_lookup_in_scope(node->left->value, current_scope());
                 }
                 if (l && l->isArray) {
-                    // DEBUG_SEMANTIC("Acesso ao array '%s' (type: %s)\n", 
-                    //       node->left->value, l->dataType);
                     return l->dataType;
                 }
             }
@@ -452,12 +372,7 @@ static char* getExpressionType(ASTNode* node) {
 
         case NODE_ACTIVATION:
             if (node->left != NULL && node->left->value != NULL) {
-                TypeInfo* info = lookupTypeInfo(node->left->value);
-                if (info != NULL) {
-                    return info->type;
-                }
-
-                // Fallback para a tabela de símbolos
+                // Buscar o tipo de retorno da função chamada
                 BucketList l = st_lookup(node->left->value);
                 return l ? l->dataType : NULL;
             }
@@ -499,15 +414,8 @@ static void checkLastFunctionIsMain(void) {
     }
 }
 
-// Adicionar função para liberar a memória da tabela de tipos
-void freeTypeTable(void) {
-    for (int i = 0; i < TYPE_SIZE; i++) {
-        if (typeTable[i]) {
-            free(typeTable[i]->type);
-            free(typeTable[i]);
-            typeTable[i] = NULL;
-        }
-    }
+// Liberar recursos utilizados pelo analisador semântico
+void freeSemanticResources(void) {
     clearErrorTracker();
 }
 

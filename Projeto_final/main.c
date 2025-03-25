@@ -36,7 +36,6 @@ int main(int argc, char *argv[]) {
         if (hasSemanticError) {
             printf("Erro: Ocorreram erros semânticos durante a análise.\n");
             freeAST(root);
-            freeTypeTable();  // Libera a tabela de tipos
             return 2;
         }
         printf("Análise semântica concluída com sucesso!\n");
@@ -48,7 +47,7 @@ int main(int argc, char *argv[]) {
 
         pop_scope();
         freeAST(root);
-        freeTypeTable();  // Libera a tabela de tipos
+
         freeIRCode();  // Libera a memória do código intermediário
     } else {
         printf("Aviso: Nenhuma árvore foi construída.\n");

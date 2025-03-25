@@ -100,7 +100,6 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 - while e relational (LT, BT) não reconhecidos (Cinter) 
 
 - referencia de vetores (ponteiro para saber o tamanho está de acordo com o parâmetro, talvez começar a verificação pela main)
-- verificar necessidade da tabela de tipos
 - rodar todos os erros sem parar o código
 - otimização básica do gerador de código intermediário
 

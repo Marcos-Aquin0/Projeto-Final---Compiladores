@@ -1,15 +1,15 @@
 #ifndef _SEMANTIC_H_
 #define _SEMANTIC_H_
 
-#include "asnt.h"
+#include "globals.h"
 
-// Função principal de análise semantica
-void semanticAnalysis(ASTNode* syntaxTree);
-
-// libera a memória da tabela de tipos
-void freeTypeTable(void);
-
-// flag global de erro
+// Variável global para rastrear erros semânticos
 extern int hasSemanticError;
 
-#endif /* _SEMANTIC_H_ */
+// Função principal de análise semântica
+void semanticAnalysis(ASTNode* node);
+
+// Função para liberar recursos do analisador semântico
+void freeSemanticResources(void);
+
+#endif
