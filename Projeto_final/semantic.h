@@ -1,15 +1,13 @@
 #ifndef _SEMANTIC_H_
 #define _SEMANTIC_H_
 
-#include "globals.h"
+#include "asnt.h"
 
-// Variável global para rastrear erros semânticos
-extern int hasSemanticError;
+// Contador de erros semânticos
+extern int semanticErrorCount;
 
-// Função principal de análise semântica
+// Funções para análise semântica
 void semanticAnalysis(ASTNode* node);
-
-// Função para liberar recursos do analisador semântico
 void freeSemanticResources(void);
 
 #endif

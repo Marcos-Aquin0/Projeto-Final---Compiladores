@@ -1,11 +1,11 @@
-int main(void) {
+void main(void) {
     int i;
     while (i <= 10)
     {
-        int a;
+        int A;
         int b;
-        b = i * 2;
-        a = b * 4;
+        b = i + 2;
+        a = b * 4 + 2;
         i = i + 1;
     }
     

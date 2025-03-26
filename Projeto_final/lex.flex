@@ -1,5 +1,6 @@
 %{
 #include "parser.tab.h"
+int lexErrorCount = 0;
 %}
 /*definição dos tokens*/
 DIGIT	[0-9]
@@ -78,23 +79,27 @@ ENTER [\n]
 {ENTER}                                 { yylineno++; }
 
 {DIGIT}{DIGIT}*{POINT}[^0-9] {
-    fprintf(stdout,"Erro léxico: Numero malformado '%s' na linha %d\n", yytext, yylineno);
-    exit(1); //exit 1 é o erro
+    printError("Erro léxico: Numero float malformado '%s' na linha %d\n", yytext, yylineno);
+    // exit(1); 
+    lexErrorCount++;
 };
 
 . {
-    fprintf(stdout,"Erro léxico: Caractere invalido '%s' na linha %d\n", yytext, yylineno);
-    exit(1);
+    printError("Erro léxico: Caractere invalido '%s' na linha %d\n", yytext, yylineno);
+    // exit(1);
+    lexErrorCount++;
 }
 
 {COMINIT}([^*])* {
-    fprintf(stdout,"Erro léxico: Comentario nao encerrado iniciado na linha %d\n", yylineno);
-    exit(1);
+    printError("Erro léxico: Comentario nao encerrado iniciado na linha %d\n", yylineno);
+    // exit(1);
+    lexErrorCount++;
 }
 
 {LETTER}+{DIGIT}+{LETTER}* {
-    fprintf(stdout,"Erro léxico: Variavel '%s' no formato inválido na linha %d\n", yytext, yylineno);
-    exit(1);
+    printError("Erro léxico: Variavel '%s' no formato inválido na linha %d\n", yytext, yylineno);
+    // exit(1);
+    lexErrorCount++;
 } 
 
 %%

@@ -7,6 +7,7 @@ void yyerror(const char *s);
 int yylex(); //lexer
 
 ASTNode* root = NULL; // raiz da árvore sintática
+int syntaxErrorCount = 0; // contador de erros sintáticos
 %}
 
 %code requires {
@@ -279,7 +280,8 @@ arg_list:
 
 void yyerror(const char *s) {
     if(strcmp(s, "syntax error") != 0){
-        fprintf(stderr, "Erro sintático na linha %d: %s\n", yylineno, s);
-        exit(2);
+        printError("Erro sintático na linha %d: %s\n", yylineno, s);
+        syntaxErrorCount++;
+        //exit(2);
     }
 }

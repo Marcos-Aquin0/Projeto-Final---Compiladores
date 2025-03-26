@@ -19,7 +19,7 @@ static int hash(char *key) {
 
 void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char *dataType, int isArray, int arraySize) {
     if (name == NULL || scope == NULL || idType == NULL || dataType == NULL) {
-        fprintf(stderr, "Erro: Parâmetros inválidos para st_insert. %d\n", lineno);
+        DEBUG_SYMTAB("Erro: Parâmetros inválidos para st_insert. %d\n", lineno);
         return;
     } //verifica se os parâmetros são válidos
 
@@ -37,7 +37,7 @@ void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char 
         // Símbolo não encontrado, insere novo
         l = (BucketList)malloc(sizeof(struct BucketListRec)); //aloca memória
         if (l == NULL) {
-            fprintf(stderr, "Erro: Falha ao alocar memória para BucketList.\n");
+            DEBUG_SYMTAB("Erro: Falha ao alocar memória para BucketList.\n");
             exit(EXIT_FAILURE);
         }
 
@@ -146,7 +146,7 @@ void push_scope(char *scope_name) {
     ScopeNode *node = (ScopeNode*)malloc(sizeof(ScopeNode));
 
     if (node == NULL) {
-        fprintf(stderr, "Erro: Falha ao alocar memória para ScopeNode.\n");
+        DEBUG_SYMTAB("Erro: Falha ao alocar memória para ScopeNode.\n");
         exit(EXIT_FAILURE);
     }
 
@@ -158,7 +158,7 @@ void push_scope(char *scope_name) {
 // Função para desempilhar o escopo atual
 void pop_scope() {
     if (scope_stack == NULL) {
-        fprintf(stderr, "Erro: Tentativa de desempilhar escopo de pilha vazia.\n");
+        DEBUG_SYMTAB("Erro: Tentativa de desempilhar escopo de pilha vazia.\n");
         return;
     }
 
@@ -178,7 +178,7 @@ char* current_scope() {
     }
 
     if (scope_stack->scope_id == NULL) {
-        fprintf(stderr, "Erro: scope_id é NULL no escopo atual.\n");
+        DEBUG_SYMTAB("Erro: scope_id é NULL no escopo atual.\n");
         return "global";
     }
 

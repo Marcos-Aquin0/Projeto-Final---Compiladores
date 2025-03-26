@@ -16,7 +16,7 @@ char* newVoidTemp(void) {
     return temp;
 }
 
-// Helper para nomes de operações - movido para o início
+// Helper para nomes de operações 
 const char* getOpName(OperationType op) {
     switch(op) {
         case OP_ASSIGN: return "ASSIGN";
@@ -128,11 +128,10 @@ char* newLabel(void) {
     return label;
 }
 
-// Adiciona uma nova quadrupla à lista de código intermediário
-// Adicionar variável global para rastrear a linha atual do código fonte
+// Variável global para rastrear a linha atual do código fonte
 static int currentSourceLine = 0;
 
-// Modificar genQuad para usar a linha atual
+// Adiciona uma nova quadrupla à lista de código intermediário
 void genQuad(OperationType op, char* arg1, char* arg2, char* result) {
     static int currentLine = 1;
     Quadruple* quad = (Quadruple*)malloc(sizeof(Quadruple));
@@ -163,7 +162,7 @@ void genQuad(OperationType op, char* arg1, char* arg2, char* result) {
     }
 }
 
-// Imprime o código intermediário gerado
+// Imprime o código intermediário gerado em quádruplas
 void printIRCode(FILE* listing) {
     fprintf(listing, "Código Intermediário (Quadruplas):\n");
     fprintf(listing, "------------------------------------------------------------\n");
@@ -306,7 +305,7 @@ void printThreeAddressCode(FILE* listing) {
     fprintf(listing, "-------------------------------------\n");
 }
 
-// Modificar genExprCode para tratar corretamente acesso a arrays
+// Trata as expressões do código
 void genExprCode(ASTNode* expr, char* target) {
     if (expr == NULL) return;
     currentSourceLine = expr->lineno;  // Atualiza com a linha da expressão
@@ -564,8 +563,7 @@ void genFunctionCode(ASTNode* funcDecl) {
     genQuad(OP_END, funcDecl->value, NULL, NULL);
 }
 
-// Modificar genCallCode para usar variáveis temporárias void quando necessário
-// Improved helper function for in-order traversal of argument tree
+//processa os parâmetros da chamada de função
 void processArguments(ASTNode* argNode, int* argCount) {
     if (argNode == NULL) return;
     
@@ -573,24 +571,24 @@ void processArguments(ASTNode* argNode, int* argCount) {
     
     // In-order traversal: left, current, right
     if (argNode->left != NULL) {
-        // Handle special case when an argument is a function call
+        // Caso especial: argumento é uma chamada de função
         if (argNode->left->type == NODE_ACTIVATION) {
             DEBUG_IR("    Arg %d é uma chamada de função: %s", 
                     *argCount + 1,
                     argNode->left->left ? argNode->left->left->value : "unknown");
             
-            // Generate code for function call and store result in temp
+            // Gera o código e armazena em uma variável temp
             char* funcResult = newTemp();
             genCallCode(argNode->left, funcResult);
             
-            // Pass function result as parameter
+            // Passa o resultado como parâmetro
             char argNum[12];
             sprintf(argNum, "%d", *argCount);
             genQuad(OP_PARAM, funcResult, argNum, NULL);
             
             (*argCount)++;
         } 
-        // Handle complex expression as parameter
+        // Lida com expressões complexas
         else if (argNode->left->type == NODE_EXPR || 
                  argNode->left->type == NODE_SUM_EXPR || 
                  argNode->left->type == NODE_TERM ||
@@ -599,18 +597,16 @@ void processArguments(ASTNode* argNode, int* argCount) {
                     *argCount + 1, 
                     getNodeTypeName(argNode->left->type));
             
-            // Generate code for expression and store result in temp
             char* exprResult = newTemp();
             genExprCode(argNode->left, exprResult);
             
-            // Pass expression result as parameter
             char argNum[12];
             sprintf(argNum, "%d", *argCount);
             genQuad(OP_PARAM, exprResult, argNum, NULL);
             
             (*argCount)++;
         }
-        // Normal recursive processing
+        // processo recursivo normal
         else {
             processArguments(argNode->left, argCount);
         }
@@ -618,9 +614,9 @@ void processArguments(ASTNode* argNode, int* argCount) {
         DEBUG_IR("  > processArguments: left é NULL");
     }
     
-    // Process current node if it's not a list type node
+    // se o nó não é do tipo lista
     if (argNode->type != NODE_ARG_LIST && argNode->type != NODE_ARGS) {
-        // Process case where current node is a function call
+        // nó atual é uma chamada de função
         if (argNode->type == NODE_ACTIVATION) {
             DEBUG_IR("    Arg %d é uma chamada de função: %s", 
                     *argCount + 1,
@@ -635,7 +631,7 @@ void processArguments(ASTNode* argNode, int* argCount) {
             
             (*argCount)++;
         }
-        // Process case where current node is a complex expression
+        
         else if (argNode->type == NODE_EXPR || 
                 argNode->type == NODE_SUM_EXPR || 
                 argNode->type == NODE_TERM ||
@@ -652,7 +648,7 @@ void processArguments(ASTNode* argNode, int* argCount) {
             
             (*argCount)++;
         }
-        // Process simple value arguments (constants, variables)
+        // processa valores simples
         else {
             DEBUG_IR("    Arg %d: tipo %d (%s), valor %s", 
                     *argCount + 1, 
@@ -671,9 +667,9 @@ void processArguments(ASTNode* argNode, int* argCount) {
         }
     }
     
-    // Process right subtree
+    // subarvore da direita
     if (argNode->right != NULL) {
-        // Handle special case when right child is a function call
+        // filho da direita é uma chamada de função
         if (argNode->right->type == NODE_ACTIVATION) {
             DEBUG_IR("    Arg %d é uma chamada de função (à direita): %s", 
                     *argCount + 1,
@@ -688,7 +684,7 @@ void processArguments(ASTNode* argNode, int* argCount) {
             
             (*argCount)++;
         }
-        // Handle complex expression as parameter in right child
+        // expressões complexas no filho da direita
         else if (argNode->right->type == NODE_EXPR || 
                  argNode->right->type == NODE_SUM_EXPR || 
                  argNode->right->type == NODE_TERM ||
@@ -705,7 +701,7 @@ void processArguments(ASTNode* argNode, int* argCount) {
             
             (*argCount)++;
         }
-        // Normal recursive processing
+        
         else {
             processArguments(argNode->right, argCount);
         }
@@ -730,7 +726,7 @@ void genCallCode(ASTNode* call, char* target) {
         
         ASTNode* args = call->right;
         
-        // Handle case where the argument is a function call
+        // argumento é chamada de função
         if (args->type == NODE_ACTIVATION) {
             DEBUG_IR("  Argumento é uma chamada de função: %s", 
                 args->left ? args->left->value : "unknown");
@@ -741,7 +737,7 @@ void genCallCode(ASTNode* call, char* target) {
             genQuad(OP_PARAM, funcResult, "0", NULL);
             argCount = 1;
         }
-        // Handle case where the argument is a complex expression
+        
         else if (args->type == NODE_EXPR || 
                 args->type == NODE_SUM_EXPR || 
                 args->type == NODE_TERM ||
@@ -755,7 +751,7 @@ void genCallCode(ASTNode* call, char* target) {
             genQuad(OP_PARAM, exprResult, "0", NULL);
             argCount = 1;
         }
-        // Handle standard argument cases
+        // casos padrões
         else if (args->type == NODE_ARGS) {
             // Verifica se o nó ARGS tem filhos
             if (args->left != NULL) {

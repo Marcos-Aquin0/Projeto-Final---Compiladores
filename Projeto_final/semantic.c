@@ -15,7 +15,7 @@ static void checkLastFunctionIsMain(void);
 static void checkArrayAccess(ASTNode* node);
 static void validateExpressionVariables(ASTNode* expr);
 // variáveis globias
-int hasSemanticError = 0;
+int semanticErrorCount = 0;  // Contador para erros semânticos
 static int hasMainFunction = 0;  // flag para verificar existenia da funcao main
 static int hasDeclaration = 0;   // Flag para saber se tem pelo menos uma declaração no código
 static ASTNode* lastFunctionNode = NULL;  // Ponteiro para último nó de função na AST
@@ -151,27 +151,27 @@ static void checkVariableDeclaration(ASTNode* node) {
     // Verifica se a variável já foi declarada no mesmo escopo
     if (l != NULL) {
         if (strcmp(l->scope, scope) == 0 && l->lines->lineno != node->lineno) {
-            fprintf(stderr, "Erro semântico: Variável '%s' já declarada no escopo '%s' (linha %d)\n",
+            printError("Erro semântico: Variável '%s' já declarada no escopo '%s' (linha %d)",
                     node->value, scope, node->lineno);
-            hasSemanticError = 1;
+            semanticErrorCount++;
         }
         else if (aux != NULL && strcmp(aux->idType, "func") == 0 && strcmp(aux->name, l->name) == 0) {
-            fprintf(stderr, "Erro semântico: Variável '%s' declarado com nome de função (linha %d)\n",
+            printError("Erro semântico: Variável '%s' declarado com nome de função (linha %d)",
                     node->value, node->lineno);
-                hasSemanticError = 1;
+            semanticErrorCount++;
         }
         else if (strcmp(node->idType,"void") == 0) {
-            fprintf(stderr, "Erro semântico: Variável '%s' declarada com tipo void (linha %d)\n",
+            printError("Erro semântico: Variável '%s' declarada com tipo void (linha %d)",
                     node->value, node->lineno);
-            hasSemanticError = 1;
+            semanticErrorCount++;
         }
     }
 
     // Verifica se o tamanho do array é válido (maior que 0)
     if (node->isArray && node->arraySize <= 0) {
-        fprintf(stderr, "Erro semântico: Tamanho do array '%s' deve ser positivo (linha %d)\n",
+        printError("Erro semântico: Tamanho do array '%s' deve ser positivo (linha %d)",
                 node->value, node->lineno);
-        hasSemanticError = 1;
+        semanticErrorCount++;
     }
 }
 
@@ -192,27 +192,27 @@ static void checkAssignment(ASTNode* node) {
 
     // Conferir a declaração do lado esquerdo
     if (leftType == NULL) {
-        fprintf(stderr, "Erro semântico na linha %d: Variável '%s' sendo usada sem ter sido declarada.\n",
+        printError("Erro semântico na linha %d: Variável '%s' sendo usada sem ter sido declarada.",
                 node->lineno, node->left->value ? node->left->value : "desconhecida");
-        hasSemanticError = 1;
+        semanticErrorCount++;
         return;
     }
 
     // Conferir a declaração do lado direito
     if (rightType == NULL) {
-        fprintf(stderr, "Erro semântico na linha %d: Expressão ou variável '%s' sendo usada sem ter sido declarada.\n",
+        printError("Erro semântico na linha %d: Expressão ou variável '%s' sendo usada sem ter sido declarada.",
                 node->lineno, node->right->value ? node->right->value : "desconhecida");
-        hasSemanticError = 1;
+        semanticErrorCount++;
         return;
     }
 
     // Checar a compatibilidade de tipos
     if (!checkTypeCompatibility(leftType, rightType)) {
-        fprintf(stderr, "Erro semântico na linha %d: Incompatibilidade de tipos na atribuição. "
-                       "Variável '%s' é do tipo '%s' mas está recebendo valor do tipo '%s'.\n",
+        printError("Erro semântico na linha %d: Incompatibilidade de tipos na atribuição. "
+                  "Variável '%s' é do tipo '%s' mas está recebendo valor do tipo '%s'.",
                 node->lineno, node->left->value ? node->left->value : "desconhecida",
                 leftType, rightType);
-        hasSemanticError = 1;
+        semanticErrorCount++;
     }
 }
 
@@ -222,18 +222,18 @@ static void checkFunctionCall(ASTNode* node) {
     BucketList l = st_lookup(node->left->value);
     if (!l) {
         if (!errorAlreadyReported(node->left->value, node->lineno)) {
-            fprintf(stderr, "Erro semântico: Função '%s' não declarada (linha %d)\n",
+            printError("Erro semântico: Função '%s' não declarada (linha %d)",
                     node->left->value, node->lineno);
-            hasSemanticError = 1;
+            semanticErrorCount++;
         }
         return;
     }
 
     if (strcmp(l->idType, "func") != 0) {
         if (!errorAlreadyReported(node->left->value, node->lineno)) {
-            fprintf(stderr, "Erro semântico: '%s' não é uma função (linha %d)\n",
+            printError("Erro semântico: '%s' não é uma função (linha %d)",
                     node->left->value, node->lineno);
-            hasSemanticError = 1;
+            semanticErrorCount++;
         }
         return;
     }
@@ -255,9 +255,9 @@ static void checkFunctionCall(ASTNode* node) {
                 // Verificar se a variável está declarada
                 BucketList argVar = st_lookup(argName);
                 if (!argVar && !errorAlreadyReported(argName, node->lineno)) {
-                    fprintf(stderr, "Erro semântico: Argumento '%s' usado na chamada da função '%s' não foi declarado (linha %d)\n",
+                    printError("Erro semântico: Argumento '%s' usado na chamada da função '%s' não foi declarado (linha %d)",
                             argName, node->left->value, node->lineno);
-                    hasSemanticError = 1;
+                    semanticErrorCount++;
                 }
             }
         }
@@ -289,9 +289,9 @@ static void validateExpressionVariables(ASTNode* expr) {
     if (expr->type == NODE_VAR && expr->value != NULL) {
         BucketList var = st_lookup(expr->value);
         if (!var && !errorAlreadyReported(expr->value, expr->lineno)) {
-            fprintf(stderr, "Erro semântico: Variável '%s' usada em expressão não foi declarada (linha %d)\n",
+            printError("Erro semântico: Variável '%s' usada em expressão não foi declarada (linha %d)",
                     expr->value, expr->lineno);
-            hasSemanticError = 1;
+            semanticErrorCount++;
         }
     }
     else if (expr->type == NODE_ARRAY_ACCESS) {
@@ -323,7 +323,7 @@ static char* getExpressionType(ASTNode* node) {
                     // Verifica se o índice é um inteiro
                     char* indexType = getExpressionType(node->right);
                     if (indexType == NULL || strcmp(indexType, "int") != 0) {
-                        fprintf(stderr, "Erro semântico: índice do array deve ser inteiro\n");
+                        printError("Erro semântico: índice do array deve ser inteiro");
                         return NULL;
                     }
                     // Retorna o tipo base do array (sem os colchetes)
@@ -381,24 +381,24 @@ static char* getExpressionType(ASTNode* node) {
 
 static void checkMainFunction(void) {
     if (!hasMainFunction) {
-        fprintf(stderr, "Erro semântico: Função 'main' não declarada.\n");
-        hasSemanticError = 1;
+        printError("Erro semântico: Função 'main' não declarada.");
+        semanticErrorCount++;
     }
 }
 
 // Adicionar função para verificar se há pelo menos uma declaração
 static void checkAtLeastOneDeclaration(void) {
     if (!hasDeclaration) {
-        fprintf(stderr, "Erro semântico: O código deve conter pelo menos uma declaração (função ou variável).\n");
-        hasSemanticError = 1;
+        printError("Erro semântico: O código deve conter pelo menos uma declaração (função ou variável).");
+        semanticErrorCount++;
     }
 }
 
 // Adicionar função para verificar se a última função é void main(void)
 static void checkLastFunctionIsMain(void) {
     if (lastFunctionNode && strcmp(lastFunctionNode->value, "main") != 0) {
-        fprintf(stderr, "Erro semântico: A última declaração de função deve ser 'void main(void)'.\n");
-        hasSemanticError = 1;
+        printError("Erro semântico: A última declaração de função deve ser 'void main(void)'.");
+        semanticErrorCount++;
     }
 }
 
@@ -412,16 +412,16 @@ static void checkArrayAccess(ASTNode* node) {
 
     BucketList l = st_lookup(node->value);
     if (!l) {
-        fprintf(stderr, "Erro semântico: Variável '%s' não declarada (linha %d)\n",
+        printError("Erro semântico: Variável '%s' não declarada (linha %d)",
                 node->value, node->lineno);
-        hasSemanticError = 1;
+        semanticErrorCount++;
         return;
     }
 
     if (!l->isArray) {
-        fprintf(stderr, "Erro semântico: Variável '%s' não é um array (linha %d)\n",
+        printError("Erro semântico: Variável '%s' não é um array (linha %d)",
                 node->value, node->lineno);
-        hasSemanticError = 1;
+        semanticErrorCount++;
         return;
     }
 
@@ -429,23 +429,23 @@ static void checkArrayAccess(ASTNode* node) {
     if (node->right) {
         char* indexType = getExpressionType(node->right);
         if (!indexType || strcmp(indexType, "int") != 0) {
-            fprintf(stderr, "Erro semântico: Índice do array deve ser do tipo int (linha %d)\n",
+            printError("Erro semântico: Índice do array deve ser do tipo int (linha %d)",
                     node->lineno);
-            hasSemanticError = 1;
+            semanticErrorCount++;
         }
 
         // Se o índice é uma constante, verifica os limites
         if (node->right->type == NODE_FACTOR && node->right->value) {
             int index = atoi(node->right->value);
             if (index < 0) {
-                fprintf(stderr, "Erro semântico: Índice negativo (%d) no acesso ao array '%s' (linha %d)\n",
+                printError("Erro semântico: Índice negativo (%d) no acesso ao array '%s' (linha %d)",
                         index, node->value, node->lineno);
-                hasSemanticError = 1;
+                semanticErrorCount++;
             } 
             else if (l->arraySize > 0 && index >= l->arraySize) {
-                fprintf(stderr, "Erro semântico: Índice %d fora dos limites do array '%s[%d]' (linha %d)\n",
+                printError("Erro semântico: Índice %d fora dos limites do array '%s[%d]' (linha %d)",
                         index, node->value, l->arraySize, node->lineno);
-                hasSemanticError = 1;
+                semanticErrorCount++;
             }
         }
     }

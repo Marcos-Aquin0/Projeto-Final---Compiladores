@@ -96,10 +96,8 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 ---
 
 ## Próximas Etapas
-- while e relational (LT, BT) não reconhecidos (Cinter) 
-
+- verificar cada OP em cinter.h, principalmente relacionais e while
 - referencia de vetores (ponteiro para saber o tamanho está de acordo com o parâmetro, talvez começar a verificação pela main)
-- rodar todos os erros sem parar o código
 - otimização básica do gerador de código intermediário
 
 ## Contribuidores
