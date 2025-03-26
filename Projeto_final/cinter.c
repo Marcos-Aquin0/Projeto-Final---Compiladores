@@ -373,6 +373,59 @@ void genExprCode(ASTNode* expr, char* target) {
             }
             break;
             
+        case NODE_SIMP_EXPR:
+            // Expressões simples que podem conter operadores relacionais
+            DEBUG_IR("  Processando NODE_SIMP_EXPR");
+            
+            // Se existe um operador relacional (filho da direita é NODE_RELATIONAL)
+            if (expr->right != NULL && expr->right->type == NODE_RELATIONAL) {
+                leftResult = newTemp();
+                rightResult = newTemp();
+                
+                // Gera código para o lado esquerdo (geralmente uma variável ou expressão)
+                genExprCode(expr->left, leftResult);
+                
+                // Obtém o operador relacional e o operando direito da relação
+                ASTNode* relational = expr->right;
+                
+                // Gera código para o operando direito da relação
+                if (relational->right) {
+                    genExprCode(relational->right, rightResult);
+                } else {
+                    DEBUG_IR("ERRO: Nó relacional sem operando direito!");
+                    return;
+                }
+                DEBUG_IR("relational->type: %s", relational->left->value);
+                // DEBUG_IR("relational->left->type: %s", relational->left->type);
+                // DEBUG_IR("relational->right->type: %s", relational->right->type);
+                // Determina o tipo de operação relacional
+                OperationType opType = OP_EQ; // Padrão
+                if (relational->left->value) {
+                    if (strcmp(relational->left->value, "<") == 0) {
+                        opType = OP_LT;
+                    } else if (strcmp(relational->left->value, "<=") == 0) {
+                        opType = OP_LTE;
+                    } else if (strcmp(relational->left->value, ">") == 0) {
+                        opType = OP_GT;
+                    } else if (strcmp(relational->left->value, ">=") == 0) {
+                        opType = OP_GTE;
+                    } else if (strcmp(relational->left->value, "==") == 0) {
+                        opType = OP_EQ;
+                    } else if (strcmp(relational->left->value, "!=") == 0) {
+                        opType = OP_NEQ;
+                    }
+                }
+                
+                DEBUG_IR("  Gerando operador relacional %s", getOpName(opType));
+                
+                // Gera quadrupla para a operação relacional
+                genQuad(opType, leftResult, rightResult, target);
+            } else {
+                // Se não for uma expressão relacional, apenas passa o processamento para o filho esquerdo
+                genExprCode(expr->left, target);
+            }
+            break;
+            
         case NODE_TERM:
             // Expressões de multiplicação e divisão
             if (strcmp(expr->value, "*") == 0) {
@@ -395,12 +448,24 @@ void genExprCode(ASTNode* expr, char* target) {
             break;
             
         case NODE_RELATIONAL:
-            // Expressões relacionais
+            // Expressões relacionais quando processadas diretamente
             leftResult = newTemp();
             rightResult = newTemp();
             
-            genExprCode(expr->left, leftResult);
-            genExprCode(expr->right, rightResult);
+            if (expr->left) {
+                DEBUG_IR("expr->left: %s\n", expr->left->value);
+                genExprCode(expr->left, leftResult);
+            } else {
+                DEBUG_IR("AVISO: Nó relacional sem operando esquerdo!");
+                // Em alguns casos, o operando esquerdo pode já estar sendo tratado no NODE_SIMP_EXPR
+            }
+            
+            if (expr->right) {
+                genExprCode(expr->right, rightResult);
+            } else {
+                DEBUG_IR("ERRO: Nó relacional sem operando direito!");
+                return;
+            }
             
             if (strcmp(expr->value, "==") == 0) {
                 genQuad(OP_EQ, leftResult, rightResult, target);
