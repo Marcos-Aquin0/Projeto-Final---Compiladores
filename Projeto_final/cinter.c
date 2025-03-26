@@ -1,7 +1,6 @@
 #include "globals.h"
 #include "cinter.h"
 #include "symtab.h"
-#include <stdarg.h>
 
 static IRCode irCode;
 static int voidTempCount = 0;
