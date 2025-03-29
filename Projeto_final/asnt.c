@@ -64,17 +64,32 @@ static const char* nodeTypeToString(NodeType type) {
 }
 
 // Função auxiliar para obter o valor do nó
-static void getNodeValue(ASTNode* node, char* buffer) {
+//sprintf: Usa a função sprintf para formatar a string e armazená-la no buffer.
 //ASTNode* node: Ponteiro para o nó da AST cujo valor queremos obter.
 //char* buffer: Ponteiro para um buffer de caracteres onde a representação legível do valor do nó será armazenada.
+static void getNodeValue(ASTNode* node, char* buffer) {
+    const char* nodeTypeStr = nodeTypeToString(node->type);
+    
     if (node->value) {
-        //sprintf: Usa a função sprintf para formatar a string e armazená-la no buffer.
-        sprintf(buffer, "%s (%s)", nodeTypeToString(node->type), node->value);
-        //Se node->value não for NULL, formata a string como "<tipo do nó> (<valor do nó>)" e armazena no buffer.
+        if ((node->type == NODE_PARAM || node->type == NODE_VAR_DECL) && node->isArray && node->arraySize != 0) {
+            if (node->arraySize > 0) {
+                sprintf(buffer, "%s (%s[%d])", nodeTypeStr, node->value, node->arraySize);
+            } else if (node->arraySize == -1) {
+                sprintf(buffer, "%s (%s[])", nodeTypeStr, node->value);
+            }
+        } 
+        else if (node->type == NODE_ARRAY_ACCESS) {
+            sprintf(buffer, "%s (%s[])", nodeTypeStr, node->value);
+        }
+        else {
+            sprintf(buffer, "%s (%s)", nodeTypeStr, node->value);
+        }
     } else {
-        sprintf(buffer, "%s", nodeTypeToString(node->type));
-        //Se node->value for NULL, formata a string apenas com o tipo do nó e armazena no buffer.
+        sprintf(buffer, "%s", nodeTypeStr);
     }
+    //Se node->value não for NULL, formata a string como "<tipo do nó> (<valor do nó>)" e armazena no buffer.
+    //Se node->value for NULL, formata a string apenas com o tipo do nó e armazena no buffer.
+
 }
 
 // Função auxiliar recursiva para imprimir a árvore verticalmente com ASCII simples
