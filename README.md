@@ -96,11 +96,10 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 ---
 
 ## Próximas Etapas
-- referencia de vetores (ponteiro para saber o tamanho está de acordo com o parâmetro, talvez começar a verificação pela main) e se tiver mais de uma chamada de função no mesmo escopo
-- atribuir valores das variáveis que não sejam vetores nas chamadas
+- erro semantico para (correspondência de tipos)
 - op_alloc, alocação de memória, especialmente para vetores
-- erro semantico em que esse parametro deve ser um vetor
 - otimização básica do gerador de código intermediário
+- revisão assembly
 - gerador de código assembly
 - gerador de código binário
 - integração com o processador MIPS (lab de AOC)
