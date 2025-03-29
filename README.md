@@ -96,12 +96,17 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 ---
 
 ## Próximas Etapas
+- op_alloc, alocação de memória, especialmente para vetores
 - referencia de vetores (ponteiro para saber o tamanho está de acordo com o parâmetro, talvez começar a verificação pela main)
 - otimização básica do gerador de código intermediário
+- gerador de código assembly
+- gerador de código binário
+- integração com o processador MIPS (lab de AOC)
+- modelagem sysml e relatório
 
 ## Contribuidores
 
-Este projeto foi desenvolvido por Marcos Aquino e Matheus Esteves, alunos da UNIFESP para a disciplina de Compiladores. Agradecimentos ao professor e colegas por todo o suporte e aprendizado ao longo do desenvolvimento.
+Este projeto foi inicialmente desenvolvido por Marcos Aquino e Matheus Esteves, alunos da UNIFESP para a disciplina de Compiladores e, posteriormente, aprimorado por Marcos Aquino para a disciplina de Laboratório de Sistemas Computacionais: Compiladores. Agradecimentos ao professor e colegas por todo o suporte e aprendizado ao longo do desenvolvimento.
 
 ---
 

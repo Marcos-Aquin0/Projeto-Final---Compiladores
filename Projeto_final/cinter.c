@@ -3,8 +3,9 @@
 #include "symtab.h"
 
 static IRCode irCode;
-static int voidTempCount = 0;
+
 // Função para gerar um novo nome de variável temporária para chamadas void
+static int voidTempCount = 0;
 char* newVoidTemp(void) {
     char* temp = (char*)malloc(12);
     if (temp == NULL) {
@@ -105,7 +106,7 @@ void freeIRCode(void) {
     irCode.tail = NULL;
 }
 
-// Gera um novo nome de variável temporária
+// Gera um novo nome de variável temporária t_
 char* newTemp(void) {
     char* temp = (char*)malloc(12);
     if (temp == NULL) {
@@ -116,7 +117,7 @@ char* newTemp(void) {
     return temp;
 }
 
-// Gera um novo rótulo para desvios
+// Gera um novo rótulo para desvios (label L_)
 char* newLabel(void) {
     char* label = (char*)malloc(12);
     if (label == NULL) {
@@ -395,8 +396,7 @@ void genExprCode(ASTNode* expr, char* target) {
                     return;
                 }
                 DEBUG_IR("relational->type: %s", relational->left->value);
-                // DEBUG_IR("relational->left->type: %s", relational->left->type);
-                // DEBUG_IR("relational->right->type: %s", relational->right->type);
+                
                 // Determina o tipo de operação relacional
                 OperationType opType = OP_EQ; // Padrão
                 if (relational->left->value) {
@@ -496,7 +496,7 @@ void genExprCode(ASTNode* expr, char* target) {
 void genAssignCode(ASTNode* assign) {
     if (assign == NULL || assign->value == NULL || strcmp(assign->value, "=") != 0) return;
     
-    // Debug info
+    // Debug 
     DEBUG_IR("Processando atribuição na linha %d", assign->lineno);
     DEBUG_IR("  Lado esquerdo: tipo %s, valor %s", 
              getNodeTypeName(assign->left->type), 
@@ -633,7 +633,7 @@ void processArguments(ASTNode* argNode, int* argCount) {
     
     DEBUG_IR("  > processArguments: nó tipo %s", getNodeTypeName(argNode->type));
     
-    // In-order traversal: left, current, right
+    // In-order traversal: filhos esquerdos, atual, filho da direita
     if (argNode->left != NULL) {
         // Caso especial: argumento é uma chamada de função
         if (argNode->left->type == NODE_ACTIVATION) {
