@@ -45,6 +45,9 @@ BucketList st_lookup_in_scope(char *name, char *scope); //Procura um identificad
 //scope: Nome do escopo onde o identificador deve ser procurado.
 //Retorno: Ponteiro para o bucket do identificador, ou NULL se não encontrado.
 
+/* Busca um símbolo em todos os escopos acessíveis (atual e global) */
+BucketList st_lookup_all_scopes(char *name, char *scope);
+
 void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char *dataType, int isArray, int arraySize);
 //Insere um novo identificador na tabela de símbolos.
 

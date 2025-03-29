@@ -95,6 +95,24 @@ BucketList st_lookup_in_scope(char *name, char *scope) {
     return l;
 }
 
+// Nova função para buscar um símbolo em todos os escopos (atual e global)
+BucketList st_lookup_all_scopes(char *name, char *scope) {
+    if (name == NULL || scope == NULL) {
+        return NULL;
+    }
+
+    // Primeiro, procura no escopo atual
+    BucketList l = st_lookup_in_scope(name, scope);
+    
+    // Se não encontrar no escopo atual e não estiver no escopo global,
+    // procura no escopo global
+    if (l == NULL && strcmp(scope, "global") != 0) {
+        l = st_lookup_in_scope(name, "global");
+    }
+    
+    return l;
+}
+
 void printSymTab(FILE *listing) {
     int i;
     fprintf(listing, "Variable Name  Scope       ID Type  Data Type  Location  Line Numbers\n");
@@ -311,17 +329,22 @@ static void insertNode(ASTNode *t) {
             break;
 
         case NODE_VAR:
+            // Busca em todos os escopos relevantes (atual e global)
+            existing = st_lookup_all_scopes(t->value, scope);
+            
             if (existing != NULL) {
-                // Se o símbolo já existe, apenas adiciona a linha de uso
+                // Se o símbolo existe em algum escopo acessível, adiciona a linha de uso
                 LineList lines = existing->lines;
                 while (lines->next != NULL) lines = lines->next;
                 lines->next = (LineList)malloc(sizeof(struct LineListRec));
                 lines->next->lineno = t->lineno;
                 lines->next->next = NULL;
-                DEBUG_SYMTAB("insertNode: Atualizando uso de '%s' na linha %d", t->value, t->lineno);
-            } else if (st_lookup(t->value) == NULL) {
-                // Se não existe em nenhum escopo, cria uma nova entrada
+                DEBUG_SYMTAB("insertNode: Atualizando uso de '%s' na linha %d no escopo %s", 
+                            t->value, t->lineno, existing->scope);
+            } else {
+                // Se não existe em nenhum escopo acessível, cria uma nova entrada
                 st_insert(t->value, t->lineno, location++, strdup(scope), "var", t->idType, t->isArray, t->arraySize);
+                DEBUG_SYMTAB("insertNode: Criando nova variável '%s' no escopo atual %s", t->value, scope);
             }
             break;
 
