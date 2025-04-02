@@ -96,7 +96,7 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 ---
 
 ## Próximas Etapas
-- erro semantico para (correspondência de tipos)
+- erro semantico para (correspondência de tipos) e indice negativo de vetores
 - op_alloc, alocação de memória, especialmente para vetores
 - otimização básica do gerador de código intermediário
 - revisão assembly
