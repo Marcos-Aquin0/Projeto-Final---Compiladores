@@ -51,6 +51,8 @@ void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char 
         l->memloc = loc;
         l->isArray = isArray;
         l->arraySize = arraySize;
+        l->paramCount = 0;
+        l->params = NULL;
         l->next = hashTable[h];
         hashTable[h] = l;
 
@@ -66,6 +68,49 @@ void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char 
         t->next->lineno = lineno;
         t->next->next = NULL;
     }
+}
+
+// Função para adicionar informação de um parâmetro a uma função
+// Function to add parameter information to a function
+void add_param_info(char *func_name, char *param_type, int is_array) {
+    // First check if this is a function call in the current scope
+    char *current = current_scope();
+    BucketList func = st_lookup_in_scope(func_name, current);
+    
+    // If not found in current scope or if we're in global scope, look in global
+    if (func == NULL || strcmp(current, "global") == 0) {
+        func = st_lookup_in_scope(func_name, "global");
+    }
+    
+    if (func == NULL) {
+        DEBUG_SYMTAB("Erro: Tentativa de adicionar parâmetro à função '%s' que não existe.", func_name);
+        return;
+    }
+
+    ParamInfo param = (ParamInfo)malloc(sizeof(struct ParamInfoRec));
+    if (param == NULL) {
+        DEBUG_SYMTAB("Erro: Falha ao alocar memória para ParamInfo.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    param->paramType = strdup(param_type);
+    param->isArray = is_array;
+    param->next = NULL;
+
+    // Adiciona o parâmetro ao final da lista
+    if (func->params == NULL) {
+        func->params = param;
+    } else {
+        ParamInfo current = func->params;
+        while (current->next != NULL) {
+            current = current->next;
+        }
+        current->next = param;
+    }
+
+    func->paramCount++;
+    DEBUG_SYMTAB("Adicionado parâmetro %d à função '%s' no escopo '%s': tipo '%s', is_array=%d",
+                func->paramCount, func_name, func->scope, param_type, is_array);
 }
 
 BucketList st_lookup(char *name) {
@@ -115,14 +160,28 @@ BucketList st_lookup_all_scopes(char *name, char *scope) {
 
 void printSymTab(FILE *listing) {
     int i;
-    fprintf(listing, "Variable Name  Scope       ID Type  Data Type  Location  Line Numbers\n");
-    fprintf(listing, "-------------  ----------  -------  ---------  --------  ------------\n");
+    fprintf(listing, "Variable Name  Scope       ID Type  Data Type  Location  Parameters         Line Numbers\n");
+    fprintf(listing, "-------------  ----------  -------  ---------  --------  -----------------  ------------\n");
     for (i = 0; i < SIZE; ++i) {
         if (hashTable[i] != NULL) {
             BucketList l = hashTable[i];
             while (l != NULL) {
                 LineList t = l->lines;
-                fprintf(listing, "%-14s %-12s %-8s %-10s %-8d ", l->name, l->scope, l->idType, l->dataType, l->memloc);
+                fprintf(listing, "%-14s %-12s %-8s %-10s %-9d ", l->name, l->scope, l->idType, l->dataType, l->memloc);
+                
+                // Mostrar informações de parâmetros para funções
+                if (strcmp(l->idType, "func") == 0) {
+                    fprintf(listing, "%d params: ", l->paramCount);
+                    ParamInfo param = l->params;
+                    while (param != NULL) {
+                        fprintf(listing, "%s%s ", param->paramType, param->isArray ? "[]" : "");
+                        param = param->next;
+                        if (param != NULL) fprintf(listing, ", ");
+                    }
+                    fprintf(listing, "   ");
+                } else {
+                    fprintf(listing, "%-17s ", l->isArray ? "[array]" : "");
+                }
                 
                 // Para funções no escopo global, a primeira linha é a declaração
                 if (strcmp(l->idType, "func") == 0 && strcmp(l->scope, "global") == 0) {
@@ -203,6 +262,172 @@ char* current_scope() {
     return scope_stack->scope_id;
 }
 
+//processa os parâmetros da chamada de função
+void processArguments_Func(ASTNode* argNode, char* funcName, int* argCount) {
+    if (argNode == NULL || funcName == NULL || argCount == NULL) return;
+    
+    DEBUG_SYMTAB("  > processArguments_Func: nó tipo %s", getNodeTypeName(argNode->type));
+    
+    // Look up the function in the current scope
+    char* scope = current_scope();
+    BucketList funcEntry = st_lookup_in_scope(funcName, scope);
+    if (!funcEntry) {
+        DEBUG_SYMTAB("  > Function '%s' not found in current scope '%s'", funcName, scope);
+        return;
+    }
+    
+    // Process left subtree first
+    if (argNode->left != NULL) {
+        // Special case: argument is a function call
+        if (argNode->left->type == NODE_ACTIVATION) {
+            char* calledFuncName = argNode->left->left ? argNode->left->left->value : "unknown";
+            DEBUG_SYMTAB("    Arg %d é uma chamada de função: %s", *argCount + 1, calledFuncName);
+            
+            // Look up the called function to determine its return type
+            BucketList calledFunc = st_lookup_in_scope(calledFuncName, "global");
+            if (calledFunc) {
+                // Add parameter info to the current scope function entry
+                add_param_info(funcName, calledFunc->dataType, 0); // 0 means not an array
+                (*argCount)++;
+            }
+        } 
+        // Handle complex expressions
+        else if (argNode->left->type == NODE_EXPR || 
+                 argNode->left->type == NODE_SUM_EXPR || 
+                 argNode->left->type == NODE_TERM ||
+                 argNode->left->type == NODE_RELATIONAL) {
+            DEBUG_SYMTAB("    Arg %d é uma expressão complexa tipo: %s", 
+                    *argCount + 1, getNodeTypeName(argNode->left->type));
+            
+            // For complex expressions, the result is always an int (not an array)
+            add_param_info(funcName, "int", 0);
+            (*argCount)++;
+        }
+        // Process variable or array access
+        else if (argNode->left->type == NODE_VAR || argNode->left->type == NODE_ARRAY_ACCESS) {
+            char* varName = argNode->left->value;
+            DEBUG_SYMTAB("    Arg %d é uma variável: %s", *argCount + 1, varName);
+            
+            // Determine if it's an array access or simple variable
+            int isArray = (argNode->left->type == NODE_ARRAY_ACCESS) ? 1 : 0;
+            
+            // If it's a variable, look it up to determine its type
+            if (!isArray && varName) {
+                BucketList varEntry = st_lookup_all_scopes(varName, scope);
+                if (varEntry) {
+                    isArray = varEntry->isArray;
+                }
+            }
+            
+            // Add parameter info to the current scope function entry
+            add_param_info(funcName, "int", isArray);
+            (*argCount)++;
+        }
+        // Normal recursive processing
+        else {
+            processArguments_Func(argNode->left, funcName, argCount);
+        }
+    }
+    
+    // Process current node if not a list node
+    if (argNode->type != NODE_ARG_LIST && argNode->type != NODE_ARGS) {
+        // Current node is a function call
+        if (argNode->type == NODE_ACTIVATION) {
+            char* calledFuncName = argNode->left ? argNode->left->value : "unknown";
+            
+            // Look up the called function to determine its return type
+            BucketList calledFunc = st_lookup_in_scope(calledFuncName, "global");
+            if (calledFunc) {
+                // Add parameter info to the current scope function entry
+                add_param_info(funcName, calledFunc->dataType, 0); // Function return values are not arrays
+                (*argCount)++;
+            }
+        }
+        // Current node is a complex expression
+        else if (argNode->type == NODE_EXPR || 
+                argNode->type == NODE_SUM_EXPR || 
+                argNode->type == NODE_TERM ||
+                argNode->type == NODE_RELATIONAL) {
+            
+            // For complex expressions, the result is always an int (not an array)
+            add_param_info(funcName, "int", 0);
+            (*argCount)++;
+        }
+        // Current node is a variable or array access
+        else if (argNode->type == NODE_VAR || argNode->type == NODE_ARRAY_ACCESS || 
+                 argNode->type == NODE_FACTOR) {
+            char* varName = argNode->value;
+            
+            // Determine if it's an array access or simple variable
+            int isArray = (argNode->type == NODE_ARRAY_ACCESS) ? 1 : 0;
+            
+            // If it's a variable, look it up to determine its type
+            if (!isArray && varName) {
+                BucketList varEntry = st_lookup_all_scopes(varName, scope);
+                if (varEntry) {
+                    isArray = varEntry->isArray;
+                }
+            }
+            
+            // Add parameter info to the current scope function entry
+            add_param_info(funcName, "int", isArray);
+            (*argCount)++;
+        }
+    }
+    
+    // Process right subtree
+    if (argNode->right != NULL) {
+        // Right child is a function call
+        if (argNode->right->type == NODE_ACTIVATION) {
+            char* calledFuncName = argNode->right->left ? argNode->right->left->value : "unknown";
+            
+            // Look up the called function to determine its return type
+            BucketList calledFunc = st_lookup_in_scope(calledFuncName, "global");
+            if (calledFunc) {
+                // Add parameter info to the current scope function entry
+                add_param_info(funcName, calledFunc->dataType, 0); // Function return values are not arrays
+                (*argCount)++;
+            }
+        }
+        // Right child is a complex expression
+        else if (argNode->right->type == NODE_EXPR || 
+                 argNode->right->type == NODE_SUM_EXPR || 
+                 argNode->right->type == NODE_TERM ||
+                 argNode->right->type == NODE_RELATIONAL) {
+            
+            // For complex expressions, the result is always an int (not an array)
+            add_param_info(funcName, "int", 0);
+            (*argCount)++;
+        }
+        // Right child is a variable or array access
+        else if (argNode->right->type == NODE_VAR || argNode->right->type == NODE_ARRAY_ACCESS || 
+                 argNode->right->type == NODE_FACTOR) {
+            char* varName = argNode->right->value;
+            
+            // Determine if it's an array access or simple variable
+            int isArray = (argNode->right->type == NODE_ARRAY_ACCESS) ? 1 : 0;
+            
+            // If it's a variable, look it up to determine its type
+            if (!isArray && varName) {
+                BucketList varEntry = st_lookup_all_scopes(varName, scope);
+                if (varEntry) {
+                    isArray = varEntry->isArray;
+                }
+            }
+            
+            // Add parameter info to the current scope function entry
+            add_param_info(funcName, "int", isArray);
+            (*argCount)++;
+        }
+        // Normal recursive processing
+        else {
+            processArguments_Func(argNode->right, funcName, argCount);
+        }
+    }
+}
+
+
+
 //um contador estático para manter o controle da localização na memória
 static int location = 0;
 
@@ -276,6 +501,11 @@ static void traverse(ASTNode *t,
                     }
                 }
             }
+            if(t->right->type == NODE_ARGS){
+                int argCount = 0;
+                char* funcName = t->left->value;
+                processArguments_Func(t->right, funcName, &argCount);
+              }              
         }
         
         traverse(t->left, preProc, postProc);
@@ -325,6 +555,11 @@ static void insertNode(ASTNode *t) {
             if (existing == NULL) {
                 DEBUG_SYMTAB("insertNode: Inserindo parâmetro '%s'", t->value);
                 st_insert(t->value, t->lineno, location++, strdup(scope), "param", t->idType, t->isArray, t->arraySize);
+                
+                // Se estamos no escopo de uma função, adiciona informação do parâmetro à função
+                if (scope != NULL && strcmp(scope, "global") != 0) {
+                    add_param_info(scope, t->idType, t->isArray);
+                }
             }
             break;
 

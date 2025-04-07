@@ -12,6 +12,12 @@ typedef struct LineListRec {
     struct LineListRec *next; //next: Ponteiro para o próximo item na lista, permitindo a criação de uma lista encadeada de números de linha.
 } *LineList;
 
+typedef struct ParamInfoRec {
+    char *paramType;
+    int isArray;
+    struct ParamInfoRec *next;
+} *ParamInfo;
+
 //A estrutura ScopeNode é usada para representar um escopo na tabela de símbolos.
 typedef struct ScopeNode {
     char *scope_id;
@@ -30,6 +36,8 @@ typedef struct BucketListRec {
     struct BucketListRec *next;
     int isArray;         // Indica se é um vetor
     int arraySize;       // Tamanho do vetor
+    int paramCount;      // Número de parâmetros (para funções)
+    ParamInfo params;    // Lista de informações sobre parâmetros (para funções)
 } *BucketList;
 
 void push_scope(char *scope_name); //Empilha um novo escopo na pilha de escopos.
@@ -52,5 +60,7 @@ void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char 
 //Insere um novo identificador na tabela de símbolos.
 
 void printSymTab(FILE *listing); //imprime a tabela de símbolos.
+
+void process_func_args(ASTNode *argsNode, char *funcName, int lineno);
 
 #endif
