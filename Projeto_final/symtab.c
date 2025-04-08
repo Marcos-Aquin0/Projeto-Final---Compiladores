@@ -268,7 +268,6 @@ void processArguments_Func(ASTNode* argNode, char* funcName, int* argCount) {
     
     DEBUG_SYMTAB("  > processArguments_Func: nó tipo %s", getNodeTypeName(argNode->type));
     
-    // Look up the function in the current scope
     char* scope = current_scope();
     BucketList funcEntry = st_lookup_in_scope(funcName, scope);
     if (!funcEntry) {
@@ -276,22 +275,20 @@ void processArguments_Func(ASTNode* argNode, char* funcName, int* argCount) {
         return;
     }
     
-    // Process left subtree first
     if (argNode->left != NULL) {
-        // Special case: argument is a function call
+        // caso especial: chamada de função
         if (argNode->left->type == NODE_ACTIVATION) {
             char* calledFuncName = argNode->left->left ? argNode->left->left->value : "unknown";
             DEBUG_SYMTAB("    Arg %d é uma chamada de função: %s", *argCount + 1, calledFuncName);
             
-            // Look up the called function to determine its return type
             BucketList calledFunc = st_lookup_in_scope(calledFuncName, "global");
             if (calledFunc) {
-                // Add parameter info to the current scope function entry
-                add_param_info(funcName, calledFunc->dataType, 0); // 0 means not an array
+                
+                add_param_info(funcName, calledFunc->dataType, 0); 
                 (*argCount)++;
             }
         } 
-        // Handle complex expressions
+        // lida com expressões
         else if (argNode->left->type == NODE_EXPR || 
                  argNode->left->type == NODE_SUM_EXPR || 
                  argNode->left->type == NODE_TERM ||
@@ -299,19 +296,16 @@ void processArguments_Func(ASTNode* argNode, char* funcName, int* argCount) {
             DEBUG_SYMTAB("    Arg %d é uma expressão complexa tipo: %s", 
                     *argCount + 1, getNodeTypeName(argNode->left->type));
             
-            // For complex expressions, the result is always an int (not an array)
             add_param_info(funcName, "int", 0);
             (*argCount)++;
         }
-        // Process variable or array access
+        // processa variaveis e vetores
         else if (argNode->left->type == NODE_VAR || argNode->left->type == NODE_ARRAY_ACCESS) {
             char* varName = argNode->left->value;
             DEBUG_SYMTAB("    Arg %d é uma variável: %s", *argCount + 1, varName);
             
-            // Determine if it's an array access or simple variable
             int isArray = (argNode->left->type == NODE_ARRAY_ACCESS) ? 1 : 0;
             
-            // If it's a variable, look it up to determine its type
             if (!isArray && varName) {
                 BucketList varEntry = st_lookup_all_scopes(varName, scope);
                 if (varEntry) {
@@ -319,49 +313,42 @@ void processArguments_Func(ASTNode* argNode, char* funcName, int* argCount) {
                 }
             }
             
-            // Add parameter info to the current scope function entry
             add_param_info(funcName, "int", isArray);
             (*argCount)++;
         }
-        // Normal recursive processing
+    
         else {
             processArguments_Func(argNode->left, funcName, argCount);
         }
     }
     
-    // Process current node if not a list node
     if (argNode->type != NODE_ARG_LIST && argNode->type != NODE_ARGS) {
-        // Current node is a function call
+        
         if (argNode->type == NODE_ACTIVATION) {
             char* calledFuncName = argNode->left ? argNode->left->value : "unknown";
             
-            // Look up the called function to determine its return type
             BucketList calledFunc = st_lookup_in_scope(calledFuncName, "global");
             if (calledFunc) {
-                // Add parameter info to the current scope function entry
-                add_param_info(funcName, calledFunc->dataType, 0); // Function return values are not arrays
+                
+                add_param_info(funcName, calledFunc->dataType, 0); 
                 (*argCount)++;
             }
         }
-        // Current node is a complex expression
         else if (argNode->type == NODE_EXPR || 
                 argNode->type == NODE_SUM_EXPR || 
                 argNode->type == NODE_TERM ||
                 argNode->type == NODE_RELATIONAL) {
             
-            // For complex expressions, the result is always an int (not an array)
             add_param_info(funcName, "int", 0);
             (*argCount)++;
         }
-        // Current node is a variable or array access
+
         else if (argNode->type == NODE_VAR || argNode->type == NODE_ARRAY_ACCESS || 
                  argNode->type == NODE_FACTOR) {
             char* varName = argNode->value;
             
-            // Determine if it's an array access or simple variable
             int isArray = (argNode->type == NODE_ARRAY_ACCESS) ? 1 : 0;
             
-            // If it's a variable, look it up to determine its type
             if (!isArray && varName) {
                 BucketList varEntry = st_lookup_all_scopes(varName, scope);
                 if (varEntry) {
@@ -369,45 +356,40 @@ void processArguments_Func(ASTNode* argNode, char* funcName, int* argCount) {
                 }
             }
             
-            // Add parameter info to the current scope function entry
             add_param_info(funcName, "int", isArray);
             (*argCount)++;
         }
     }
     
-    // Process right subtree
     if (argNode->right != NULL) {
-        // Right child is a function call
         if (argNode->right->type == NODE_ACTIVATION) {
             char* calledFuncName = argNode->right->left ? argNode->right->left->value : "unknown";
             
-            // Look up the called function to determine its return type
             BucketList calledFunc = st_lookup_in_scope(calledFuncName, "global");
             if (calledFunc) {
-                // Add parameter info to the current scope function entry
-                add_param_info(funcName, calledFunc->dataType, 0); // Function return values are not arrays
+                add_param_info(funcName, calledFunc->dataType, 0); 
                 (*argCount)++;
             }
         }
-        // Right child is a complex expression
+        
         else if (argNode->right->type == NODE_EXPR || 
                  argNode->right->type == NODE_SUM_EXPR || 
                  argNode->right->type == NODE_TERM ||
                  argNode->right->type == NODE_RELATIONAL) {
             
-            // For complex expressions, the result is always an int (not an array)
+            
             add_param_info(funcName, "int", 0);
             (*argCount)++;
         }
-        // Right child is a variable or array access
+        
         else if (argNode->right->type == NODE_VAR || argNode->right->type == NODE_ARRAY_ACCESS || 
                  argNode->right->type == NODE_FACTOR) {
             char* varName = argNode->right->value;
             
-            // Determine if it's an array access or simple variable
+            
             int isArray = (argNode->right->type == NODE_ARRAY_ACCESS) ? 1 : 0;
             
-            // If it's a variable, look it up to determine its type
+            
             if (!isArray && varName) {
                 BucketList varEntry = st_lookup_all_scopes(varName, scope);
                 if (varEntry) {
@@ -415,11 +397,11 @@ void processArguments_Func(ASTNode* argNode, char* funcName, int* argCount) {
                 }
             }
             
-            // Add parameter info to the current scope function entry
+            
             add_param_info(funcName, "int", isArray);
             (*argCount)++;
         }
-        // Normal recursive processing
+        
         else {
             processArguments_Func(argNode->right, funcName, argCount);
         }
@@ -453,7 +435,6 @@ static void traverse(ASTNode *t,
         preProc(t);
         
         // Caso especial para NODE_ACTIVATION para garantir que ele seja processado antes de seus filhos
-        // Case special for NODE_ACTIVATION to ensure it's processed before its children
         if (t->type == NODE_ACTIVATION) {
             if (t->left) {
                 char *funcName = t->left->value;
@@ -501,25 +482,18 @@ static void traverse(ASTNode *t,
                         }
                     }
                     
-                    // Process arguments if they exist
                     if (t->right != NULL) {
                         if (t->right->type == NODE_ARGS) {
                             int argCount = 0;
                             processArguments_Func(t->right, funcName, &argCount);
                         }
                     } 
-                    // Handle the case of function calls with no arguments
+                    // caso como input();
                     else {
                         DEBUG_SYMTAB("Chamada de função '%s' sem argumentos", funcName);
-                        // No need to add any parameter info since there are no arguments
-                        // But we might want to ensure that the function's paramCount is 0
                         BucketList funcEntry = st_lookup_in_scope(funcName, scope);
                         if (funcEntry) {
-                            // For function calls with no arguments, paramCount should be 0
-                            // This is already the default when creating a new entry, but we might
-                            // want to ensure it explicitly
                             if (funcEntry->paramCount != 0 && funcEntry->params != NULL) {
-                                // Clear existing params if any
                                 ParamInfo current = funcEntry->params;
                                 while (current != NULL) {
                                     ParamInfo temp = current;
