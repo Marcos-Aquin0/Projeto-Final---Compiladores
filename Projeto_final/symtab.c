@@ -453,6 +453,7 @@ static void traverse(ASTNode *t,
         preProc(t);
         
         // Caso especial para NODE_ACTIVATION para garantir que ele seja processado antes de seus filhos
+        // Case special for NODE_ACTIVATION to ensure it's processed before its children
         if (t->type == NODE_ACTIVATION) {
             if (t->left) {
                 char *funcName = t->left->value;
@@ -499,13 +500,40 @@ static void traverse(ASTNode *t,
                             st_insert(funcName, t->lineno, location++, scope, "func", "int", 0, 0);
                         }
                     }
+                    
+                    // Process arguments if they exist
+                    if (t->right != NULL) {
+                        if (t->right->type == NODE_ARGS) {
+                            int argCount = 0;
+                            processArguments_Func(t->right, funcName, &argCount);
+                        }
+                    } 
+                    // Handle the case of function calls with no arguments
+                    else {
+                        DEBUG_SYMTAB("Chamada de função '%s' sem argumentos", funcName);
+                        // No need to add any parameter info since there are no arguments
+                        // But we might want to ensure that the function's paramCount is 0
+                        BucketList funcEntry = st_lookup_in_scope(funcName, scope);
+                        if (funcEntry) {
+                            // For function calls with no arguments, paramCount should be 0
+                            // This is already the default when creating a new entry, but we might
+                            // want to ensure it explicitly
+                            if (funcEntry->paramCount != 0 && funcEntry->params != NULL) {
+                                // Clear existing params if any
+                                ParamInfo current = funcEntry->params;
+                                while (current != NULL) {
+                                    ParamInfo temp = current;
+                                    current = current->next;
+                                    free(temp->paramType);
+                                    free(temp);
+                                }
+                                funcEntry->params = NULL;
+                                funcEntry->paramCount = 0;
+                            }
+                        }
+                    }
                 }
             }
-            if(t->right->type == NODE_ARGS){
-                int argCount = 0;
-                char* funcName = t->left->value;
-                processArguments_Func(t->right, funcName, &argCount);
-              }              
         }
         
         traverse(t->left, preProc, postProc);
