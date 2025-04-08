@@ -96,7 +96,7 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 ---
 
 ## Próximas Etapas
-- acesso de vetor como parametro, errado no cinter
+- comparar no semantic os parametros.
 - otimização básica do gerador de código intermediário
 - revisão assembly (alocação de memória)
 - gerador de código assembly

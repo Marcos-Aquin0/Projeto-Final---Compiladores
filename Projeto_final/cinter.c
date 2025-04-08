@@ -652,6 +652,23 @@ void processArguments(ASTNode* argNode, int* argCount) {
             
             (*argCount)++;
         } 
+        // Caso adicional: argumento é um acesso a vetor
+        else if (argNode->left->type == NODE_ARRAY_ACCESS) {
+            DEBUG_IR("    Arg %d é um acesso a vetor: %s", 
+                    *argCount + 1,
+                    argNode->left->left ? argNode->left->left->value : "unknown");
+            
+            // Gera o código para o acesso ao vetor e armazena em uma variável temp
+            char* arrayResult = newTemp();
+            genArrayAccessCode(argNode->left, arrayResult);
+            
+            // Passa o resultado como parâmetro
+            char argNum[12];
+            sprintf(argNum, "%d", *argCount);
+            genQuad(OP_PARAM, arrayResult, argNum, NULL);
+            
+            (*argCount)++;
+        }
         // Lida com expressões complexas
         else if (argNode->left->type == NODE_EXPR || 
                  argNode->left->type == NODE_SUM_EXPR || 
@@ -695,7 +712,21 @@ void processArguments(ASTNode* argNode, int* argCount) {
             
             (*argCount)++;
         }
-        
+        // Caso adicional: nó atual é um acesso a vetor
+        else if (argNode->type == NODE_ARRAY_ACCESS) {
+            DEBUG_IR("    Arg %d é um acesso a vetor: %s", 
+                    *argCount + 1,
+                    argNode->left ? argNode->left->value : "unknown");
+            
+            char* arrayResult = newTemp();
+            genArrayAccessCode(argNode, arrayResult);
+            
+            char argNum[12];
+            sprintf(argNum, "%d", *argCount);
+            genQuad(OP_PARAM, arrayResult, argNum, NULL);
+            
+            (*argCount)++;
+        }
         else if (argNode->type == NODE_EXPR || 
                 argNode->type == NODE_SUM_EXPR || 
                 argNode->type == NODE_TERM ||
@@ -745,6 +776,21 @@ void processArguments(ASTNode* argNode, int* argCount) {
             char argNum[12];
             sprintf(argNum, "%d", *argCount);
             genQuad(OP_PARAM, funcResult, argNum, NULL);
+            
+            (*argCount)++;
+        }
+        // Caso adicional: filho da direita é um acesso a vetor
+        else if (argNode->right->type == NODE_ARRAY_ACCESS) {
+            DEBUG_IR("    Arg %d é um acesso a vetor (à direita): %s", 
+                    *argCount + 1,
+                    argNode->right->left ? argNode->right->left->value : "unknown");
+            
+            char* arrayResult = newTemp();
+            genArrayAccessCode(argNode->right, arrayResult);
+            
+            char argNum[12];
+            sprintf(argNum, "%d", *argCount);
+            genQuad(OP_PARAM, arrayResult, argNum, NULL);
             
             (*argCount)++;
         }
