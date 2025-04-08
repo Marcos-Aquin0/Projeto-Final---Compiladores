@@ -216,6 +216,69 @@ static void checkAssignment(ASTNode* node) {
     }
 }
 
+static void checkFunctionCallParameters(ASTNode* node) {
+    if (!node || !node->left || !node->left->value) return;
+
+    char* funcName = node->left->value;
+    if (strcmp(funcName, "output") == 0 || strcmp(funcName, "input") == 0) {
+        return;  // Não verifica parâmetros para funções de entrada/saída
+    }
+    // Busca a declaração global da função
+    BucketList funcDecl = st_lookup_in_scope(funcName, "global");
+    if (!funcDecl) return;  // Função não encontrada, não verifica parâmetros
+    
+    // Busca a chamada da função no escopo atual
+    char* currentScope = current_scope();
+    BucketList funcCall = st_lookup_in_scope(funcName, currentScope);
+    
+    // Se não encontrou no escopo atual e não estamos no escopo global,
+    // procura no escopo global (para chamadas diretas na global)
+    if (!funcCall && strcmp(currentScope, "global") != 0) {
+        funcCall = st_lookup_in_scope(funcName, "global");
+    }
+    
+    if (!funcCall) return;  // Não conseguiu encontrar a chamada, pula verificação
+    
+    // Compara o número de parâmetros entre declaração e chamada
+    if (funcDecl->paramCount != funcCall->paramCount) {
+        printError("Erro semântico: Função '%s' chamada com %d argumentos, mas foi declarada com %d parâmetros (linha %d)",
+                  funcName, funcCall->paramCount, funcDecl->paramCount, node->lineno);
+        semanticErrorCount++;
+        return;
+    }
+    
+    // Obtém os parâmetros da declaração e da chamada
+    ParamInfo declParam = funcDecl->params;
+    ParamInfo callParam = funcCall->params;
+    
+    // Compara cada parâmetro
+    int paramNum = 1;
+    while (declParam != NULL && callParam != NULL) {
+        // Verifica compatibilidade de tipos
+        int typesCompatible = checkTypeCompatibility(callParam->paramType, declParam->paramType);
+        
+        // Verifica se ambos são arrays ou nenhum é array
+        int arrayMatchError = (callParam->isArray != declParam->isArray);
+        
+        if (!typesCompatible || arrayMatchError) {
+            if (arrayMatchError && typesCompatible) {
+                printError("Erro semântico: Incompatibilidade de array no argumento %d da chamada da função '%s'. Esperado '%s%s', recebido '%s%s' (linha %d)",
+                         paramNum, funcName, declParam->paramType, declParam->isArray ? "[]" : "", 
+                         callParam->paramType, callParam->isArray ? "[]" : "", node->lineno);
+            } else {
+                printError("Erro semântico: Incompatibilidade de tipos no argumento %d da chamada da função '%s'. Esperado '%s%s', recebido '%s%s' (linha %d)",
+                         paramNum, funcName, declParam->paramType, declParam->isArray ? "[]" : "", 
+                         callParam->paramType, callParam->isArray ? "[]" : "", node->lineno);
+            }
+            semanticErrorCount++;
+        }
+        
+        declParam = declParam->next;
+        callParam = callParam->next;
+        paramNum++;
+    }
+}
+
 static void checkFunctionCall(ASTNode* node) {
     if (!node->left || !node->left->value) return;
 
@@ -237,6 +300,9 @@ static void checkFunctionCall(ASTNode* node) {
         }
         return;
     }
+
+    // Verificar a lista de parâmetros
+    checkFunctionCallParameters(node);
 
     // Verificar os argumentos da chamada de função
     ASTNode* args = node->right;
