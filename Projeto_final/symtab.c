@@ -264,7 +264,16 @@ char* current_scope() {
 
 //processa os parâmetros da chamada de função
 void processArguments_Func(ASTNode* argNode, char* funcName, int* argCount) {
-    if (argNode == NULL || funcName == NULL || argCount == NULL) return;
+    if (argNode == NULL || funcName == NULL || argCount == NULL) {
+        DEBUG_SYMTAB("  > processArguments_Func: NULL arguments");
+        return;
+    }
+    
+    if (argNode->type == NODE_ARGS && argNode->left == NULL && argNode->right == NULL) {
+        DEBUG_SYMTAB("  > processArguments_Func: Empty NODE_ARGS for function '%s'", funcName);
+        
+        return;
+    }
     
     DEBUG_SYMTAB("  > processArguments_Func: nó tipo %s", getNodeTypeName(argNode->type));
     
@@ -276,7 +285,7 @@ void processArguments_Func(ASTNode* argNode, char* funcName, int* argCount) {
     }
     
     if (argNode->left != NULL) {
-        // caso especial: chamada de função
+        
         if (argNode->left->type == NODE_ACTIVATION) {
             char* calledFuncName = argNode->left->left ? argNode->left->left->value : "unknown";
             DEBUG_SYMTAB("    Arg %d é uma chamada de função: %s", *argCount + 1, calledFuncName);
@@ -288,7 +297,15 @@ void processArguments_Func(ASTNode* argNode, char* funcName, int* argCount) {
                 (*argCount)++;
             }
         } 
-        // lida com expressões
+        
+        else if (argNode->left->type == NODE_ARRAY_ACCESS) {
+            DEBUG_SYMTAB("    Arg %d é um acesso de vetor", *argCount + 1);
+            
+            
+            add_param_info(funcName, "int", 0); 
+            (*argCount)++;
+        }
+        
         else if (argNode->left->type == NODE_EXPR || 
                  argNode->left->type == NODE_SUM_EXPR || 
                  argNode->left->type == NODE_TERM ||
@@ -296,17 +313,17 @@ void processArguments_Func(ASTNode* argNode, char* funcName, int* argCount) {
             DEBUG_SYMTAB("    Arg %d é uma expressão complexa tipo: %s", 
                     *argCount + 1, getNodeTypeName(argNode->left->type));
             
+            
             add_param_info(funcName, "int", 0);
             (*argCount)++;
         }
-        // processa variaveis e vetores
-        else if (argNode->left->type == NODE_VAR || argNode->left->type == NODE_ARRAY_ACCESS) {
+        
+        else if (argNode->left->type == NODE_VAR) {
             char* varName = argNode->left->value;
             DEBUG_SYMTAB("    Arg %d é uma variável: %s", *argCount + 1, varName);
             
-            int isArray = (argNode->left->type == NODE_ARRAY_ACCESS) ? 1 : 0;
-            
-            if (!isArray && varName) {
+            int isArray = 0;
+            if (varName) {
                 BucketList varEntry = st_lookup_all_scopes(varName, scope);
                 if (varEntry) {
                     isArray = varEntry->isArray;
@@ -316,14 +333,13 @@ void processArguments_Func(ASTNode* argNode, char* funcName, int* argCount) {
             add_param_info(funcName, "int", isArray);
             (*argCount)++;
         }
-    
+        
         else {
             processArguments_Func(argNode->left, funcName, argCount);
         }
     }
     
     if (argNode->type != NODE_ARG_LIST && argNode->type != NODE_ARGS) {
-        
         if (argNode->type == NODE_ACTIVATION) {
             char* calledFuncName = argNode->left ? argNode->left->value : "unknown";
             
@@ -334,6 +350,15 @@ void processArguments_Func(ASTNode* argNode, char* funcName, int* argCount) {
                 (*argCount)++;
             }
         }
+        // acesso ao array
+        else if (argNode->type == NODE_ARRAY_ACCESS) {
+            DEBUG_SYMTAB("    Arg %d é um acesso de vetor", *argCount + 1);
+            
+            
+            add_param_info(funcName, "int", 0); 
+            (*argCount)++;
+        }
+        // expressao
         else if (argNode->type == NODE_EXPR || 
                 argNode->type == NODE_SUM_EXPR || 
                 argNode->type == NODE_TERM ||
@@ -342,14 +367,12 @@ void processArguments_Func(ASTNode* argNode, char* funcName, int* argCount) {
             add_param_info(funcName, "int", 0);
             (*argCount)++;
         }
-
-        else if (argNode->type == NODE_VAR || argNode->type == NODE_ARRAY_ACCESS || 
-                 argNode->type == NODE_FACTOR) {
+        // variavel ou fator
+        else if (argNode->type == NODE_VAR || argNode->type == NODE_FACTOR) {
             char* varName = argNode->value;
             
-            int isArray = (argNode->type == NODE_ARRAY_ACCESS) ? 1 : 0;
-            
-            if (!isArray && varName) {
+            int isArray = 0;
+            if (varName) {
                 BucketList varEntry = st_lookup_all_scopes(varName, scope);
                 if (varEntry) {
                     isArray = varEntry->isArray;
@@ -362,14 +385,24 @@ void processArguments_Func(ASTNode* argNode, char* funcName, int* argCount) {
     }
     
     if (argNode->right != NULL) {
+        
         if (argNode->right->type == NODE_ACTIVATION) {
             char* calledFuncName = argNode->right->left ? argNode->right->left->value : "unknown";
             
             BucketList calledFunc = st_lookup_in_scope(calledFuncName, "global");
             if (calledFunc) {
+                
                 add_param_info(funcName, calledFunc->dataType, 0); 
                 (*argCount)++;
             }
+        }
+        
+        else if (argNode->right->type == NODE_ARRAY_ACCESS) {
+            DEBUG_SYMTAB("    Arg %d é um acesso de vetor", *argCount + 1);
+            
+           
+            add_param_info(funcName, "int", 0);
+            (*argCount)++;
         }
         
         else if (argNode->right->type == NODE_EXPR || 
@@ -382,21 +415,17 @@ void processArguments_Func(ASTNode* argNode, char* funcName, int* argCount) {
             (*argCount)++;
         }
         
-        else if (argNode->right->type == NODE_VAR || argNode->right->type == NODE_ARRAY_ACCESS || 
-                 argNode->right->type == NODE_FACTOR) {
+        else if (argNode->right->type == NODE_VAR || argNode->right->type == NODE_FACTOR) {
             char* varName = argNode->right->value;
             
             
-            int isArray = (argNode->right->type == NODE_ARRAY_ACCESS) ? 1 : 0;
-            
-            
-            if (!isArray && varName) {
+            int isArray = 0;
+            if (varName) {
                 BucketList varEntry = st_lookup_all_scopes(varName, scope);
                 if (varEntry) {
                     isArray = varEntry->isArray;
                 }
             }
-            
             
             add_param_info(funcName, "int", isArray);
             (*argCount)++;
