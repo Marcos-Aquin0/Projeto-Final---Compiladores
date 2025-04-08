@@ -160,8 +160,8 @@ BucketList st_lookup_all_scopes(char *name, char *scope) {
 
 void printSymTab(FILE *listing) {
     int i;
-    fprintf(listing, "Variable Name  Scope       ID Type  Data Type  Location  Parameters         Line Numbers\n");
-    fprintf(listing, "-------------  ----------  -------  ---------  --------  -----------------  ------------\n");
+    fprintf(listing, "Variable Name  Scope       ID Type  Data Type  Location  Line Numbers\n");
+    fprintf(listing, "-------------  ----------  -------  ---------  --------  ------------\n");
     for (i = 0; i < SIZE; ++i) {
         if (hashTable[i] != NULL) {
             BucketList l = hashTable[i];
@@ -169,19 +169,19 @@ void printSymTab(FILE *listing) {
                 LineList t = l->lines;
                 fprintf(listing, "%-14s %-12s %-8s %-10s %-9d ", l->name, l->scope, l->idType, l->dataType, l->memloc);
                 
-                // Mostrar informações de parâmetros para funções
-                if (strcmp(l->idType, "func") == 0) {
-                    fprintf(listing, "%d params: ", l->paramCount);
-                    ParamInfo param = l->params;
-                    while (param != NULL) {
-                        fprintf(listing, "%s%s ", param->paramType, param->isArray ? "[]" : "");
-                        param = param->next;
-                        if (param != NULL) fprintf(listing, ", ");
-                    }
-                    fprintf(listing, "   ");
-                } else {
-                    fprintf(listing, "%-17s ", l->isArray ? "[array]" : "");
-                }
+                // // Mostrar informações de parâmetros para funções
+                // if (strcmp(l->idType, "func") == 0) {
+                //     fprintf(listing, "%d params: ", l->paramCount);
+                //     ParamInfo param = l->params;
+                //     while (param != NULL) {
+                //         fprintf(listing, "%s%s ", param->paramType, param->isArray ? "[]" : "");
+                //         param = param->next;
+                //         if (param != NULL) fprintf(listing, ", ");
+                //     }
+                //     fprintf(listing, "   ");
+                // } else {
+                //     fprintf(listing, "%-17s ", l->isArray ? "[array]" : "");
+                // }
                 
                 // Para funções no escopo global, a primeira linha é a declaração
                 if (strcmp(l->idType, "func") == 0 && strcmp(l->scope, "global") == 0) {
