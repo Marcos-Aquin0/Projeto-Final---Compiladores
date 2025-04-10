@@ -4,6 +4,7 @@
 #include "symtab.h"
 #include "semantic.h"
 #include "cinter.h"
+#include "assembly_mips.h"
 
 extern int yyparse(); /*função do parser*/
 extern int lexErrorCount; /*contador de erros léxicos*/
@@ -56,8 +57,17 @@ int main(int argc, char *argv[]) {
             printf("\nGerando código intermediário...\n");
             ircode_generate(root);
             printSuccess("Geração de código intermediário concluída!\n");
+            //abrir arquivo e para usar a função e salvar na pasta output
+            FILE* out = fopen("Output/codigo_asm_proc.asm", "w");
+            if (out == NULL) {
+                printError("Erro ao abrir o arquivo de saída.\n");
+                return 1;
+            }
+            //gerarAssemblyPersonalizado(out);
+            fclose(out);
+            printSuccess("Código assembly gerado e salvo na pasta Output\n");
         } else {
-            printError("\nGeração de código intermediário ignorada devido a erros.\n");
+            printError("\nGeração de código intermediário e de código assembly ignorada devido a erros.\n");
         }
 
         pop_scope();

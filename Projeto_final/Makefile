@@ -12,6 +12,8 @@ SEMANTIC_FILE = semantic.c
 CINTER_FILE = cinter.c
 DEBUG_PRINT_FILE = global_debug.c
 ERROR_FILE = global_error.c
+ASM_FILE = assembly_mips.c
+BINARIO_FILE = binario_proc.c
 
 # Arquivos gerados
 LEX_C = lex.yy.c
@@ -29,7 +31,7 @@ $(BISON_C) $(BISON_H): $(BISON_FILE)
 	bison -d -o $(BISON_C) $(BISON_FILE) -Wcounterexamples
 
 $(EXEC): $(BISON_C) $(LEX_C) $(MAIN_FILE) $(ASNT_FILES) $(SYMTAB_FILES)
-	$(CC) $(CFLAGS) -o $(EXEC) $(BISON_C) $(LEX_C) $(MAIN_FILE) $(ASNT_FILES) $(SYMTAB_FILES) $(SEMANTIC_FILE) $(CINTER_FILE) $(DEBUG_PRINT_FILE) $(ERROR_FILE) -lfl
+	$(CC) $(CFLAGS) -o $(EXEC) $(BISON_C) $(LEX_C) $(MAIN_FILE) $(ASNT_FILES) $(SYMTAB_FILES) $(SEMANTIC_FILE) $(CINTER_FILE) $(DEBUG_PRINT_FILE) $(ERROR_FILE) $(ASM_FILE) $(BINARIO_FILE) -lfl
 
 # Limpeza
 clean:

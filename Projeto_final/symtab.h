@@ -2,6 +2,7 @@
 #define SYMTAB_H
 
 #include "asnt.h"
+#include "cinter.h"
 //definição da função de construção da tabela de símbolos
 void buildSymtab(ASTNode *syntaxTree);
 

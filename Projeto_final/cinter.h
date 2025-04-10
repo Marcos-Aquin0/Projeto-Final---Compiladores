@@ -72,7 +72,7 @@ void genArrayAssignCode(ASTNode* arrayAssign);
 // Função principal para geração de código
 void generateIRCode(ASTNode* syntaxTree);
 
-// Adicionar a declaração da função getOpName antes de seu uso
 const char* getOpName(OperationType op);
+const char* getNodeTypeName(NodeType type);
 
 #endif
