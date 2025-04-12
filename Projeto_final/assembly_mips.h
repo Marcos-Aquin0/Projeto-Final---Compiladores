@@ -23,5 +23,7 @@ typedef struct {
     char result[50];
 } QuadrupleInfo;
 
+// Função para converter string de operação para enum OperationType
+OperationType getOpTypeFromString(const char* op);
 
 #endif
