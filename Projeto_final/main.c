@@ -58,12 +58,12 @@ int main(int argc, char *argv[]) {
             ircode_generate(root);
             printSuccess("Geração de código intermediário concluída!\n");
             //abrir arquivo e para usar a função e salvar na pasta output
-            FILE* out = fopen("Output/codigo_asm_proc.asm", "w");
+            FILE* out = fopen("Output/quadruples.txt", "r");
             if (out == NULL) {
-                printError("Erro ao abrir o arquivo de saída.\n");
+                printError("Erro ao abrir o arquivo.\n");
                 return 1;
             }
-            //gerarAssemblyPersonalizado(out);
+            generateAssembly(out);  
             fclose(out);
             printSuccess("Código assembly gerado e salvo na pasta Output\n");
         } else {

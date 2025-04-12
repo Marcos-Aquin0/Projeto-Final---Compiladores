@@ -164,10 +164,21 @@ void genQuad(OperationType op, char* arg1, char* arg2, char* result) {
 
 // Imprime o código intermediário gerado em quádruplas
 void printIRCode(FILE* listing) {
-    fprintf(listing, "Código Intermediário (Quadruplas):\n");
-    fprintf(listing, "------------------------------------------------------------\n");
-    fprintf(listing, "Quad  Fonte  Operação    Arg1        Arg2        Resultado\n");
-    fprintf(listing, "------------------------------------------------------------\n");
+    // fprintf(listing, "Código Intermediário (Quadruplas):\n");
+    // fprintf(listing, "------------------------------------------------------------\n");
+    // fprintf(listing, "Quad  Fonte  Operação    Arg1        Arg2        Resultado\n");
+    // fprintf(listing, "------------------------------------------------------------\n");
+    
+    // Cria arquivo de saída para as quádruplas
+    FILE* outfile = fopen("Output/quadruples.txt", "w");
+    if (outfile == NULL) {
+        fprintf(stderr, "Erro: Não foi possível criar o arquivo de saída para quádruplas.\n");
+    } else {
+        fprintf(outfile, "Código Intermediário (Quadruplas):\n");
+        fprintf(outfile, "------------------------------------------------------------\n");
+        fprintf(outfile, "Quad  Fonte  Operação    Arg1        Arg2        Resultado\n");
+        fprintf(outfile, "------------------------------------------------------------\n");
+    }
     
     Quadruple* current = irCode.head;
     while (current != NULL) {
@@ -200,109 +211,155 @@ void printIRCode(FILE* listing) {
             default: strcpy(op_str, "UNKNOWN"); break;
         }
         
-        fprintf(listing, "%-6d %-6d %-12s %-12s %-12s %-12s\n",
-                current->line,
-                current->sourceLine,
-                op_str,
-                current->arg1 ? current->arg1 : "-",
-                current->arg2 ? current->arg2 : "-",
-                current->result ? current->result : "-");
+        // fprintf(listing, "%-6d %-6d %-12s %-12s %-12s %-12s\n",
+        //         current->line,
+        //         current->sourceLine,
+        //         op_str,
+        //         current->arg1 ? current->arg1 : "-",
+        //         current->arg2 ? current->arg2 : "-",
+        //         current->result ? current->result : "-");
+        
+        // Escreve também no arquivo de saída
+        if (outfile != NULL) {
+            fprintf(outfile, "%-6d %-6d %-12s %-12s %-12s %-12s\n",
+                    current->line,
+                    current->sourceLine,
+                    op_str,
+                    current->arg1 ? current->arg1 : "-",
+                    current->arg2 ? current->arg2 : "-",
+                    current->result ? current->result : "-");
+        }
         
         current = current->next;
     }
-    fprintf(listing, "------------------------------------------------------------\n");
+    // fprintf(listing, "------------------------------------------------------------\n");
+    
+    if (outfile != NULL) {
+        fprintf(outfile, "------------------------------------------------------------\n");
+        fclose(outfile);
+        printf("Código intermediário (quádruplas) salvo em 'Projeto_final/Output/quadruples.txt'\n");
+    }
 }
 
 // Função para imprimir as quadruplas como código intermediário de 3 endereços
 void printThreeAddressCode(FILE* listing) {
-    fprintf(listing, "Código Intermediário de 3 Endereços:\n");
-    fprintf(listing, "-------------------------------------\n");
+    // fprintf(listing, "Código Intermediário de 3 Endereços:\n");
+    // fprintf(listing, "-------------------------------------\n");
+    
+    // Cria arquivo de saída para o código de 3 endereços
+    FILE* outfile = fopen("Output/three_address_code.txt", "w");
+    if (outfile == NULL) {
+        fprintf(stderr, "Erro: Não foi possível criar o arquivo de saída para código de 3 endereços.\n");
+    } else {
+        fprintf(outfile, "Código Intermediário de 3 Endereços:\n");
+        fprintf(outfile, "-------------------------------------\n");
+    }
     
     Quadruple* current = irCode.head;
     while (current != NULL) {
+        char line[256];  // Buffer para armazenar a linha formatada
+        
         switch (current->op) {
             case OP_ASSIGN:
-                fprintf(listing, "%s = %s\n", current->result, current->arg1);
+                sprintf(line, "%s = %s", current->result, current->arg1);
                 break;
             case OP_ADD:
-                fprintf(listing, "%s = %s + %s\n", current->result, current->arg1, current->arg2);
+                sprintf(line, "%s = %s + %s", current->result, current->arg1, current->arg2);
                 break;
             case OP_SUB:
-                fprintf(listing, "%s = %s - %s\n", current->result, current->arg1, current->arg2);
+                sprintf(line, "%s = %s - %s", current->result, current->arg1, current->arg2);
                 break;
             case OP_MULT:
-                fprintf(listing, "%s = %s * %s\n", current->result, current->arg1, current->arg2);
+                sprintf(line, "%s = %s * %s", current->result, current->arg1, current->arg2);
                 break;
             case OP_DIV:
-                fprintf(listing, "%s = %s / %s\n", current->result, current->arg1, current->arg2);
+                sprintf(line, "%s = %s / %s", current->result, current->arg1, current->arg2);
                 break;
             case OP_LT:
-                fprintf(listing, "%s = %s < %s\n", current->result, current->arg1, current->arg2);
+                sprintf(line, "%s = %s < %s", current->result, current->arg1, current->arg2);
                 break;
             case OP_LTE:
-                fprintf(listing, "%s = %s <= %s\n", current->result, current->arg1, current->arg2);
+                sprintf(line, "%s = %s <= %s", current->result, current->arg1, current->arg2);
                 break;
             case OP_GT:
-                fprintf(listing, "%s = %s > %s\n", current->result, current->arg1, current->arg2);
+                sprintf(line, "%s = %s > %s", current->result, current->arg1, current->arg2);
                 break;
             case OP_GTE:
-                fprintf(listing, "%s = %s >= %s\n", current->result, current->arg1, current->arg2);
+                sprintf(line, "%s = %s >= %s", current->result, current->arg1, current->arg2);
                 break;
             case OP_EQ:
-                fprintf(listing, "%s = %s == %s\n", current->result, current->arg1, current->arg2);
+                sprintf(line, "%s = %s == %s", current->result, current->arg1, current->arg2);
                 break;
             case OP_NEQ:
-                fprintf(listing, "%s = %s != %s\n", current->result, current->arg1, current->arg2);
+                sprintf(line, "%s = %s != %s", current->result, current->arg1, current->arg2);
                 break;
             case OP_LABEL:
-                fprintf(listing, "%s:\n", current->result);
+                sprintf(line, "%s:", current->result);
                 break;
             case OP_JUMP:
-                fprintf(listing, "goto %s\n", current->result);
+                sprintf(line, "goto %s", current->result);
                 break;
             case OP_JUMPFALSE:
-                fprintf(listing, "if (!%s) goto %s\n", current->arg1, current->result);
+                sprintf(line, "if (!%s) goto %s", current->arg1, current->result);
                 break;
             case OP_JUMPTRUE:
-                fprintf(listing, "if (%s) goto %s\n", current->arg1, current->result);
+                sprintf(line, "if (%s) goto %s", current->arg1, current->result);
                 break;
-                case OP_CALL:
+            case OP_CALL:
                 if (current->result && strncmp(current->result, "tv", 2) == 0) {
                     // Chamada de função void - não mostra atribuição
-                    fprintf(listing, "call %s, %s\n", current->arg1, current->arg2);
+                    sprintf(line, "call %s, %s", current->arg1, current->arg2);
                 } else {
                     // Chamada de função normal com atribuição
-                    fprintf(listing, "%s = call %s, %s\n", current->result, current->arg1, current->arg2);
+                    sprintf(line, "%s = call %s, %s", current->result, current->arg1, current->arg2);
                 }
                 break;
             case OP_PARAM:
-                fprintf(listing, "param %s\n", current->arg1);
+                sprintf(line, "param %s", current->arg1);
                 break;
             case OP_RETURN:
-                fprintf(listing, "return %s\n", current->arg1 ? current->arg1 : "");
+                if (current->arg1) {
+                    sprintf(line, "return %s", current->arg1);
+                } else {
+                    sprintf(line, "return");
+                }
                 break;
             case OP_ARRAY_LOAD:
-                fprintf(listing, "%s = %s[%s]\n", current->result, current->arg1, current->arg2);
+                sprintf(line, "%s = %s[%s]", current->result, current->arg1, current->arg2);
                 break;
             case OP_ARRAY_STORE:
-                fprintf(listing, "%s[%s] = %s\n", current->result, current->arg2, current->arg1);
+                sprintf(line, "%s[%s] = %s", current->result, current->arg2, current->arg1);
                 break;
             case OP_ALLOC:
-                fprintf(listing, "%s = alloc %s\n", current->result, current->arg1);
+                sprintf(line, "%s = alloc %s", current->result, current->arg1);
                 break;
             case OP_FUNCTION:
-                fprintf(listing, "function %s\n", current->arg1);
+                sprintf(line, "function %s", current->arg1);
                 break;
             case OP_END:
-                fprintf(listing, "end %s\n", current->arg1);
+                sprintf(line, "end %s", current->arg1);
                 break;
             default:
-                fprintf(listing, "unknown operation\n");
+                sprintf(line, "unknown operation");
                 break;
         }
+        
+        // fprintf(listing, "%s\n", line);
+        
+        // Escreve também no arquivo de saída
+        if (outfile != NULL) {
+            fprintf(outfile, "%s\n", line);
+        }
+        
         current = current->next;
     }
-    fprintf(listing, "-------------------------------------\n");
+    // fprintf(listing, "-------------------------------------\n");
+    
+    if (outfile != NULL) {
+        fprintf(outfile, "-------------------------------------\n");
+        fclose(outfile);
+        printf("Código de 3 endereços salvo em 'Projeto_final/Output/three_address_code.txt'\n");
+    }
 }
 
 // Trata as expressões do código
