@@ -224,7 +224,7 @@ void generateAssembly(FILE* inputFile) {
     long filePos;
 
     // Começo com jump para main
-    fprintf(output, "%d - nop\n", lineIndex++);
+    fprintf(output, "%d - nop 1\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
     fprintf(output, "%d - j main\n", lineIndex++);
 
     // Lê as quádruplas do arquivo e gera o código assembly
@@ -436,7 +436,11 @@ void generateAssembly(FILE* inputFile) {
                 fprintf(output, "%d - %s: # nova função\n", lineIndex++, quad.arg1);
                 // Salva registradores na pilha se necessário
                 fprintf(output, "%d - addi $r1 $r1 -4 # ajusta stack pointer\n", lineIndex++);
+                // O stack pointer aponta para o topo da pilha de execução. 
+                // Ao subtrair 4, o código está "alocando" espaço na pilha para guardar informações temporárias da função atual.
                 fprintf(output, "%d - sw $r31 0($r1)  # salva return address\n", lineIndex++);
+                // Esta instrução salva o conteúdo do registrador $r31 (que contém o endereço de retorno) na memória, 
+                // no endereço apontado por $r1. O registrador $r31 é automaticamente preenchido com o endereço de retorno quando a função é chamada via jal (jump and link).
                 break;
 
             case OP_RETURN:
