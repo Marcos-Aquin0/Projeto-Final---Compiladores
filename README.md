@@ -97,6 +97,8 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 
 ## Próximas Etapas
 - criar um optmize.c para otimizar o codigo assembly gerado (remover redundâncias de movimentos)
+- verificar lw e sw para parâmetros
+- verificar para o código sort.c-
 - revisão assembly (alocação de memória)
 - gerador de código assembly
 - gerador de código binário
