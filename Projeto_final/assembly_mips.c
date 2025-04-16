@@ -35,10 +35,13 @@ OperationType getOpTypeFromString(const char* op) {
     if (strcmp(op, "NEQ") == 0) return OP_NEQ;
     if (strcmp(op, "LT") == 0) return OP_LT;
     if (strcmp(op, "GT") == 0) return OP_GT;
-    if (strcmp(op, "BLTE") == 0) return OP_LTE;  // Adicionado para <=
-    if (strcmp(op, "BGTE") == 0) return OP_GTE;  // Adicionado para >=
+    if (strcmp(op, "LTE") == 0) return OP_LTE;  // Adicionado para <=
+    if (strcmp(op, "GTE") == 0) return OP_GTE;  // Adicionado para >=
     if (strcmp(op, "PARAM") == 0) return OP_PARAM;
     if (strcmp(op, "CALL") == 0) return OP_CALL;
+    if (strcmp(op, "ARRAY_LOAD")) return OP_ARRAY_LOAD;
+    if (strcmp(op, "ARRAY_STORE")) return OP_ARRAY_STORE;
+    if (strcmp(op, "ALLOC")) return OP_ALLOC;
     return -1;
 }
 
