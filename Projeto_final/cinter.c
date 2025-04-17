@@ -1104,11 +1104,78 @@ void generateIRCode(ASTNode* node) {
     }
 }
 
+void optimizeIRCode(void) {
+    if (!irCode.head) return;
+
+    Quadruple* current = irCode.head;
+    while (current && current->next) {
+        Quadruple* next = current->next;
+
+        // Caso 1: ASSIGN seguido de PARAM com o mesmo resultado/argumento
+        if (current->op == OP_ASSIGN && next->op == OP_PARAM && 
+            current->result && next->arg1 && 
+            strcmp(current->result, next->arg1) == 0) {
+            
+            // Substitui o argumento do PARAM pelo argumento do ASSIGN
+            free(next->arg1);
+            next->arg1 = strdup(current->arg1);
+            
+            // Desconecta a quadrupla atual
+            if (current == irCode.head) {
+                irCode.head = next;
+            } else {
+                Quadruple* prev = irCode.head;
+                while (prev->next != current) prev = prev->next;
+                prev->next = next;
+            }
+            
+            // Libera a quadrupla redundante
+            free(current->arg1);
+            free(current->result);
+            free(current);
+            
+            // Continua a partir do próximo
+            current = next;
+            continue;
+        }
+        
+        // Caso 2: ASSIGN seguido de RETURN com o mesmo resultado/argumento
+        if (current->op == OP_ASSIGN && next->op == OP_RETURN && 
+            current->result && next->arg1 && 
+            strcmp(current->result, next->arg1) == 0) {
+            
+            // Substitui o argumento do RETURN pelo argumento do ASSIGN
+            free(next->arg1);
+            next->arg1 = strdup(current->arg1);
+            
+            // Desconecta a quadrupla atual
+            if (current == irCode.head) {
+                irCode.head = next;
+            } else {
+                Quadruple* prev = irCode.head;
+                while (prev->next != current) prev = prev->next;
+                prev->next = next;
+            }
+            
+            // Libera a quadrupla redundante
+            free(current->arg1);
+            free(current->result);
+            free(current);
+            
+            // Continua a partir do próximo
+            current = next;
+            continue;
+        }
+        
+        current = current->next;
+    }
+}
 
 // Função de entrada para gerar o código intermediário
 void ircode_generate(ASTNode* syntaxTree) {
     initIRCode();
     generateIRCode(syntaxTree);
+    optimizeIRCode();  //  otimização do código intermediário
     printIRCode(stdout);
     printThreeAddressCode(stdout);  // Adiciona impressão do código de 3 endereços
 }

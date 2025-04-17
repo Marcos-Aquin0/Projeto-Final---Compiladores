@@ -396,7 +396,10 @@ void generateAssembly(FILE* inputFile) {
 
         switch (opType) {
             case OP_ASSIGN:
-                fprintf(output, "%d - move $r%d $r%d\n", lineIndex++, r3, r1);
+                // Verifica se é uma movimentação redundante (mesmo registrador fonte e destino)
+                if (r1 != r3) {
+                    fprintf(output, "%d - move $r%d $r%d\n", lineIndex++, r3, r1);
+                }
                 break;
 
             case OP_ADD:
@@ -447,8 +450,10 @@ void generateAssembly(FILE* inputFile) {
                 break;
 
             case OP_RETURN:
-                // Carrega valor de retorno em v0
-                fprintf(output, "%d - move $r44 $r%d # move valor de retorno para v0\n", lineIndex++, r1);
+                // Carrega valor de retorno em v0 (r44)
+                if (r1 != 44) { // Evita move redundante se o valor já estiver em v0
+                    fprintf(output, "%d - move $r44 $r%d # move valor de retorno para v0\n", lineIndex++, r1);
+                }
                 // Restaura registradores da pilha
                 fprintf(output, "%d - lw $r31 0($r1)  # restaura return address\n", lineIndex++);
                 fprintf(output, "%d - addi $r1 $r1 4  # ajusta stack pointer\n", lineIndex++);
@@ -462,6 +467,7 @@ void generateAssembly(FILE* inputFile) {
             case OP_PARAM:
                 {
                     int paramNum = atoi(quad.arg2);
+                    //if (destReg != r1) para tirar move $rx $rx
                     fprintf(output, "%d - move $r%d $r%d # param %d\n", 
                             lineIndex++, 32 + paramNum, r1, paramNum);
                 }
@@ -478,10 +484,19 @@ void generateAssembly(FILE* inputFile) {
                 } else {
                     // Chamada normal de função
                     fprintf(output, "%d - jal %s\n", lineIndex++, quad.arg1);
-                    // Copia o valor de retorno (v0) para o resultado
-                    if (strcmp(quad.result, "-") != 0) {
-                        fprintf(output, "%d - move $r%d $r44 # copia retorno (v0) para %s\n", 
-                                lineIndex++, r3, quad.result);
+                    // Copia o valor de retorno (v0) para o resultado, verifica se não é redundante
+                    if (strcmp(quad.result, "-") != 0 && r3 != 44) { // r44 é v0, evita move para o mesmo registrador
+                        // Verifica se a próxima instrução não é um RETURN com o mesmo registrador
+                        checkNextQuadruple(inputFile, &filePos, &nextQuad);
+                        OperationType nextOpType = getOpTypeFromString(nextQuad.op);
+                        
+                        // Se a próxima instrução for RETURN que devolve para v0 o valor que acabamos de obter
+                        if (nextOpType == OP_RETURN && strcmp(nextQuad.arg1, quad.result) == 0) {
+                            // Pula a instrução de cópia, o valor já está em v0
+                        } else {
+                            fprintf(output, "%d - move $r%d $r44 # copia retorno (v0) para %s\n", 
+                                    lineIndex++, r3, quad.result);
+                        }
                     }
                 }
                 break;

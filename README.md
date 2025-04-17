@@ -96,16 +96,18 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 ---
 
 ## Próximas Etapas
-- criar um optmize.c para otimizar o codigo assembly gerado (remover redundâncias de movimentos)
-- verificar lw e sw para parâmetros
-- caso em que usou todos os t_ disponíveis
-- s_ precisam ser armazenados na memória
-- verificar para o código sort.c-
-- revisão assembly (alocação de memória)
+- otimização do código intermediário em andamento
+uso de regs: olhar na tabela de simbolos para ver os escopos das variaveis e contar quantas vezes elas aparecem em cada escopo
+- zerar índice de registradores quando entra em uma nova função (cuidado com s_)
+- verificar demais operadores na tradução para assembly (sort.c-)
+- verificar lw e sw para registradores s_ (deve salvar somente os que a função for utilizar).
+- registradores s devem ser utilizados para: variáveis globais, variaveis que ainda serao utilizadas depois de uma chamada de função, variaveis que serão incrementadas na condição de loop do while, funções recursivas.
+- stack spilling (limitar registradores)
 - gerador de código assembly
 - gerador de código binário
 - integração com o processador MIPS (lab de AOC)
-- modelagem sysml e relatório
+- modelagem sysml faltante e relatório
+- otimização avançada: grafo de interferência
 
 ## Contribuidores
 
