@@ -168,7 +168,7 @@ void checkNextQuadruple(FILE* inputFile, long* filePos, QuadrupleInfo* nextQuad)
     // Salva a posição atual no arquivo
     *filePos = ftell(inputFile);
     
-    // Inicializa o próximo quadruple
+    // Inicializa a próxima quadrupla
     strcpy(nextQuad->op, "");
     strcpy(nextQuad->arg1, "-");
     strcpy(nextQuad->arg2, "-");
@@ -214,9 +214,8 @@ void generateAssembly(FILE* inputFile) {
     int lineIndex = 0;
     long filePos;
 
-    // Começo com jump para main
     fprintf(output, "%d - nop 1\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
-    fprintf(output, "%d - j main\n", lineIndex++);
+    fprintf(output, "%d - j main\n", lineIndex++); //começa na main
 
     // Lê as quádruplas do arquivo e gera o código assembly
     while (fgets(buffer, sizeof(buffer), inputFile) != NULL) {
@@ -244,7 +243,7 @@ void generateAssembly(FILE* inputFile) {
             updateCurrentFunction(quad.arg1);
         }
 
-        // Processa a quádrupla lida
+        // Processa a quádrupla lida, para saber o operador e os index
         OperationType opType = getOpTypeFromString(quad.op);
         int r1 = strcmp(quad.arg1, "-") != 0 ? getRegisterIndex(quad.arg1) : 0;
         int r2 = strcmp(quad.arg2, "-") != 0 ? getRegisterIndex(quad.arg2) : 0;
@@ -264,11 +263,11 @@ void generateAssembly(FILE* inputFile) {
                     case OP_EQ:
                         if (nextOpType == OP_JUMPFALSE) {
                             // Se EQ é falso (valores diferentes), pula para o label
-                            fprintf(output, "%d - bne $r%d $r%d %s # jump if not equal\n", 
+                            fprintf(output, "%d - bne $r%d $r%d %s # jump se !=\n", 
                                     lineIndex++, r1, r2, nextQuad.result);
                         } else { // JUMPTRUE
                             // Se EQ é verdadeiro (valores iguais), pula para o label
-                            fprintf(output, "%d - beq $r%d $r%d %s # jump if equal\n", 
+                            fprintf(output, "%d - beq $r%d $r%d %s # jump se ==\n", 
                                     lineIndex++, r1, r2, nextQuad.result);
                         }
                         break;
@@ -276,11 +275,11 @@ void generateAssembly(FILE* inputFile) {
                     case OP_NEQ:
                         if (nextOpType == OP_JUMPFALSE) {
                             // Se NEQ é falso (valores iguais), pula para o label
-                            fprintf(output, "%d - beq $r%d $r%d %s # jump if equal\n", 
+                            fprintf(output, "%d - beq $r%d $r%d %s # jump se ==\n", 
                                     lineIndex++, r1, r2, nextQuad.result);
                         } else { // JUMPTRUE
                             // Se NEQ é verdadeiro (valores diferentes), pula para o label
-                            fprintf(output, "%d - bne $r%d $r%d %s # jump if not equal\n", 
+                            fprintf(output, "%d - bne $r%d $r%d %s # jump se !=\n", 
                                     lineIndex++, r1, r2, nextQuad.result);
                         }
                         break;
@@ -288,11 +287,11 @@ void generateAssembly(FILE* inputFile) {
                     case OP_LT:
                         if (nextOpType == OP_JUMPFALSE) {
                             // Se LT é falso (>=), pula para o label
-                            fprintf(output, "%d - bge $r%d $r%d %s # jump if greater or equal\n", 
+                            fprintf(output, "%d - bge $r%d $r%d %s # jump >=\n", 
                                     lineIndex++, r1, r2, nextQuad.result);
                         } else { // JUMPTRUE
                             // Se LT é verdadeiro (<), pula para o label
-                            fprintf(output, "%d - blt $r%d $r%d %s # jump if less than\n", 
+                            fprintf(output, "%d - blt $r%d $r%d %s # jump se <\n", 
                                     lineIndex++, r1, r2, nextQuad.result);
                         }
                         break;
@@ -300,11 +299,11 @@ void generateAssembly(FILE* inputFile) {
                     case OP_GT:
                         if (nextOpType == OP_JUMPFALSE) {
                             // Se GT é falso (<=), pula para o label
-                            fprintf(output, "%d - ble $r%d $r%d %s # jump if less or equal\n", 
+                            fprintf(output, "%d - ble $r%d $r%d %s # jump se <=\n", 
                                     lineIndex++, r1, r2, nextQuad.result);
                         } else { // JUMPTRUE
                             // Se GT é verdadeiro (>), pula para o label
-                            fprintf(output, "%d - bgt $r%d $r%d %s # jump if greater than\n",
+                            fprintf(output, "%d - bgt $r%d $r%d %s # jump se >\n",
                                     lineIndex++, r1, r2, nextQuad.result);
                         }
                         break;
@@ -312,11 +311,11 @@ void generateAssembly(FILE* inputFile) {
                     case OP_LTE:  // <=
                         if (nextOpType == OP_JUMPFALSE) {
                             // Se BLTE é falso (>), pula para o label
-                            fprintf(output, "%d - bgt $r%d $r%d %s # jump if greater than\n", 
+                            fprintf(output, "%d - bgt $r%d $r%d %s # jump se >\n", 
                                     lineIndex++, r1, r2, nextQuad.result);
                         } else { // JUMPTRUE
                             // Se BLTE é verdadeiro (<=), pula para o label
-                            fprintf(output, "%d - ble $r%d $r%d %s # jump if less or equal\n", 
+                            fprintf(output, "%d - ble $r%d $r%d %s # jump se <=\n", 
                                     lineIndex++, r1, r2, nextQuad.result);
                         }
                         break;
@@ -324,11 +323,11 @@ void generateAssembly(FILE* inputFile) {
                     case OP_GTE:  // >=
                         if (nextOpType == OP_JUMPFALSE) {
                             // Se BGTE é falso (<), pula para o label
-                            fprintf(output, "%d - blt $r%d $r%d %s # jump if less than\n", 
+                            fprintf(output, "%d - blt $r%d $r%d %s # jump se <\n", 
                                     lineIndex++, r1, r2, nextQuad.result);
                         } else { // JUMPTRUE
                             // Se BGTE é verdadeiro (>=), pula para o label
-                            fprintf(output, "%d - bge $r%d $r%d %s # jump if greater or equal\n", 
+                            fprintf(output, "%d - bge $r%d $r%d %s # jump se >=\n", 
                                     lineIndex++, r1, r2, nextQuad.result);
                         }
                         break;
@@ -341,38 +340,7 @@ void generateAssembly(FILE* inputFile) {
                 // já que ela foi processada em conjunto com a operação de comparação
                 fgets(buffer, sizeof(buffer), inputFile);
                 continue;
-            } else {
-                // Se a próxima operação não for um salto, gera código normal para a comparação
-                switch (opType) {
-                    case OP_EQ:
-                        fprintf(output, "%d - seq $r%d $r%d $r%d # set 1 if equal, 0 if not\n", 
-                                lineIndex++, r3, r1, r2);
-                        break;
-                    case OP_NEQ:
-                        fprintf(output, "%d - sne $r%d $r%d $r%d # set 1 if not equal, 0 if equal\n", 
-                                lineIndex++, r3, r1, r2);
-                        break;
-                    case OP_LT:
-                        fprintf(output, "%d - slt $r%d $r%d $r%d # set 1 if less than, 0 if not\n", 
-                                lineIndex++, r3, r1, r2);
-                        break;
-                    case OP_GT:
-                        fprintf(output, "%d - sgt $r%d $r%d $r%d # set 1 if greater than, 0 if not\n", 
-                                lineIndex++, r3, r1, r2);
-                        break;
-                    case OP_LTE:
-                        fprintf(output, "%d - sle $r%d $r%d $r%d # set 1 if less or equal, 0 if not\n", 
-                                lineIndex++, r3, r1, r2);
-                        break;
-                    case OP_GTE:
-                        fprintf(output, "%d - sge $r%d $r%d $r%d # set 1 if greater or equal, 0 if not\n", 
-                                lineIndex++, r3, r1, r2);
-                        break;
-                    default:
-                        fprintf(output, "%d - ; operação relacional não suportada\n", lineIndex++);
-                        break;
-                }
-            }
+            } 
             continue;
         }
 
@@ -416,13 +384,13 @@ void generateAssembly(FILE* inputFile) {
 
             case OP_JUMPFALSE:
                 // Jump se o valor é falso (igual a zero)
-                fprintf(output, "%d - beq $r%d $r63 %s # jump if condition is false\n", 
+                fprintf(output, "%d - beq $r%d $r63 %s # jump se é falso\n", 
                         lineIndex++, r1, quad.result);
                 break;
 
             case OP_JUMPTRUE:
                 // Jump se o valor é verdadeiro (diferente de zero)
-                fprintf(output, "%d - bne $r%d $r63 %s # jump if condition is true\n", 
+                fprintf(output, "%d - bne $r%d $r63 %s # jump se é verdadeiro\n", 
                         lineIndex++, r1, quad.result);
                 break;
 

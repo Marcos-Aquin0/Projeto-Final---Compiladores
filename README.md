@@ -96,7 +96,7 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 ---
 
 ## Próximas Etapas
-- comentar e organizar cinter, comentar assembly
+- comentar e organizar cinter
 - debugs para getregisterindex
 - parâmetros devem ser empilhados na chamada de função e desempilhados no retorno (garante recursão)
 - verificar lw e sw para registradores s_ (deve salvar somente os que a função for utilizar).
