@@ -98,7 +98,6 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 ## Próximas Etapas
 - otimização do código intermediário em andamento
 uso de regs: olhar na tabela de simbolos para ver os escopos das variaveis e contar quantas vezes elas aparecem em cada escopo
-- zerar índice de registradores quando entra em uma nova função (cuidado com s_)
 - verificar demais operadores na tradução para assembly (sort.c-)
 - verificar lw e sw para registradores s_ (deve salvar somente os que a função for utilizar).
 - registradores s devem ser utilizados para: variáveis globais, variaveis que ainda serao utilizadas depois de uma chamada de função, variaveis que serão incrementadas na condição de loop do while, funções recursivas.

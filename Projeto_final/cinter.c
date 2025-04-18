@@ -1107,68 +1107,213 @@ void generateIRCode(ASTNode* node) {
 void optimizeIRCode(void) {
     if (!irCode.head) return;
 
-    Quadruple* current = irCode.head;
-    while (current && current->next) {
-        Quadruple* next = current->next;
+    // Mapa para armazenar o mapeamento de temporários dentro de cada função
+    typedef struct {
+        char* original;
+        char* renamed;
+    } TempMapping;
+    
+    TempMapping* tempMappings = NULL;
+    int mappingCapacity = 0;
+    int mappingCount = 0;
 
-        // Caso 1: ASSIGN seguido de PARAM com o mesmo resultado/argumento
-        if (current->op == OP_ASSIGN && next->op == OP_PARAM && 
-            current->result && next->arg1 && 
-            strcmp(current->result, next->arg1) == 0) {
-            
-            // Substitui o argumento do PARAM pelo argumento do ASSIGN
-            free(next->arg1);
-            next->arg1 = strdup(current->arg1);
-            
-            // Desconecta a quadrupla atual
-            if (current == irCode.head) {
-                irCode.head = next;
-            } else {
-                Quadruple* prev = irCode.head;
-                while (prev->next != current) prev = prev->next;
-                prev->next = next;
+    Quadruple* current = irCode.head;
+    while (current) {
+        // Quando encontra o início de uma função, reinicia o mapeamento
+        if (current->op == OP_FUNCTION) {
+            // Limpa o mapeamento anterior
+            for (int i = 0; i < mappingCount; i++) {
+                free(tempMappings[i].original);
+                free(tempMappings[i].renamed);
             }
+            free(tempMappings);
+            tempMappings = NULL;
+            mappingCapacity = 0;
+            mappingCount = 0;
             
-            // Libera a quadrupla redundante
-            free(current->arg1);
-            free(current->result);
-            free(current);
+            // Agora processa todas as quadruplas dentro da função
+            Quadruple* funcPtr = current->next;
+            int nextTempIndex = 0;
             
-            // Continua a partir do próximo
-            current = next;
-            continue;
+            while (funcPtr && funcPtr->op != OP_FUNCTION) {
+                // Processa arg1 se for temporário
+                if (funcPtr->arg1 && funcPtr->arg1[0] == 't' && funcPtr->arg1[1] != 'v' && isdigit(funcPtr->arg1[1])) {
+                    // Verifica se já mapeamos esse temporário
+                    int found = 0;
+                    for (int i = 0; i < mappingCount; i++) {
+                        if (strcmp(funcPtr->arg1, tempMappings[i].original) == 0) {
+                            char* oldValue = funcPtr->arg1;
+                            funcPtr->arg1 = strdup(tempMappings[i].renamed);
+                            free(oldValue);
+                            found = 1;
+                            break;
+                        }
+                    }
+                    
+                    // Se não encontrou, cria um novo mapeamento
+                    if (!found) {
+                        // Verifica se precisamos realocar
+                        if (mappingCount >= mappingCapacity) {
+                            mappingCapacity = mappingCapacity == 0 ? 8 : mappingCapacity * 2;
+                            tempMappings = realloc(tempMappings, mappingCapacity * sizeof(TempMapping));
+                        }
+                        
+                        char newTemp[12];
+                        sprintf(newTemp, "t%d", nextTempIndex++);
+                        
+                        tempMappings[mappingCount].original = strdup(funcPtr->arg1);
+                        tempMappings[mappingCount].renamed = strdup(newTemp);
+                        
+                        char* oldValue = funcPtr->arg1;
+                        funcPtr->arg1 = strdup(newTemp);
+                        free(oldValue);
+                        
+                        mappingCount++;
+                    }
+                }
+                
+                // Repete para arg2
+                if (funcPtr->arg2 && funcPtr->arg2[0] == 't' && funcPtr->arg2[1] != 'v' && isdigit(funcPtr->arg2[1])) {
+                    int found = 0;
+                    for (int i = 0; i < mappingCount; i++) {
+                        if (strcmp(funcPtr->arg2, tempMappings[i].original) == 0) {
+                            char* oldValue = funcPtr->arg2;
+                            funcPtr->arg2 = strdup(tempMappings[i].renamed);
+                            free(oldValue);
+                            found = 1;
+                            break;
+                        }
+                    }
+                    
+                    if (!found) {
+                        if (mappingCount >= mappingCapacity) {
+                            mappingCapacity = mappingCapacity == 0 ? 8 : mappingCapacity * 2;
+                            tempMappings = realloc(tempMappings, mappingCapacity * sizeof(TempMapping));
+                        }
+                        
+                        char newTemp[12];
+                        sprintf(newTemp, "t%d", nextTempIndex++);
+                        
+                        tempMappings[mappingCount].original = strdup(funcPtr->arg2);
+                        tempMappings[mappingCount].renamed = strdup(newTemp);
+                        
+                        char* oldValue = funcPtr->arg2;
+                        funcPtr->arg2 = strdup(newTemp);
+                        free(oldValue);
+                        
+                        mappingCount++;
+                    }
+                }
+                
+                // Repete para result
+                if (funcPtr->result && funcPtr->result[0] == 't' && funcPtr->result[1] != 'v' && isdigit(funcPtr->result[1])) {
+                    int found = 0;
+                    for (int i = 0; i < mappingCount; i++) {
+                        if (strcmp(funcPtr->result, tempMappings[i].original) == 0) {
+                            char* oldValue = funcPtr->result;
+                            funcPtr->result = strdup(tempMappings[i].renamed);
+                            free(oldValue);
+                            found = 1;
+                            break;
+                        }
+                    }
+                    
+                    if (!found) {
+                        if (mappingCount >= mappingCapacity) {
+                            mappingCapacity = mappingCapacity == 0 ? 8 : mappingCapacity * 2;
+                            tempMappings = realloc(tempMappings, mappingCapacity * sizeof(TempMapping));
+                        }
+                        
+                        char newTemp[12];
+                        sprintf(newTemp, "t%d", nextTempIndex++);
+                        
+                        tempMappings[mappingCount].original = strdup(funcPtr->result);
+                        tempMappings[mappingCount].renamed = strdup(newTemp);
+                        
+                        char* oldValue = funcPtr->result;
+                        funcPtr->result = strdup(newTemp);
+                        free(oldValue);
+                        
+                        mappingCount++;
+                    }
+                }
+                
+                // Se chegou no final da função, sai do loop
+                if (funcPtr->op == OP_END) break;
+                funcPtr = funcPtr->next;
+            }
         }
         
-        // Caso 2: ASSIGN seguido de RETURN com o mesmo resultado/argumento
-        if (current->op == OP_ASSIGN && next->op == OP_RETURN && 
-            current->result && next->arg1 && 
-            strcmp(current->result, next->arg1) == 0) {
+        // Otimizações existentes
+        if (current->next) {
+            Quadruple* next = current->next;
             
-            // Substitui o argumento do RETURN pelo argumento do ASSIGN
-            free(next->arg1);
-            next->arg1 = strdup(current->arg1);
-            
-            // Desconecta a quadrupla atual
-            if (current == irCode.head) {
-                irCode.head = next;
-            } else {
-                Quadruple* prev = irCode.head;
-                while (prev->next != current) prev = prev->next;
-                prev->next = next;
+            // Caso 1: ASSIGN seguido de PARAM com o mesmo resultado/argumento
+            if (current->op == OP_ASSIGN && next->op == OP_PARAM && 
+                current->result && next->arg1 && 
+                strcmp(current->result, next->arg1) == 0) {
+                
+                // Substitui o argumento do PARAM pelo argumento do ASSIGN
+                free(next->arg1);
+                next->arg1 = strdup(current->arg1);
+                
+                // Desconecta a quadrupla atual
+                if (current == irCode.head) {
+                    irCode.head = next;
+                } else {
+                    Quadruple* prev = irCode.head;
+                    while (prev->next != current) prev = prev->next;
+                    prev->next = next;
+                }
+                
+                // Libera a quadrupla redundante
+                free(current->arg1);
+                if (current->arg2) free(current->arg2);
+                free(current->result);
+                free(current);
+                
+                current = next;
+                continue;
             }
             
-            // Libera a quadrupla redundante
-            free(current->arg1);
-            free(current->result);
-            free(current);
-            
-            // Continua a partir do próximo
-            current = next;
-            continue;
+            // Caso 2: ASSIGN seguido de RETURN com o mesmo resultado/argumento
+            if (current->op == OP_ASSIGN && next->op == OP_RETURN && 
+                current->result && next->arg1 && 
+                strcmp(current->result, next->arg1) == 0) {
+                
+                // Substitui o argumento do RETURN pelo argumento do ASSIGN
+                free(next->arg1);
+                next->arg1 = strdup(current->arg1);
+                
+                // Desconecta a quadrupla atual
+                if (current == irCode.head) {
+                    irCode.head = next;
+                } else {
+                    Quadruple* prev = irCode.head;
+                    while (prev->next != current) prev = prev->next;
+                    prev->next = next;
+                }
+                
+                // Libera a quadrupla redundante
+                free(current->arg1);
+                if (current->arg2) free(current->arg2);
+                free(current->result);
+                free(current);
+                
+                current = next;
+                continue;
+            }
         }
         
         current = current->next;
     }
+    
+    // Libera memória do último mapeamento, se houver
+    for (int i = 0; i < mappingCount; i++) {
+        free(tempMappings[i].original);
+        free(tempMappings[i].renamed);
+    }
+    free(tempMappings);
 }
 
 // Função de entrada para gerar o código intermediário
