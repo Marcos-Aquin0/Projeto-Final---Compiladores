@@ -1,23 +1,6 @@
-#include "globals.h"
 #include "assembly_mips.h"
-#include "cinter.h"
-#include "symtab.h"
 
-// Mapeamento interno de variáveis para registradores
-typedef struct {
-    char varName[50];
-    int regIndex;
-    int isUsed;
-} RegisterMapping;
-
-static RegisterMapping paramRegs[12]; // a0-a11
-static RegisterMapping localRegs[16]; // s0-s15
-static RegisterMapping tempRegs[12];  // t0-t11
-static RegisterMapping returnRegs[12]; // v0-v11
-
-static char currentFunction[50] = ""; // Função atual sendo processada
-
-// Implementação da função getOpTypeFromString
+// Ver o Operador (OP) a partir da tabela de quadruplas
 OperationType getOpTypeFromString(const char* op) {
     if (strcmp(op, "ASSIGN") == 0) return OP_ASSIGN;
     if (strcmp(op, "ADD") == 0) return OP_ADD;
@@ -45,18 +28,22 @@ OperationType getOpTypeFromString(const char* op) {
     return -1;
 }
 
+// Inicializa os mapeamentos de registradores
 void initRegisterMappings() {
     int i;
-    for (i = 0; i < 12; i++) {
-        paramRegs[i].isUsed = 0;
-        tempRegs[i].isUsed = 0;
+    for (i = 0; i < 8; i++) { //os regs a seguir possuem 12 regs disponíveis
+        paramRegs[i].isUsed = 0; //marca como não utilizados
         returnRegs[i].isUsed = 0;
     }
     for (i = 0; i < 16; i++) {
         localRegs[i].isUsed = 0;
     }
+    for (i = 0; i < 20; i++) {
+        tempRegs[i].isUsed = 0;
+    }
 }
 
+//pega o próximo registrador livre
 int getNextFreeReg(RegisterMapping* regs, int count) {
     for (int i = 0; i < count; i++) {
         if (!regs[i].isUsed) {
@@ -68,20 +55,20 @@ int getNextFreeReg(RegisterMapping* regs, int count) {
     return 0;
 }
 
+// Função para obter o índice do registrador a partir do nome da variável
 int getRegisterIndex(char* name) {
     if (name == NULL) return 0;
 
-    // Já é uma notação de registrador?
     if (strncmp(name, "t", 1) == 0 && isdigit(name[1])) {
-        return 3 + atoi(&name[1]);  // t0-t11 → r3-r14
+        return 3 + atoi(&name[1]);  // t0-t19 → r3-r22
     } else if (strncmp(name, "s", 1) == 0 && isdigit(name[1])) {
-        return 15 + atoi(&name[1]); // s0-s15 → r15-r30
+        return 23 + atoi(&name[1]); // s0-s15 → r23-r38
     } else if (strncmp(name, "a", 1) == 0 && isdigit(name[1])) {
-        return 32 + atoi(&name[1]); // a0-a11 → r32-r43
+        return 39 + atoi(&name[1]); // a0-a7 → r39-r46
     } else if (strncmp(name, "v", 1) == 0 && isdigit(name[1])) {
-        return 44 + atoi(&name[1]); // v0-v11 → r44-r55
+        return 47 + atoi(&name[1]); // v0-v7 → r47-r54
     } else if (strncmp(name, "tv", 2) == 0) {
-        return 56 + atoi(&name[2]);  // tv0-tv2 variáveis temporárias void
+        return 55 + atoi(&name[2]);  // tv0-tv3 variáveis temporárias void
     } else if (strcmp(name, "sp") == 0) {
         return 1;
     } else if (strcmp(name, "fp") == 0) {
@@ -163,6 +150,7 @@ int getRegisterIndex(char* name) {
     return 59;
 }
 
+// Atualiza a função atual e reinicia os mapeamentos de registradores
 void updateCurrentFunction(const char* funcName) {
     if (funcName != NULL) {
         strncpy(currentFunction, funcName, sizeof(currentFunction) - 1);
