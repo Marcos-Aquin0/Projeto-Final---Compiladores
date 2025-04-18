@@ -39,9 +39,9 @@ OperationType getOpTypeFromString(const char* op) {
     if (strcmp(op, "GTE") == 0) return OP_GTE;  // Adicionado para >=
     if (strcmp(op, "PARAM") == 0) return OP_PARAM;
     if (strcmp(op, "CALL") == 0) return OP_CALL;
-    if (strcmp(op, "ARRAY_LOAD")) return OP_ARRAY_LOAD;
-    if (strcmp(op, "ARRAY_STORE")) return OP_ARRAY_STORE;
-    if (strcmp(op, "ALLOC")) return OP_ALLOC;
+    if (strcmp(op, "ARRAY_LOAD") == 0) return OP_ARRAY_LOAD;
+    if (strcmp(op, "ARRAY_STORE") == 0) return OP_ARRAY_STORE;
+    if (strcmp(op, "ALLOC") == 0) return OP_ALLOC;
     return -1;
 }
 
@@ -500,6 +500,41 @@ void generateAssembly(FILE* inputFile) {
                     }
                 }
                 break;
+
+                case OP_ARRAY_LOAD:
+                // Instrução para carregar um elemento de um array: result = arg1[arg2]
+                // Formato da quádrupla: ARRAY_LOAD arg1 arg2 result
+                // arg1 = nome do array (endereço base)
+                // arg2 = índice
+                // result = variável de destino
+                
+                // Primeiro calculamos o endereço do elemento: base + (índice * 4)
+                // Usamos um registrador temporário para calcular o endereço
+                fprintf(output, "%d - mul $r3 $r%d 4      # índice * 4 (tamanho do inteiro)\n", lineIndex++, r2);
+                fprintf(output, "%d - add $r3 $r%d $r3    # endereço base + deslocamento\n", lineIndex++, r1);
+                fprintf(output, "%d - lw $r%d 0($r3)      # carrega %s[%s] em %s\n", lineIndex++, r3, quad.arg1, quad.arg2, quad.result);
+                break;
+
+            case OP_ARRAY_STORE:
+                // Instrução para armazenar em um elemento de um array: result[arg2] = arg1
+                // Formato da quádrupla: ARRAY_STORE arg1 arg2 result
+                // result = nome do array (endereço base)
+                // arg2 = índice
+                // arg1 = valor a ser armazenado
+                
+                // Primeiro calculamos o endereço do elemento: base + (índice * 4)
+                // Usamos um registrador temporário para calcular o endereço
+                fprintf(output, "%d - mul $r3 $r%d 4      # índice * 4 (tamanho do inteiro)\n", lineIndex++, r2);
+                fprintf(output, "%d - add $r3 $r%d $r3    # endereço base + deslocamento\n", lineIndex++, r3);
+                fprintf(output, "%d - sw $r%d 0($r3)      # armazena %s em %s[%s]\n", lineIndex++, r1, quad.arg1, quad.result, quad.arg2);
+                break;
+
+            case OP_ALLOC:
+                // Para alocação estática (como declaração de arrays), geralmente não precisamos gerar código específico
+                // pois o espaço já é reservado na seção .data. Podemos adicionar um comentário para documentação.
+                fprintf(output, "%d - # alocação para '%s'\n", lineIndex++, quad.result);
+                break;
+            
 
             default:
                 fprintf(output, "%d - ; instrução %s ainda não implementada\n", lineIndex++, quad.op);
