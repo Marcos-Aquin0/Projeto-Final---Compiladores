@@ -57,27 +57,47 @@ int getNextFreeReg(RegisterMapping* regs, int count) {
 
 // Função para obter o índice do registrador a partir do nome da variável
 int getRegisterIndex(char* name) {
-    if (name == NULL) return 0;
+    DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Procurando registrador para '%s'\n", name ? name : "NULL");
+    
+    if (name == NULL) {
+        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Nome NULL, retornando reg 0\n");
+        return 0;
+    }
 
     if (strncmp(name, "t", 1) == 0 && isdigit(name[1])) {
-        return 3 + atoi(&name[1]);  // t0-t19 → r3-r22
+        int reg = 3 + atoi(&name[1]);
+        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: '%s' mapeado para registrador t%d (r%d)\n", name, atoi(&name[1]), reg);
+        return reg;  // t0-t19 → r3-r22
     } else if (strncmp(name, "s", 1) == 0 && isdigit(name[1])) {
-        return 23 + atoi(&name[1]); // s0-s15 → r23-r38
+        int reg = 23 + atoi(&name[1]);
+        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: '%s' mapeado para registrador s%d (r%d)\n", name, atoi(&name[1]), reg);
+        return reg; // s0-s15 → r23-r38
     } else if (strncmp(name, "a", 1) == 0 && isdigit(name[1])) {
-        return 39 + atoi(&name[1]); // a0-a7 → r39-r46
+        int reg = 39 + atoi(&name[1]);
+        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: '%s' mapeado para registrador a%d (r%d)\n", name, atoi(&name[1]), reg);
+        return reg; // a0-a7 → r39-r46
     } else if (strncmp(name, "v", 1) == 0 && isdigit(name[1])) {
-        return 47 + atoi(&name[1]); // v0-v7 → r47-r54
+        int reg = 47 + atoi(&name[1]);
+        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: '%s' mapeado para registrador v%d (r%d)\n", name, atoi(&name[1]), reg);
+        return reg; // v0-v7 → r47-r54
     } else if (strncmp(name, "tv", 2) == 0) {
-        return 55 + atoi(&name[2]);  // tv0-tv3 variáveis temporárias void
+        int reg = 55 + atoi(&name[2]);
+        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: '%s' mapeado para registrador tv%d (r%d)\n", name, atoi(&name[2]), reg);
+        return reg;  // tv0-tv3 variáveis temporárias void
     } else if (strcmp(name, "sp") == 0) {
+        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: 'sp' mapeado para r1\n");
         return 1;
     } else if (strcmp(name, "fp") == 0) {
+        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: 'fp' mapeado para r2\n");
         return 2;
     } else if (strcmp(name, "out") == 0) {
+        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: 'out' mapeado para r0\n");
         return 0;
     } else if (strcmp(name, "ra") == 0) {
+        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: 'ra' mapeado para r31\n");
         return 31;
     } else if (strcmp(name, "0") == 0) {
+        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: constante '0' mapeada para r63\n");
         return 63;
     }
     
@@ -86,6 +106,8 @@ int getRegisterIndex(char* name) {
         // Usa um registrador temporário para constantes
         int tempIdx = getNextFreeReg(tempRegs, 12);
         sprintf(tempRegs[tempIdx].varName, "%s", name);
+        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Constante '%s' mapeada para reg temporário t%d (r%d)\n", 
+               name, tempIdx, 3 + tempIdx);
         return 3 + tempIdx; // t0-t11
     }
     
@@ -94,20 +116,26 @@ int getRegisterIndex(char* name) {
     
     // Primeiro procura no escopo atual (função atual)
     if (strlen(currentFunction) > 0) {
+        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Procurando '%s' no escopo '%s'\n", name, currentFunction);
         symbol = st_lookup_in_scope(name, currentFunction);
     }
     
     // Se não encontrar, procura no escopo global
     if (symbol == NULL) {
+        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Procurando '%s' no escopo global\n", name);
         symbol = st_lookup_in_scope(name, "global");
     }
     
     if (symbol != NULL) {
+        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Símbolo '%s' encontrado, tipo: '%s'\n", name, symbol->idType);
+        
         // É um parâmetro?
         if (strcmp(symbol->idType, "param") == 0) {
             // Procurar se já mapeamos esse parâmetro
             for (int i = 0; i < 12; i++) {
                 if (paramRegs[i].isUsed && strcmp(paramRegs[i].varName, name) == 0) {
+                    DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Parâmetro '%s' já mapeado para a%d (r%d)\n", 
+                           name, i, 32 + i);
                     return 32 + i; // a0-a11
                 }
             }
@@ -115,6 +143,8 @@ int getRegisterIndex(char* name) {
             // Novo parâmetro, mapeia para o próximo registrador livre
             int paramIdx = getNextFreeReg(paramRegs, 12);
             sprintf(paramRegs[paramIdx].varName, "%s", name);
+            DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Novo parâmetro '%s' mapeado para a%d (r%d)\n", 
+                   name, paramIdx, 32 + paramIdx);
             return 32 + paramIdx; // a0-a11
         }
         // É uma variável local?
@@ -122,6 +152,8 @@ int getRegisterIndex(char* name) {
             // Procurar se já mapeamos essa variável
             for (int i = 0; i < 16; i++) {
                 if (localRegs[i].isUsed && strcmp(localRegs[i].varName, name) == 0) {
+                    DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Variável local '%s' já mapeada para s%d (r%d)\n", 
+                           name, i, 15 + i);
                     return 15 + i; // s0-s15
                 }
             }
@@ -129,24 +161,34 @@ int getRegisterIndex(char* name) {
             // Nova variável local, mapeia para o próximo registrador livre
             int localIdx = getNextFreeReg(localRegs, 16);
             sprintf(localRegs[localIdx].varName, "%s", name);
+            DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Nova variável local '%s' mapeada para s%d (r%d)\n", 
+                   name, localIdx, 15 + localIdx);
             return 15 + localIdx; // s0-s15
         }
+    } else {
+        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Símbolo '%s' não encontrado na tabela de símbolos\n", name);
     }
     
     // Temporários (geralmente variáveis com nome tX)
     if (name[0] == 't' && isdigit(name[1])) {
         int tempNum = atoi(&name[1]);
-        return 3 + (tempNum % 12); // Mapeia para t0-t11 de forma cíclica
+        int reg = 3 + (tempNum % 12);
+        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Temporário '%s' mapeado ciclicamente para t%d (r%d)\n", 
+               name, tempNum % 12, reg);
+        return reg; // Mapeia para t0-t11 de forma cíclica
     }
     
     // Valores de retorno
     if (strncmp(name, "ret", 3) == 0 || strstr(name, "return") != NULL) {
         int retIdx = getNextFreeReg(returnRegs, 12);
         sprintf(returnRegs[retIdx].varName, "%s", name);
+        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Valor de retorno '%s' mapeado para v%d (r%d)\n", 
+               name, retIdx, 44 + retIdx);
         return 44 + retIdx; // v0-v11
     }
     
     // Fallback: usa registrador do kernel
+    DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Fallback para '%s', usando registrador kernel r59\n", name);
     return 59;
 }
 

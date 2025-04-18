@@ -17,9 +17,10 @@ void debugPrint(const char* format, ...);
 extern int yylineno; // Número da linha para mensagens de erro
 
 // função e definições de debug
-#define DEBUG_IR(fmt, ...) debugPrint("IR Debug [%s:%d]: " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
-#define DEBUG_SEM(fmt, ...) debugPrint("Semantic Debug [%s:%d]: " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
 #define DEBUG_AST(fmt, ...) debugPrint("AST Debug [%s:%d]: " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
 #define DEBUG_SYMTAB(fmt, ...) debugPrint("Symtab Debug [%s:%d]: " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
+#define DEBUG_SEM(fmt, ...) debugPrint("Semantic Debug [%s:%d]: " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
+#define DEBUG_IR(fmt, ...) debugPrint("IR Debug [%s:%d]: " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
+#define DEBUG_ASSEMBLY(fmt, ...) debugPrint("Assembly Debug [%s:%d]: " fmt, __FILE__, __LINE__, ##__VA_ARGS__)
 
 #endif /* _GLOBALS_H_ */
