@@ -3,6 +3,7 @@
 
 #include "globals.h"
 #include "asnt.h"
+#include "symtab.h"
 
 // Tipos de operações para o código intermediário
 typedef enum {

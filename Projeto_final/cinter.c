@@ -1,10 +1,8 @@
-#include "globals.h"
 #include "cinter.h"
-#include "symtab.h"
 
 static IRCode irCode;
 
-// Função para gerar um novo nome de variável temporária para chamadas void
+// Função para gerar um novo nome de variável temporária para chamadas void, apenas para manipulação
 static int voidTempCount = 0;
 char* newVoidTemp(void) {
     char* temp = (char*)malloc(12);
@@ -1104,6 +1102,7 @@ void generateIRCode(ASTNode* node) {
     }
 }
 
+//otimização simples das quádruplas
 void optimizeIRCode(void) {
     if (!irCode.head) return;
 
