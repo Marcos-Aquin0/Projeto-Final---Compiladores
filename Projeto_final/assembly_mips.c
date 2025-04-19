@@ -31,15 +31,13 @@ OperationType getOpTypeFromString(const char* op) {
 // Inicializa os mapeamentos de registradores
 void initRegisterMappings() {
     int i;
-    for (i = 0; i < 8; i++) { //os regs a seguir possuem 12 regs disponíveis
+    for (i = 0; i < 12; i++) { //os regs a seguir possuem 12 regs disponíveis
         paramRegs[i].isUsed = 0; //marca como não utilizados
         returnRegs[i].isUsed = 0;
+        tempRegs[i].isUsed = 0;
     }
     for (i = 0; i < 16; i++) {
         localRegs[i].isUsed = 0;
-    }
-    for (i = 0; i < 20; i++) {
-        tempRegs[i].isUsed = 0;
     }
 }
 
@@ -67,23 +65,23 @@ int getRegisterIndex(char* name) {
     if (strncmp(name, "t", 1) == 0 && isdigit(name[1])) {
         int reg = 3 + atoi(&name[1]);
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: '%s' mapeado para registrador t%d (r%d)\n", name, atoi(&name[1]), reg);
-        return reg;  // t0-t19 → r3-r22
+        return reg;  // t0-t11 → r3-r14
     } else if (strncmp(name, "s", 1) == 0 && isdigit(name[1])) {
-        int reg = 23 + atoi(&name[1]);
+        int reg = 15 + atoi(&name[1]);
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: '%s' mapeado para registrador s%d (r%d)\n", name, atoi(&name[1]), reg);
-        return reg; // s0-s15 → r23-r38
+        return reg; // s0-s15 → r15-r30
     } else if (strncmp(name, "a", 1) == 0 && isdigit(name[1])) {
-        int reg = 39 + atoi(&name[1]);
+        int reg = 32 + atoi(&name[1]);
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: '%s' mapeado para registrador a%d (r%d)\n", name, atoi(&name[1]), reg);
-        return reg; // a0-a7 → r39-r46
+        return reg; // a0-a11 → r32-r43
     } else if (strncmp(name, "v", 1) == 0 && isdigit(name[1])) {
-        int reg = 47 + atoi(&name[1]);
+        int reg = 44 + atoi(&name[1]);
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: '%s' mapeado para registrador v%d (r%d)\n", name, atoi(&name[1]), reg);
-        return reg; // v0-v7 → r47-r54
+        return reg; // v0-v11 → r44-r55
     } else if (strncmp(name, "tv", 2) == 0) {
-        int reg = 55 + atoi(&name[2]);
+        int reg = 56 + atoi(&name[2]);
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: '%s' mapeado para registrador tv%d (r%d)\n", name, atoi(&name[2]), reg);
-        return reg;  // tv0-tv3 variáveis temporárias void
+        return reg;  // tv0-tv2 variáveis temporárias void
     } else if (strcmp(name, "sp") == 0) {
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: 'sp' mapeado para r1\n");
         return 1;

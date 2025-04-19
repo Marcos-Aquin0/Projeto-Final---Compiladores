@@ -1247,7 +1247,28 @@ void optimizeIRCode(void) {
         if (current->next) {
             Quadruple* next = current->next;
             
-            // Caso 1: ASSIGN seguido de PARAM com o mesmo resultado/argumento
+            // Caso 1: CALL seguido de ASSIGN (nova otimização)
+            if (current->op == OP_CALL && next->op == OP_ASSIGN && 
+                current->result && next->arg1 && next->result && 
+                strcmp(current->result, next->arg1) == 0) {
+                
+                // Move o resultado diretamente para a variável de destino final
+                free(current->result);
+                current->result = strdup(next->result);
+                
+                // Desconecta a quadrupla de atribuição (redundante)
+                current->next = next->next;
+                
+                // Libera a quadrupla redundante
+                free(next->arg1);
+                if (next->arg2) free(next->arg2);
+                free(next->result);
+                free(next);
+                
+                continue;
+            }
+            
+            // Caso 2: ASSIGN seguido de PARAM com o mesmo resultado/argumento
             if (current->op == OP_ASSIGN && next->op == OP_PARAM && 
                 current->result && next->arg1 && 
                 strcmp(current->result, next->arg1) == 0) {
@@ -1275,7 +1296,7 @@ void optimizeIRCode(void) {
                 continue;
             }
             
-            // Caso 2: ASSIGN seguido de RETURN com o mesmo resultado/argumento
+            // Caso 3: ASSIGN seguido de RETURN com o mesmo resultado/argumento
             if (current->op == OP_ASSIGN && next->op == OP_RETURN && 
                 current->result && next->arg1 && 
                 strcmp(current->result, next->arg1) == 0) {

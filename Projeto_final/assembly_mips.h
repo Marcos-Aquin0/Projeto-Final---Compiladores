@@ -27,10 +27,10 @@ typedef struct {
     int isUsed;
 } RegisterMapping;
 
-static RegisterMapping paramRegs[8]; // a0-a7
+static RegisterMapping paramRegs[12]; // a0-a11
 static RegisterMapping localRegs[16]; // s0-s15
-static RegisterMapping tempRegs[20];  // t0-t19
-static RegisterMapping returnRegs[8]; // v0-v7
+static RegisterMapping tempRegs[12];  // t0-t11
+static RegisterMapping returnRegs[12]; // v0-v11
 
 static char currentFunction[50] = ""; // Função atual sendo processada
 
