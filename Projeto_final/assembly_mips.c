@@ -33,24 +33,61 @@ void initRegisterMappings() {
     int i;
     for (i = 0; i < 12; i++) { //os regs a seguir possuem 12 regs disponíveis
         paramRegs[i].isUsed = 0; //marca como não utilizados
+        paramRegs[i].preserved = 0; // inicialmente, não precisam ser preservados
+        
         returnRegs[i].isUsed = 0;
-        tempRegs[i].isUsed = 0;
+        returnRegs[i].preserved = 0; // inicialmente, não precisam ser preservados
+        
     }
-    for (i = 0; i < 16; i++) {
-        localRegs[i].isUsed = 0;
+    for (i = 0; i < 28; i++) {
+        tempRegs[i].isUsed = 0;
     }
 }
 
 //pega o próximo registrador livre
 int getNextFreeReg(RegisterMapping* regs, int count) {
+    // Primeiro procura por registradores não utilizados
     for (int i = 0; i < count; i++) {
         if (!regs[i].isUsed) {
             regs[i].isUsed = 1;
             return i;
         }
     }
-    // Se não encontrar registrador livre, reusa o primeiro
+    
+    // Se não encontrar registrador livre, procura por um não preservado
+    for (int i = 0; i < count; i++) {
+        if (!regs[i].preserved) {
+            // Podemos reutilizar este registrador não preservado
+            DEBUG_ASSEMBLY("DEBUG - getNextFreeReg: Reutilizando registrador não-preservado %d\n", i);
+            return i;
+        }
+    }
+    
+    // Se todos os registradores estão em uso e preservados, usamos o primeiro como fallback
+    // Isso é um erro que deve ser tratado em tempo de execução ou evitado com spilling
+    DEBUG_ASSEMBLY("DEBUG - getNextFreeReg: AVISO - Todos os registradores preservados, reutilizando reg 0\n");
     return 0;
+}
+
+// Adicionar esta função para marcar registradores para preservação
+void markRegistersForPreservation(int preserveStatus) {
+    // Marca todos os registradores de parâmetro como preservados/não preservados
+    for (int i = 0; i < 12; i++) {
+        if (paramRegs[i].isUsed) {
+            paramRegs[i].preserved = preserveStatus;
+            DEBUG_ASSEMBLY("DEBUG - markRegistersForPreservation: Registrador a%d marcado como %s\n", 
+                   i, preserveStatus ? "preservado" : "não preservado");
+        }
+    }
+    
+    // Marca todos os registradores de retorno como preservados/não preservados
+    for (int i = 0; i < 12; i++) {
+        if (returnRegs[i].isUsed) {
+            returnRegs[i].preserved = preserveStatus;
+            DEBUG_ASSEMBLY("DEBUG - markRegistersForPreservation: Registrador v%d marcado como %s\n", 
+                   i, preserveStatus ? "preservado" : "não preservado");
+        }
+    }
 }
 
 // Função para obter o índice do registrador a partir do nome da variável
@@ -65,11 +102,7 @@ int getRegisterIndex(char* name) {
     if (strncmp(name, "t", 1) == 0 && isdigit(name[1])) {
         int reg = 3 + atoi(&name[1]);
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: '%s' mapeado para registrador t%d (r%d)\n", name, atoi(&name[1]), reg);
-        return reg;  // t0-t11 → r3-r14
-    } else if (strncmp(name, "s", 1) == 0 && isdigit(name[1])) {
-        int reg = 15 + atoi(&name[1]);
-        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: '%s' mapeado para registrador s%d (r%d)\n", name, atoi(&name[1]), reg);
-        return reg; // s0-s15 → r15-r30
+        return reg;  // t0-t27 → r3-r30
     } else if (strncmp(name, "a", 1) == 0 && isdigit(name[1])) {
         int reg = 32 + atoi(&name[1]);
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: '%s' mapeado para registrador a%d (r%d)\n", name, atoi(&name[1]), reg);
@@ -147,33 +180,34 @@ int getRegisterIndex(char* name) {
         }
         // É uma variável local?
         else if (strcmp(symbol->idType, "var") == 0) {
+            // Para variáveis locais, usamos registradores temporários no range de t12-t27
             // Procurar se já mapeamos essa variável
-            for (int i = 0; i < 16; i++) {
-                if (localRegs[i].isUsed && strcmp(localRegs[i].varName, name) == 0) {
-                    DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Variável local '%s' já mapeada para s%d (r%d)\n", 
-                           name, i, 15 + i);
-                    return 15 + i; // s0-s15
+            for (int i = 12; i < 28; i++) {
+                if (tempRegs[i].isUsed && strcmp(tempRegs[i].varName, name) == 0) {
+                    DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Variável local '%s' já mapeada para t%d (r%d)\n", 
+                           name, i, 3 + i);
+                    return 3 + i; // t12-t27
                 }
             }
             
             // Nova variável local, mapeia para o próximo registrador livre
-            int localIdx = getNextFreeReg(localRegs, 16);
-            sprintf(localRegs[localIdx].varName, "%s", name);
-            DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Nova variável local '%s' mapeada para s%d (r%d)\n", 
-                   name, localIdx, 15 + localIdx);
-            return 15 + localIdx; // s0-s15
+            int tempIdx = getNextFreeReg(tempRegs + 12, 16) + 12; // Offset de 12 para começar do t12
+            sprintf(tempRegs[tempIdx].varName, "%s", name);
+            DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Nova variável local '%s' mapeada para t%d (r%d)\n", 
+                   name, tempIdx, 3 + tempIdx);
+            return 3 + tempIdx; // t12-t27
         }
     } else {
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Símbolo '%s' não encontrado na tabela de símbolos\n", name);
     }
     
-    // Temporários (geralmente variáveis com nome tX)
+    // Temporários genéricos (geralmente variáveis com nome tX)
     if (name[0] == 't' && isdigit(name[1])) {
         int tempNum = atoi(&name[1]);
-        int reg = 3 + (tempNum % 12);
+        int reg = 3 + (tempNum % 28); // Use todos os 28 registradores temporários
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Temporário '%s' mapeado ciclicamente para t%d (r%d)\n", 
-               name, tempNum % 12, reg);
-        return reg; // Mapeia para t0-t11 de forma cíclica
+               name, tempNum % 28, reg);
+        return reg; // Mapeia para t0-t27 de forma cíclica
     }
     
     // Valores de retorno
@@ -302,13 +336,17 @@ void generateAssembly(FILE* inputFile) {
                 switch (opType) {
                     case OP_EQ:
                         if (nextOpType == OP_JUMPFALSE) {
+                            // Debug information to verify register mapping
+                            DEBUG_ASSEMBLY("DEBUG - EQ operation: comparing %s (%d) == %s (%d)\n", 
+                                quad.arg1, r1, quad.arg2, r2);
+                            
                             // Se EQ é falso (valores diferentes), pula para o label
-                            fprintf(output, "%d - bne $r%d $r%d %s # jump se !=\n", 
-                                    lineIndex++, r1, r2, nextQuad.result);
+                            fprintf(output, "%d - bne $r%d $r%d %s # jump se %s != %s\n", 
+                                    lineIndex++, r1, r2, nextQuad.result, quad.arg1, quad.arg2);
                         } else { // JUMPTRUE
                             // Se EQ é verdadeiro (valores iguais), pula para o label
-                            fprintf(output, "%d - beq $r%d $r%d %s # jump se ==\n", 
-                                    lineIndex++, r1, r2, nextQuad.result);
+                            fprintf(output, "%d - beq $r%d $r%d %s # jump se %s == %s\n", 
+                                    lineIndex++, r1, r2, nextQuad.result, quad.arg1, quad.arg2);
                         }
                         break;
                         
@@ -394,7 +432,7 @@ void generateAssembly(FILE* inputFile) {
             case OP_ASSIGN:
                 // Verifica se é uma movimentação redundante (mesmo registrador fonte e destino)
                 if (r1 != r3) {
-                    fprintf(output, "%d - move $r%d $r%d\n", lineIndex++, r3, r1);
+                    fprintf(output, "%d - move $r%d $r%d # copiando %s para %s\n", lineIndex++, r3, r1, quad.arg1, quad.result);
                 }
                 break;
 
@@ -438,11 +476,10 @@ void generateAssembly(FILE* inputFile) {
                 fprintf(output, "%d - %s: # nova função\n", lineIndex++, quad.arg1);
                 // Salva registradores na pilha se necessário
                 fprintf(output, "%d - addi $r1 $r1 -4 # ajusta stack pointer\n", lineIndex++);
-                // O stack pointer aponta para o topo da pilha de execução. 
-                // Ao subtrair 4, o código está "alocando" espaço na pilha para guardar informações temporárias da função atual.
                 fprintf(output, "%d - sw $r31 0($r1)  # salva return address\n", lineIndex++);
-                // Esta instrução salva o conteúdo do registrador $r31 (que contém o endereço de retorno) na memória, 
-                // no endereço apontado por $r1. O registrador $r31 é automaticamente preenchido com o endereço de retorno quando a função é chamada via jal (jump and link).
+                
+                // Ao entrar em uma nova função, registradores não estão preservados inicialmente
+                markRegistersForPreservation(0);
                 break;
 
             case OP_RETURN:
@@ -463,9 +500,17 @@ void generateAssembly(FILE* inputFile) {
             case OP_PARAM:
                 {
                     int paramNum = atoi(quad.arg2);
-                    //if (destReg != r1) para tirar move $rx $rx
-                    fprintf(output, "%d - move $r%d $r%d # param %d\n", 
-                            lineIndex++, 32 + paramNum, r1, paramNum);
+                    int destReg = 32 + paramNum; // a0, a1, etc.
+                    
+                    // Avoid redundant moves
+                    if (destReg != r1) {
+                        fprintf(output, "%d - move $r%d $r%d # param %d: %s\n", 
+                                lineIndex++, destReg, r1, paramNum, quad.arg1);
+                    } else {
+                        // Parameter already in correct register, just add comment
+                        fprintf(output, "%d - # param %d: %s já está em $r%d\n", 
+                                lineIndex++, paramNum, quad.arg1, destReg);
+                    }
                 }
                 break;
 
@@ -478,8 +523,51 @@ void generateAssembly(FILE* inputFile) {
                     fprintf(output, "%d - move $r0 $r32\n", lineIndex++); // out r0 (registrador reservado para output)
                     fprintf(output, "%d - out $r0\n", lineIndex++); // out r0 (registrador reservado para output)
                 } else {
+                    // Verifica se a função chamada é a mesma que estamos executando (chamada recursiva)
+                    int isRecursive = (strcmp(quad.arg1, currentFunction) == 0);
+                    
+                    if (isRecursive) {
+                        // Marca registradores para preservação antes da chamada recursiva
+                        markRegistersForPreservation(1); // 1 = preservar
+                        
+                        // Salva registradores usados na pilha se for recursivo
+                        // Precisamos salvar registradores a0-a11 e v0-v11 que estejam em uso
+                        for (int i = 0; i < 12; i++) {
+                            if (paramRegs[i].isUsed && paramRegs[i].preserved) {
+                                fprintf(output, "%d - addi $r1 $r1 -4      # salva param a%d\n", lineIndex++, i);
+                                fprintf(output, "%d - sw $r%d 0($r1)\n", lineIndex++, 32 + i);
+                            }
+                        }
+                        
+                        for (int i = 0; i < 12; i++) {
+                            if (returnRegs[i].isUsed && returnRegs[i].preserved) {
+                                fprintf(output, "%d - addi $r1 $r1 -4      # salva retval v%d\n", lineIndex++, i);
+                                fprintf(output, "%d - sw $r%d 0($r1)\n", lineIndex++, 44 + i);
+                            }
+                        }
+                    }
+                    
                     // Chamada normal de função
                     fprintf(output, "%d - jal %s\n", lineIndex++, quad.arg1);
+                    
+                    if (isRecursive) {
+                        // Restaura registradores da pilha após a chamada recursiva
+                        // Restauramos na ordem inversa (LIFO)
+                        for (int i = 11; i >= 0; i--) {
+                            if (returnRegs[i].isUsed && returnRegs[i].preserved) {
+                                fprintf(output, "%d - lw $r%d 0($r1)      # restaura retval v%d\n", lineIndex++, 44 + i, i);
+                                fprintf(output, "%d - addi $r1 $r1 4\n", lineIndex++);
+                            }
+                        }
+                        
+                        for (int i = 11; i >= 0; i--) {
+                            if (paramRegs[i].isUsed && paramRegs[i].preserved) {
+                                fprintf(output, "%d - lw $r%d 0($r1)      # restaura param a%d\n", lineIndex++, 32 + i, i);
+                                fprintf(output, "%d - addi $r1 $r1 4\n", lineIndex++);
+                            }
+                        }
+                    }
+                    
                     // Copia o valor de retorno (v0) para o resultado, verifica se não é redundante
                     if (strcmp(quad.result, "-") != 0 && r3 != 44) { // r44 é v0, evita move para o mesmo registrador
                         // Verifica se a próxima instrução não é um RETURN com o mesmo registrador

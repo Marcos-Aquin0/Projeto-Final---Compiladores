@@ -96,9 +96,9 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 ---
 
 ## Próximas Etapas
-- parâmetros devem ser empilhados na chamada de função e desempilhados no retorno (garante recursão) 
-- verificar lw e sw para registradores s_ (deve salvar somente os que a função for utilizar).
-- registradores s devem ser utilizados para: variáveis globais, variaveis que ainda serao utilizadas depois de uma chamada de função, variaveis que serão incrementadas na condição de loop do while, funções recursivas.
+- leitura de parametros está errada, colocando na ordem que aparecem no escopo e não na declaração
+- quadruplas não reconhecem variáveis globais
+- conferir incrementadas na condição de loop do while
 - stack spilling (limitar registradores) - linha 52 (getnextfreeregs)
 - gerador de código assembly
 - gerador de código binário

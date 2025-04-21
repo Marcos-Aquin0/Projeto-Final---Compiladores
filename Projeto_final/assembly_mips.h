@@ -22,14 +22,14 @@ typedef struct {
 
 // Mapeamento interno de variáveis para registradores
 typedef struct {
-    char varName[50];
+    char varName[64];
     int regIndex;
     int isUsed;
+    int preserved;
 } RegisterMapping;
 
 static RegisterMapping paramRegs[12]; // a0-a11
-static RegisterMapping localRegs[16]; // s0-s15
-static RegisterMapping tempRegs[12];  // t0-t11
+static RegisterMapping tempRegs[28];  // t0-t11
 static RegisterMapping returnRegs[12]; // v0-v11
 
 static char currentFunction[50] = ""; // Função atual sendo processada
