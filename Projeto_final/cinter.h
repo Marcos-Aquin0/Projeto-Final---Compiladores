@@ -71,8 +71,8 @@ void genArrayAccessCode(ASTNode* arrayAccess, char* target);
 void genArrayAssignCode(ASTNode* arrayAssign);
 
 // Função principal para geração de código
+void ircode_generate(ASTNode* syntaxTree);
 void generateIRCode(ASTNode* syntaxTree);
-
 const char* getOpName(OperationType op);
 const char* getNodeTypeName(NodeType type);
 
