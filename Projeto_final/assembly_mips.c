@@ -618,8 +618,40 @@ void generateAssembly(FILE* inputFile) {
                 break;
 
             case OP_ALLOC:
-                fprintf(output, "%d - # alocação para '%s'\n", lineIndex++, quad.result);
-                //verificar se é vetor ou variavel, reservar espaço na memoria e preencher com 0 (para a variavel ou cada posição do vetor)
+                if (isdigit(quad.arg1[0]) && strcmp(quad.arg2, "array") == 0) {
+                    // É um vetor: arg1 contém o tamanho do vetor
+                    int size = atoi(quad.arg1);
+                    
+                    // Aloca espaço para o vetor e inicializa com zeros
+                    fprintf(output, "%d - li $r3 %d      # tamanho do vetor '%s'\n", lineIndex++, size, quad.result);
+                    fprintf(output, "%d - li $r4 0       # contador de inicialização\n", lineIndex++);
+                    
+                    // Gera um label único para este loop
+                    char loopLabel[32], endLoopLabel[32];
+                    sprintf(loopLabel, "init_array_%d", quad.line);
+                    sprintf(endLoopLabel, "end_init_array_%d", quad.line);
+                    
+                    // Loop de inicialização
+                    fprintf(output, "%d - %s:           # início do loop de inicialização\n", lineIndex++, loopLabel);
+                    fprintf(output, "%d - beq $r4 $r3 %s # se contador == tamanho, termina\n", lineIndex++, endLoopLabel);
+                    
+                    // Calcula o endereço do elemento: base + (índice * 4)
+                    fprintf(output, "%d - mul $r5 $r4 4   # índice * 4 (tamanho do inteiro)\n", lineIndex++);
+                    fprintf(output, "%d - add $r5 $r%d $r5 # endereço base + deslocamento\n", lineIndex++, r3);
+                    
+                    // Armazena zero neste endereço
+                    fprintf(output, "%d - sw $r63 0($r5)   # inicializa %s[%s] com 0\n", lineIndex++, quad.result, "$r4");
+                    
+                    // Incrementa o contador e volta ao início do loop
+                    fprintf(output, "%d - addi $r4 $r4 1   # incrementa contador\n", lineIndex++);
+                    fprintf(output, "%d - j %s           # volta para o início do loop\n", lineIndex++, loopLabel);
+                    
+                    // Label de fim do loop
+                    fprintf(output, "%d - %s:           # fim do loop de inicialização\n", lineIndex++, endLoopLabel);
+                } else {
+                    // É uma variável simples
+                    fprintf(output, "%d - sw $r63 0($r%d)  # inicializa '%s' com 0\n", lineIndex++, r3, quad.result);
+                }
                 break;
             
 

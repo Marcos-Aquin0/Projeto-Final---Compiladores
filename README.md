@@ -97,7 +97,9 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 
 ## Próximas Etapas
 - leitura de parametros está errada, colocando na ordem que aparecem no escopo e não na declaração
-- colocar 0 na declaração da variável e de cada posição do vetor alloc
+- colocar 0 na declaração da variável e de cada posição do vetor alloc (todas as variáveis ou só as globais?)
+- usar uma tabela de registradores. Está sendo usado? Variável está salva na memória? Onde?
+- conferir se a posição da memória está correta nos escopos diferentes
 - conferir incrementadas na condição de loop do while
 - stack spilling (limitar registradores) - linha 52 (getnextfreeregs)
 - gerador de código assembly
