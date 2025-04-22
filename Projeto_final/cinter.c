@@ -1038,6 +1038,48 @@ void genArrayAssignCode(ASTNode* arrayAssign) {
     genQuad(OP_ARRAY_STORE, valueResult, indexResult, arrayName->value);
 }
 
+// Gera código para declaração de variáveis (globais ou locais)
+void genVarDeclCode(ASTNode* varDecl) {
+    if (varDecl == NULL) return;
+    currentSourceLine = varDecl->lineno;  // Atualiza com a linha da declaração
+    
+    // Extrai o nome da variável
+    char* varName = varDecl->value;
+    if (varName == NULL) {
+        DEBUG_IR("ERRO: Declaração de variável sem nome!");
+        return;
+    }
+    // Verifica se a variável está no escopo global
+    BucketList symbol = st_lookup_in_scope(varName, "global");
+    
+    if (symbol == NULL) {
+        DEBUG_IR("Variável %s não encontrada no escopo global, pulando geração de código", varName);
+        return;
+    }
+    
+    DEBUG_IR("Processando declaração de variável: %s (linha %d)", varName, currentSourceLine);
+        
+    // Verifica se é um array ou uma variável simples
+    if (varDecl->arraySize > 0) {
+        // É um array
+        int size = varDecl->arraySize;
+        if (size <= 0) {
+            DEBUG_IR("ERRO: Tamanho de array inválido: %s", varDecl->right->value);
+            return;
+        }
+        
+        char sizeStr[12];
+        sprintf(sizeStr, "%d", 4*size);
+        
+        DEBUG_IR("  Alocando array %s[%s]", varName, sizeStr);
+        genQuad(OP_ALLOC, sizeStr, "array", varName);
+    } else {
+        // É uma variável simples (inteiro ou outro tipo)
+        DEBUG_IR("  Alocando variável simples: %s", varName);
+        genQuad(OP_ALLOC, "4", "var", varName);
+    }
+}
+
 // Também podemos modificar a função generateIRCode para imprimir tipos dos nós
 void generateIRCode(ASTNode* node) {
     if (node == NULL) return;
@@ -1058,6 +1100,11 @@ void generateIRCode(ASTNode* node) {
             // Nós de controle - apenas continua a recursão
             generateIRCode(node->left);
             generateIRCode(node->right);
+            break;
+        
+        case NODE_VAR_DECL:
+            // Processa declaração de variáveis (globais ou locais)
+            genVarDeclCode(node);
             break;
             
         case NODE_EXPR:

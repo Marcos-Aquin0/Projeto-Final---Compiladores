@@ -289,7 +289,7 @@ void generateAssembly(FILE* inputFile) {
     long filePos;
 
     fprintf(output, "%d - nop 1\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
-    fprintf(output, "%d - j main\n", lineIndex++); //começa na main
+    int ehPrimeiraFuncao = 1;
 
     // Lê as quádruplas do arquivo e gera o código assembly
     while (fgets(buffer, sizeof(buffer), inputFile) != NULL) {
@@ -473,6 +473,10 @@ void generateAssembly(FILE* inputFile) {
                 break;
 
             case OP_FUNCTION:
+                if(ehPrimeiraFuncao){
+                    fprintf(output, "%d - j main\n", lineIndex++); //começa na main
+                    ehPrimeiraFuncao = 0; // marca que já processou a primeira função
+                }
                 fprintf(output, "%d - %s: # nova função\n", lineIndex++, quad.arg1);
                 // Salva registradores na pilha se necessário
                 fprintf(output, "%d - addi $r1 $r1 -4 # ajusta stack pointer\n", lineIndex++);
@@ -614,9 +618,8 @@ void generateAssembly(FILE* inputFile) {
                 break;
 
             case OP_ALLOC:
-                // Para alocação estática (como declaração de arrays), geralmente não precisamos gerar código específico
-                // pois o espaço já é reservado na seção .data. Podemos adicionar um comentário para documentação.
                 fprintf(output, "%d - # alocação para '%s'\n", lineIndex++, quad.result);
+                //verificar se é vetor ou variavel, reservar espaço na memoria e preencher com 0 (para a variavel ou cada posição do vetor)
                 break;
             
 

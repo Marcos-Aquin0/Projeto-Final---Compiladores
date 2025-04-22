@@ -97,7 +97,7 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 
 ## Próximas Etapas
 - leitura de parametros está errada, colocando na ordem que aparecem no escopo e não na declaração
-- quadruplas não reconhecem variáveis globais
+- colocar 0 na declaração da variável e de cada posição do vetor alloc
 - conferir incrementadas na condição de loop do while
 - stack spilling (limitar registradores) - linha 52 (getnextfreeregs)
 - gerador de código assembly
