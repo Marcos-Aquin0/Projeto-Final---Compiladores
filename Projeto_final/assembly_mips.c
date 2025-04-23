@@ -268,6 +268,170 @@ void checkNextQuadruple(FILE* inputFile, long* filePos, QuadrupleInfo* nextQuad)
     fseek(inputFile, *filePos, SEEK_SET);
 }
 
+//iniciar analise de registradores
+void analyzeRegisterUsage(const char* assemblyFilePath) {
+    FILE* assemblyFile = fopen(assemblyFilePath, "r");
+    if (!assemblyFile) {
+        fprintf(stderr, "Erro: Não foi possível abrir o arquivo assembly para análise: %s\n", assemblyFilePath);
+        return;
+    }
+    
+    // Estrutura para armazenar informações sobre o uso de registradores
+    typedef struct {
+        int isUsed;
+        int firstUsedAt;
+        int lastUsedAt;
+        int useCount;
+        char purpose[64];
+        char regName[10]; // Nome do registrador (t0, a0, v0, etc.)
+    } RegUsageInfo;
+    
+    // Array para armazenar análise de todos os registradores
+    RegUsageInfo regUsage[64] = {0};
+    
+    // Inicializar os nomes dos registradores
+    for (int i = 0; i < 64; i++) {
+        if (i == 0)
+            strcpy(regUsage[i].regName, "out");
+        else if (i == 1)
+            strcpy(regUsage[i].regName, "sp");
+        else if (i == 2)
+            strcpy(regUsage[i].regName, "fp");
+        else if (i == 31)
+            strcpy(regUsage[i].regName, "ra");
+        else if (i == 63)
+            strcpy(regUsage[i].regName, "zero");
+        else if (i >= 3 && i <= 30)
+            sprintf(regUsage[i].regName, "t%d", i - 3);
+        else if (i >= 32 && i <= 43)
+            sprintf(regUsage[i].regName, "a%d", i - 32);
+        else if (i >= 44 && i <= 55)
+            sprintf(regUsage[i].regName, "v%d", i - 44);
+        else if (i >= 56 && i <= 58)
+            sprintf(regUsage[i].regName, "tv%d", i - 56);
+        else
+            sprintf(regUsage[i].regName, "k%d", i - 59);
+    }
+    
+    char buffer[256];
+    int lineNum = 0;
+    char currentFunction[64] = "";
+    
+    printf("\n=== INICIANDO ANÁLISE DE REGISTRADORES ===\n");
+    
+    // Primeira passagem: encontrar a função main
+    while (fgets(buffer, sizeof(buffer), assemblyFile) != NULL) {
+        lineNum++;
+        
+        // Verifica se é um rótulo de função
+        char* labelPos = strstr(buffer, "main:");
+        if (labelPos) {
+            strcpy(currentFunction, "main");
+            printf("Função main encontrada na linha %d\n", lineNum-1);
+            break;
+        }
+    }
+    
+    if (strcmp(currentFunction, "") == 0) {
+        fprintf(stderr, "Aviso: Função main não encontrada no código assembly.\n");
+        fclose(assemblyFile);
+        return;
+    }
+    
+    // Voltar ao início do arquivo e analisar registradores
+    rewind(assemblyFile);
+    lineNum = 0;
+    
+    // Segunda passagem: analisar uso de registradores
+    while (fgets(buffer, sizeof(buffer), assemblyFile) != NULL) {
+        lineNum++;
+        
+        // Verificar se estamos mudando de função
+        char functionName[64];
+        if (sscanf(buffer, "%*d - %[^:]:", functionName) == 1 && 
+            strstr(buffer, "# nova função") != NULL) {
+            strcpy(currentFunction, functionName);
+            printf("\nAnalisando função: %s\n", currentFunction);
+        }
+        
+        // Extrair registradores usados na instrução
+        for (int i = 0; i < 64; i++) {
+            char regPattern[10];
+            sprintf(regPattern, "$r%d", i);
+            
+            if (strstr(buffer, regPattern) != NULL) {
+                // Atualiza informações de uso do registrador
+                if (!regUsage[i].isUsed) {
+                    regUsage[i].isUsed = 1;
+                    regUsage[i].firstUsedAt = lineNum;
+                    
+                    // Determinar finalidade baseado no registrador
+                    if (i == 0) strcpy(regUsage[i].purpose, "output");
+                    else if (i == 1) strcpy(regUsage[i].purpose, "stack pointer");
+                    else if (i == 2) strcpy(regUsage[i].purpose, "frame pointer");
+                    else if (i == 31) strcpy(regUsage[i].purpose, "return address");
+                    else if (i == 63) strcpy(regUsage[i].purpose, "zero constant");
+                    else if (i >= 3 && i <= 30) strcpy(regUsage[i].purpose, "temporary");
+                    else if (i >= 32 && i <= 43) strcpy(regUsage[i].purpose, "argument");
+                    else if (i >= 44 && i <= 55) strcpy(regUsage[i].purpose, "return value");
+                    else strcpy(regUsage[i].purpose, "other");
+                }
+                
+                regUsage[i].lastUsedAt = lineNum;
+                regUsage[i].useCount++;
+            }
+        }
+    }
+    
+    // Imprime relatório de uso de registradores
+    printf("\n=== RELATÓRIO DE USO DE REGISTRADORES ===\n");
+    printf("Reg  | Nome | Usado | Primeira | Última | Contagem | Finalidade\n");
+    printf("-----+------+-------+----------+--------+----------+------------\n");
+    
+    for (int i = 0; i < 64; i++) {
+        if (regUsage[i].isUsed) {
+            printf("$r%-2d | %-4s | Sim   | %-8d | %-6d | %-8d | %s\n", 
+                  i, regUsage[i].regName, regUsage[i].firstUsedAt-1, regUsage[i].lastUsedAt-1, 
+                  regUsage[i].useCount, regUsage[i].purpose);
+        }
+    }
+    
+    // Detecta possíveis problemas ou otimizações
+    printf("\n=== POSSÍVEIS OTIMIZAÇÕES ===\n");
+    
+    // Registradores pouco utilizados
+    for (int i = 3; i <= 30; i++) { // Apenas registradores temporários
+        if (regUsage[i].isUsed && regUsage[i].useCount <= 2) {
+            printf("- Registrador $r%d (%s) usado apenas %d vezes. Possível candidato para otimização.\n",
+                   i, regUsage[i].regName, regUsage[i].useCount);
+        }
+    }
+    
+    // Registradores com intervalos de vida longos
+    for (int i = 3; i <= 55; i++) {
+        if (regUsage[i].isUsed) {
+            int lifespan = regUsage[i].lastUsedAt - regUsage[i].firstUsedAt;
+            if (lifespan > 20) { // Heurística: intervalo de vida longo
+                printf("- Registrador $r%d (%s) tem intervalo de vida longo (%d linhas). Considerar reutilização.\n",
+                       i, regUsage[i].regName, lifespan);
+            }
+        }
+    }
+    
+    // Verifica excesso de uso de registradores em funções
+    int totalUsedRegs = 0;
+    for (int i = 0; i < 64; i++) {
+        if (regUsage[i].isUsed) totalUsedRegs++;
+    }
+    
+    if (totalUsedRegs > 20) {
+        printf("- Alto uso de registradores (%d). Considere otimizar a alocação.\n", totalUsedRegs);
+    }
+    
+    fclose(assemblyFile);
+    printf("\nAnálise de registradores concluída.\n");
+}
+
 void generateAssembly(FILE* inputFile) {
     FILE* output = fopen("Output/assembly.asm", "w");
     // Inicializa os mapeamentos de registradores
@@ -663,6 +827,9 @@ void generateAssembly(FILE* inputFile) {
 
     // Finaliza com HALT
     fprintf(output, "%d - halt\n", lineIndex);
-    
     fclose(output);
+    
+    // Após gerar o código assembly, inicia a análise de registradores
+    analyzeRegisterUsage("Output/assembly.asm");
+    
 }
