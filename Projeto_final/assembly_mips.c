@@ -527,6 +527,8 @@ void collectFunctionInfo() {
         int callCount;           // Quantidade de chamadas de função
         char** calledFunctions;  // Funções chamadas
         int* callOrder;          // Ordem das chamadas (baseada em memloc)
+        char** callArgs;         // Argumentos passados para cada chamada
+        int* callArgCounts;      // Número de argumentos em cada chamada
         struct FunctionInfo* next;
     } FunctionInfo;
     
@@ -550,7 +552,7 @@ void collectFunctionInfo() {
         return;
     }
     
-    printf("1. Coletando informações de funções da tabela de símbolos...\n");
+    DEBUG_ASSEMBLY("1. Coletando informações de funções da tabela de símbolos...\n");
     
     // Pula as duas primeiras linhas (cabeçalhos)
     char buffer[512];
@@ -603,14 +605,17 @@ void collectFunctionInfo() {
                 newFunc->callCount = 0;
                 newFunc->calledFunctions = NULL;
                 newFunc->callOrder = NULL;
+                newFunc->callArgs = NULL;
+                newFunc->callArgCounts = NULL;
                 newFunc->next = functionList;
                 
                 functionList = newFunc;
                 functionCount++;
                 
-                printf("  - Função encontrada: %s (Parâmetros: %d)\n", newFunc->name, newFunc->paramCount);
+                DEBUG_ASSEMBLY("  - Função encontrada: %s (Parâmetros: %d)\n", newFunc->name, newFunc->paramCount);
             }
         }
+        
     }
     
     // Reposiciona o arquivo para o início e pula os cabeçalhos novamente
@@ -624,7 +629,7 @@ void collectFunctionInfo() {
         return;
     }
     
-    printf("\n2. Coletando parâmetros, variáveis locais e chamadas de função...\n");
+    DEBUG_ASSEMBLY("\n2. Coletando parâmetros, variáveis locais e chamadas de função...\n");
     
     // Segunda passagem para encontrar parâmetros, variáveis locais e chamadas de função
     while (fgets(buffer, sizeof(buffer), tempFile)) {
@@ -642,7 +647,7 @@ void collectFunctionInfo() {
                         for (int i = 0; i < func->paramCount; i++) {
                             if (func->paramNames[i] == NULL) {
                                 func->paramNames[i] = strdup(name);
-                                printf("  - Parâmetro '%s' (%s) encontrado na função '%s'\n", 
+                                DEBUG_ASSEMBLY("  - Parâmetro '%s' (%s) encontrado na função '%s'\n", 
                                       name, dataType, func->name);
                                 break;
                             }
@@ -668,7 +673,7 @@ void collectFunctionInfo() {
                                 return;
                             }
                             func->localVars[func->localVarCount - 1] = strdup(name);
-                            printf("  - Variável local '%s' encontrada na função '%s'\n", name, func->name);
+                            DEBUG_ASSEMBLY("  - Variável local '%s' encontrada na função '%s'\n", name, func->name);
                             break;
                         }
                         func = func->next;
@@ -697,7 +702,13 @@ void collectFunctionInfo() {
                                                                  callerFunc->callCount * sizeof(char*));
                             callerFunc->callOrder = realloc(callerFunc->callOrder, 
                                                           callerFunc->callCount * sizeof(int));
-                            if (!callerFunc->calledFunctions || !callerFunc->callOrder) {
+                            callerFunc->callArgs = realloc(callerFunc->callArgs,
+                                                         callerFunc->callCount * sizeof(char*));
+                            callerFunc->callArgCounts = realloc(callerFunc->callArgCounts,
+                                                              callerFunc->callCount * sizeof(int));
+                            
+                            if (!callerFunc->calledFunctions || !callerFunc->callOrder || 
+                                !callerFunc->callArgs || !callerFunc->callArgCounts) {
                                 fprintf(stderr, "Erro: Falha na realocação de memória para chamadas de função.\n");
                                 fclose(tempFile);
                                 return;
@@ -705,6 +716,8 @@ void collectFunctionInfo() {
                             
                             callerFunc->calledFunctions[callerFunc->callCount - 1] = strdup(name);
                             callerFunc->callOrder[callerFunc->callCount - 1] = location;
+                            callerFunc->callArgs[callerFunc->callCount - 1] = NULL;
+                            callerFunc->callArgCounts[callerFunc->callCount - 1] = 0;
                             
                             printf("  - Chamada para função '%s' encontrada em '%s' (memloc: %d)\n", 
                                    name, callerFunc->name, location);
@@ -718,11 +731,138 @@ void collectFunctionInfo() {
     }
     
     fclose(tempFile);
+    
+    // Agora vamos buscar os argumentos das chamadas de função na tabela de quádruplas
+    DEBUG_ASSEMBLY("\n3. Coletando argumentos de chamadas de função da tabela de quádruplas...\n");
+    
+    FILE* quadFile = fopen("Output/quadruples.txt", "r");
+    if (!quadFile) {
+        fprintf(stderr, "Erro: Não foi possível abrir a tabela de quádruplas.\n");
+        // Continue com a análise parcial mesmo sem os argumentos
+    } else {
+        // Pular cabeçalhos
+        for (int i = 0; i < 4; i++) {
+            fgets(buffer, sizeof(buffer), quadFile);
+        }
+        
+        char currentScope[64] = "";
+        int currentCall = -1;
+        FunctionInfo* currentFunc = NULL;
+        
+        // Estrutura para armazenar argumentos para cada chamada
+        typedef struct {
+            char argName[64];
+            int paramIndex;
+        } CallArgument;
+        
+        CallArgument currentArgs[20]; // Assumindo máximo de 20 argumentos por chamada
+        int argCount = 0;
+        
+        // Lê as quádruplas
+        while (fgets(buffer, sizeof(buffer), quadFile)) {
+            // Ignora linhas de separação e cabeçalho
+            if (strstr(buffer, "---") != NULL || 
+                strstr(buffer, "Quad") != NULL ||
+                strlen(buffer) <= 1) {
+                continue;
+            }
+            
+            // Analisa a linha para extrair os campos da quádrupla
+            QuadrupleInfo quad;
+            sscanf(buffer, "%d %d %s %s %s %s",
+                   &quad.line, &quad.sourceLine, quad.op, quad.arg1, quad.arg2, quad.result);
+            
+            // Se é uma nova função, atualiza o escopo atual
+            if (strcmp(quad.op, "FUNCTION") == 0) {
+                strncpy(currentScope, quad.arg1, sizeof(currentScope)-1);
+                currentScope[sizeof(currentScope)-1] = '\0';
+                
+                // Encontra a entrada da função na nossa lista
+                currentFunc = functionList;
+                while (currentFunc != NULL) {
+                    if (strcmp(currentFunc->name, currentScope) == 0) {
+                        break;
+                    }
+                    currentFunc = currentFunc->next;
+                }
+                
+                currentCall = -1;
+                argCount = 0;
+            }
+            
+            // Se é um PARAM, coleta o argumento
+            if (strcmp(quad.op, "PARAM") == 0 && currentFunc != NULL) {
+                int paramIndex = atoi(quad.arg2);
+                
+                // É o primeiro parâmetro de uma nova chamada?
+                if (paramIndex == 0) {
+                    // Se já estávamos coletando argumentos, primeiro finalize a chamada anterior
+                    if (argCount > 0 && currentCall >= 0) {
+                        // Aloca espaço e copia os argumentos coletados
+                        char* argsStr = (char*)malloc(256);
+                        if (argsStr) {
+                            argsStr[0] = '\0';
+                            for (int i = 0; i < argCount; i++) {
+                                if (i > 0) strcat(argsStr, ", ");
+                                strcat(argsStr, currentArgs[i].argName);
+                            }
+                            currentFunc->callArgs[currentCall] = argsStr;
+                            currentFunc->callArgCounts[currentCall] = argCount;
+                        }
+                    }
+                    
+                    // Inicia nova coleta de argumentos
+                    argCount = 0;
+                    currentCall = -1; // Será definido quando encontrarmos o CALL
+                }
+                
+                // Armazena o argumento
+                if (argCount < 20) {
+                    strncpy(currentArgs[argCount].argName, quad.arg1, sizeof(currentArgs[0].argName)-1);
+                    currentArgs[argCount].argName[sizeof(currentArgs[0].argName)-1] = '\0';
+                    currentArgs[argCount].paramIndex = paramIndex;
+                    argCount++;
+                }
+            }
+            
+            // Se é um CALL, associa os argumentos coletados à chamada
+            if (strcmp(quad.op, "CALL") == 0 && currentFunc != NULL && argCount > 0) {
+                // Encontra qual chamada é essa na lista de chamadas da função atual
+                for (int i = 0; i < currentFunc->callCount; i++) {
+                    if (strcmp(currentFunc->calledFunctions[i], quad.arg1) == 0) {
+                        // Encontrou a chamada correspondente
+                        currentCall = i;
+                        
+                        // Aloca espaço e copia os argumentos coletados
+                        char* argsStr = (char*)malloc(256);
+                        if (argsStr) {
+                            argsStr[0] = '\0';
+                            for (int j = 0; j < argCount; j++) {
+                                if (j > 0) strcat(argsStr, ", ");
+                                strcat(argsStr, currentArgs[j].argName);
+                            }
+                            currentFunc->callArgs[i] = argsStr;
+                            currentFunc->callArgCounts[i] = argCount;
+                            DEBUG_ASSEMBLY("  - Argumentos para chamada '%s' em '%s': %s\n", 
+                                   quad.arg1, currentScope, argsStr);
+                        }
+                        
+                        // Reinicia coleta
+                        argCount = 0;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        fclose(quadFile);
+    }
+    
     // Remover o arquivo temporário
     remove("temp_symtab.txt");
     
     // Ordenar as funções chamadas pela ordem de memory location
-    printf("\n3. Ordenando chamadas de função por ordem de memória...\n");
+    DEBUG_ASSEMBLY("\n4. Ordenando chamadas de função por ordem de memória...\n");
     
     FunctionInfo* current = functionList;
     while (current != NULL) {
@@ -740,10 +880,20 @@ void collectFunctionInfo() {
                         char* tempFunc = current->calledFunctions[j];
                         current->calledFunctions[j] = current->calledFunctions[j + 1];
                         current->calledFunctions[j + 1] = tempFunc;
+                        
+                        // Troca os argumentos
+                        char* tempArgs = current->callArgs[j];
+                        current->callArgs[j] = current->callArgs[j + 1];
+                        current->callArgs[j + 1] = tempArgs;
+                        
+                        // Troca a contagem de argumentos
+                        int tempArgCount = current->callArgCounts[j];
+                        current->callArgCounts[j] = current->callArgCounts[j + 1];
+                        current->callArgCounts[j + 1] = tempArgCount;
                     }
                 }
             }
-            printf("  - Ordenadas %d chamadas de função em '%s'\n", current->callCount, current->name);
+            DEBUG_ASSEMBLY("  - Ordenadas %d chamadas de função em '%s'\n", current->callCount, current->name);
         }
         current = current->next;
     }
@@ -852,16 +1002,21 @@ void collectFunctionInfo() {
         FunctionInfo* column = functionList;
         while (column != NULL) {
             // Verificar se a função da linha chama a função da coluna
-            int callsFunction = 0;
+            int callIndex = -1;
             for (int i = 0; i < current->callCount; i++) {
                 if (strcmp(current->calledFunctions[i], column->name) == 0) {
-                    callsFunction = 1;
+                    callIndex = i;
                     break;
                 }
             }
             
-            if (callsFunction) {
-                printf(" %-15s |", "X");
+            if (callIndex >= 0) {
+                // Mostrar argumentos reais em vez de um simples 'X'
+                if (current->callArgs && current->callArgs[callIndex]) {
+                    printf(" %-15.15s |", current->callArgs[callIndex]);
+                } else {
+                    printf(" %-15s |", "X");
+                }
             } else {
                 printf(" %-15s |", "-");
             }
@@ -883,10 +1038,14 @@ void collectFunctionInfo() {
             free(temp->localVars[i]);
         if (temp->localVars) free(temp->localVars);
         
-        for (int i = 0; i < temp->callCount; i++)
+        for (int i = 0; i < temp->callCount; i++) {
             free(temp->calledFunctions[i]);
+            if (temp->callArgs && temp->callArgs[i])
+                free(temp->callArgs[i]);
+        }
         if (temp->calledFunctions) free(temp->calledFunctions);
-        
+        if (temp->callArgs) free(temp->callArgs);
+        if (temp->callArgCounts) free(temp->callArgCounts);
         if (temp->callOrder) free(temp->callOrder);
         
         if (temp->paramNames) {
