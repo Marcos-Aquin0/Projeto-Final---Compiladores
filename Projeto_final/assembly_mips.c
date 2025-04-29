@@ -533,6 +533,7 @@ void collectFunctionInfo() {
         char name[64];           // Nome da função
         int paramCount;          // Quantidade de parâmetros
         ParamInfo params;        // Lista de parâmetros
+        char** paramNames;       // Nomes dos parâmetros
         int localVarCount;       // Quantidade de variáveis locais
         char** localVars;        // Nomes das variáveis locais
         int callCount;           // Quantidade de chamadas de função
@@ -598,6 +599,17 @@ void collectFunctionInfo() {
                     newFunc->params = NULL;
                 }
                 
+                // Inicializa array para nomes de parâmetros
+                newFunc->paramNames = NULL;
+                if (newFunc->paramCount > 0) {
+                    newFunc->paramNames = (char**)malloc(sizeof(char*) * newFunc->paramCount);
+                    if (newFunc->paramNames) {
+                        for (int i = 0; i < newFunc->paramCount; i++) {
+                            newFunc->paramNames[i] = NULL;
+                        }
+                    }
+                }
+                
                 newFunc->localVarCount = 0;
                 newFunc->localVars = NULL;
                 newFunc->callCount = 0;
@@ -624,34 +636,51 @@ void collectFunctionInfo() {
         return;
     }
     
-    printf("\n2. Coletando variáveis locais e chamadas de função...\n");
+    printf("\n2. Coletando parâmetros, variáveis locais e chamadas de função...\n");
     
-    // Segunda passagem para encontrar variáveis locais e chamadas de função
+    // Segunda passagem para encontrar parâmetros, variáveis locais e chamadas de função
     while (fgets(buffer, sizeof(buffer), tempFile)) {
         char name[64], scope[64], idType[32], dataType[32];
         int location;
         
         if (sscanf(buffer, "%63s %63s %31s %31s %d", name, scope, idType, dataType, &location) >= 5) {
+            // Procura por parâmetros
+            if (strcmp(idType, "param") == 0) {
+                // Encontra a função que contém este parâmetro
+                FunctionInfo* func = functionList;
+                while (func != NULL) {
+                    if (strcmp(scope, func->name) == 0) {
+                        // Adiciona à lista de nomes de parâmetros
+                        for (int i = 0; i < func->paramCount; i++) {
+                            if (func->paramNames[i] == NULL) {
+                                func->paramNames[i] = strdup(name);
+                                printf("  - Parâmetro '%s' (%s) encontrado na função '%s'\n", 
+                                      name, dataType, func->name);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    func = func->next;
+                }
+            }
             // Procura por variáveis locais
-            if (strcmp(idType, "var") == 0 || strcmp(idType, "param") == 0) {
+            else if (strcmp(idType, "var") == 0) {
                 // Se o escopo não for global, é uma variável local
                 if (strcmp(scope, "global") != 0) {
                     // Encontrar a função que contém esta variável
                     FunctionInfo* func = functionList;
                     while (func != NULL) {
                         if (strcmp(scope, func->name) == 0) {
-                            // Adiciona à lista de variáveis locais se não for parâmetro
-                            if (strcmp(idType, "var") == 0) {
-                                func->localVarCount++;
-                                func->localVars = realloc(func->localVars, func->localVarCount * sizeof(char*));
-                                if (!func->localVars) {
-                                    fprintf(stderr, "Erro: Falha na realocação de memória para variáveis locais.\n");
-                                    fclose(tempFile);
-                                    return;
-                                }
-                                func->localVars[func->localVarCount - 1] = strdup(name);
-                                printf("  - Variável local '%s' encontrada na função '%s'\n", name, func->name);
+                            func->localVarCount++;
+                            func->localVars = realloc(func->localVars, func->localVarCount * sizeof(char*));
+                            if (!func->localVars) {
+                                fprintf(stderr, "Erro: Falha na realocação de memória para variáveis locais.\n");
+                                fclose(tempFile);
+                                return;
                             }
+                            func->localVars[func->localVarCount - 1] = strdup(name);
+                            printf("  - Variável local '%s' encontrada na função '%s'\n", name, func->name);
                             break;
                         }
                         func = func->next;
@@ -676,8 +705,10 @@ void collectFunctionInfo() {
                         
                         if (!alreadyAdded) {
                             callerFunc->callCount++;
-                            callerFunc->calledFunctions = realloc(callerFunc->calledFunctions, callerFunc->callCount * sizeof(char*));
-                            callerFunc->callOrder = realloc(callerFunc->callOrder, callerFunc->callCount * sizeof(int));
+                            callerFunc->calledFunctions = realloc(callerFunc->calledFunctions, 
+                                                                 callerFunc->callCount * sizeof(char*));
+                            callerFunc->callOrder = realloc(callerFunc->callOrder, 
+                                                          callerFunc->callCount * sizeof(int));
                             if (!callerFunc->calledFunctions || !callerFunc->callOrder) {
                                 fprintf(stderr, "Erro: Falha na realocação de memória para chamadas de função.\n");
                                 fclose(tempFile);
@@ -731,20 +762,46 @@ void collectFunctionInfo() {
     
     // Imprimir a primeira tabela: informações de funções
     printf("\n=== TABELA DE INFORMAÇÕES DE FUNÇÕES ===\n");
-    printf("+-----------------+----------------+---------------------+-------------------------+\n");
-    printf("| Nome da Função  | Nº Parâmetros  | Variáveis Locais    | Funções Chamadas       |\n");
-    printf("+-----------------+----------------+---------------------+-------------------------+\n");
+    printf("+-----------------+-----------------------------+---------------------+-------------------------+\n");
+    printf("| Nome da Função  | Parâmetros                  | Variáveis Locais    | Funções Chamadas       |\n");
+    printf("+-----------------+-----------------------------+---------------------+-------------------------+\n");
     
     current = functionList;
     while (current != NULL) {
         // Formatar string de parâmetros
         char paramStr[256] = "";
-        ParamInfo param = current->params;
-        while (param != NULL) {
-            strcat(paramStr, param->paramType);
-            strcat(paramStr, param->isArray ? "[]" : "");
-            param = param->next;
-            if (param != NULL) strcat(paramStr, ", ");
+        if (current->paramCount > 0) {
+            int paramAdded = 0;
+            
+            // Primeiro tenta usar os nomes de parâmetros
+            if (current->paramNames) {
+                for (int i = 0; i < current->paramCount; i++) {
+                    if (current->paramNames[i]) {
+                        if (paramAdded > 0) strcat(paramStr, ", ");
+                        strcat(paramStr, current->paramNames[i]);
+                        paramAdded++;
+                    }
+                }
+            }
+            
+            // Se não conseguiu nomes, usa a informação de tipos
+            if (paramAdded == 0 && current->params) {
+                ParamInfo param = current->params;
+                while (param != NULL) {
+                    if (paramAdded > 0) strcat(paramStr, ", ");
+                    strcat(paramStr, param->paramType);
+                    strcat(paramStr, param->isArray ? "[]" : "");
+                    paramAdded++;
+                    param = param->next;
+                }
+            }
+            
+            // Se ainda não tem nada, apenas mostra a contagem
+            if (paramAdded == 0) {
+                sprintf(paramStr, "%d parâmetros", current->paramCount);
+            }
+        } else {
+            strcpy(paramStr, "sem parâmetros");
         }
         
         // Formatar string de variáveis locais
@@ -769,14 +826,14 @@ void collectFunctionInfo() {
             }
         }
         
-        printf("| %-15s | %-14d | %-19s | %-23s |\n", 
-               current->name, current->paramCount, 
+        printf("| %-15s | %-27s | %-19s | %-23s |\n", 
+               current->name, paramStr, 
                current->localVarCount > 0 ? localVarStr : "-", 
                current->callCount > 0 ? calledFuncStr : "-");
         
         current = current->next;
     }
-    printf("+-----------------+----------------+---------------------+-------------------------+\n");
+    printf("+-----------------+-----------------------------+---------------------+-------------------------+\n");
     
     // Imprimir a segunda tabela: matriz de chamadas de função
     printf("\n=== MATRIZ DE CHAMADAS DE FUNÇÃO ===\n");
@@ -841,7 +898,14 @@ void collectFunctionInfo() {
         for (int i = 0; i < temp->callCount; i++)
             free(temp->calledFunctions[i]);
         if (temp->calledFunctions) free(temp->calledFunctions);
+        
         if (temp->callOrder) free(temp->callOrder);
+        
+        if (temp->paramNames) {
+            for (int i = 0; i < temp->paramCount; i++)
+                if (temp->paramNames[i]) free(temp->paramNames[i]);
+            free(temp->paramNames);
+        }
         
         free(temp);
     }
