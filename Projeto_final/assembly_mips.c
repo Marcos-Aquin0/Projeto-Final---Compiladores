@@ -432,10 +432,431 @@ void analyzeRegisterUsage(const char* assemblyFilePath) {
     printf("\nAnálise de registradores concluída.\n");
 }
 
+// Empurra um registrador na pilha
+void pushRegister(FILE* output, int reg, int* stackOffset, int* lineIndex) {
+    (*stackOffset) -= 4;
+    fprintf(output, "%d - addi $r1 $r1 -4      # empilha registrador\n", (*lineIndex)++);
+    fprintf(output, "%d - sw $r%d 0($r1)\n", (*lineIndex)++, reg);
+    DEBUG_ASSEMBLY("DEBUG - pushRegister: Empilhando r%d, stack offset agora é %d\n", reg, *stackOffset);
+}
+
+// Restaura um registrador da pilha
+void popRegister(FILE* output, int reg, int* stackOffset, int* lineIndex) {
+    fprintf(output, "%d - lw $r%d 0($r1)       # desempilha registrador\n", (*lineIndex)++, reg);
+    (*stackOffset) += 4;
+    fprintf(output, "%d - addi $r1 $r1 4\n", (*lineIndex)++);
+    DEBUG_ASSEMBLY("DEBUG - popRegister: Desempilhando para r%d, stack offset agora é %d\n", reg, *stackOffset);
+}
+
+// Calcula o deslocamento de um parâmetro na pilha
+int getParameterOffset(int paramIndex) {
+    return 4 * (paramIndex + 2); // +2 para o endereço de retorno e o frame pointer salvo
+}
+
+// Carrega um parâmetro da pilha para um registrador
+void loadParameter(FILE* output, int paramIndex, int destReg, int* lineIndex) {
+    int offset = getParameterOffset(paramIndex);
+    fprintf(output, "%d - lw $r%d %d($r2)      # carrega param %d\n", (*lineIndex)++, destReg, offset, paramIndex);
+    DEBUG_ASSEMBLY("DEBUG - loadParameter: Carregando parâmetro %d do offset %d para r%d\n", 
+           paramIndex, offset, destReg);
+}
+
+// Salva o frame atual na entrada de uma função
+void setupFrame(FILE* output, int* lineIndex, int* stackOffset) {
+    // Salva o endereço de retorno
+    pushRegister(output, 31, stackOffset, lineIndex);  // RA
+    
+    // Salva o frame pointer atual
+    pushRegister(output, 2, stackOffset, lineIndex);   // FP
+    
+    // Estabelece o novo frame pointer
+    fprintf(output, "%d - move $r2 $r1         # atualiza frame pointer\n", (*lineIndex)++);
+    
+    DEBUG_ASSEMBLY("DEBUG - setupFrame: Frame configurado, SP=%d, FP=SP\n", *stackOffset);
+}
+
+// Restaura o frame na saída de uma função
+void restoreFrame(FILE* output, int* lineIndex, int* stackOffset) {
+    // Restaura o stack pointer para o frame pointer atual
+    fprintf(output, "%d - move $r1 $r2         # restaura stack pointer\n", (*lineIndex)++);
+    
+    // Restaura o frame pointer antigo
+    popRegister(output, 2, stackOffset, lineIndex);    // FP
+    
+    // Restaura o endereço de retorno
+    popRegister(output, 31, stackOffset, lineIndex);   // RA
+    
+    DEBUG_ASSEMBLY("DEBUG - restoreFrame: Frame restaurado, SP=%d\n", *stackOffset);
+}
+
+// Função para salvar registradores usados em chamadas de função
+void saveCallerSavedRegs(FILE* output, int* lineIndex, int* stackOffset) {
+    // Identifica quais registradores temporários estão em uso
+    for (int i = 0; i < 12; i++) {
+        if (tempRegs[i].isUsed && !tempRegs[i].preserved) {
+            pushRegister(output, i + 3, stackOffset, lineIndex);  // t0-t11 são r3-r14
+            tempRegs[i].preserved = 1;
+            DEBUG_ASSEMBLY("DEBUG - saveCallerSavedRegs: Salvando registrador temporário t%d (r%d)\n", i, i + 3);
+        }
+    }
+}
+
+// Função para restaurar registradores após chamadas de função
+void restoreCallerSavedRegs(FILE* output, int* lineIndex, int* stackOffset) {
+    // Restaura na ordem inversa (LIFO)
+    for (int i = 11; i >= 0; i--) {
+        if (tempRegs[i].isUsed && tempRegs[i].preserved) {
+            popRegister(output, i + 3, stackOffset, lineIndex);  // t0-t11 são r3-r14
+            tempRegs[i].preserved = 0;
+            DEBUG_ASSEMBLY("DEBUG - restoreCallerSavedRegs: Restaurando registrador temporário t%d (r%d)\n", i, i + 3);
+        }
+    }
+}
+
+// void collectFunctionInfo(){
+
+//     //cria tabela para funções
+//     //olhar para a tabela de simbolos procurando funcoes BucketList->idType = "function" e insere na primeira coluna de funcao.
+//     //uma coluna de qual funcoes elas chamam, olha para a tabela de simbolos procura BucketList->scope == nome_funcao, e a partir disso pega BucketList->name, essa é a função que é chamada
+//     // para inserir na ordem de chamada, vai olhar BucketList->memlocation, considerando a parte do escopo que ja foi analisada. se estou na main, por exemplo, vou começar buscando a partir da posição dela, quando nome da funcao é main e o escopo é global, para funcoes com escopo main.
+//     //nova coluna com quantidade de parametros e quais parametros, olha para paramlist da arvore sintatica
+//     //nova coluna com variaveis locais, olha para a arvore sintatica e busca LocalDecl
+//     //por fim, uma nova tabela com linhas e colunas nxn com nomes das funcoes, se a funcao da linha i chama a funcao da coluna j, deve ter os argumentos da arglist da arvore como uma lista ali, caso contrario apenas "-"    
+//     //no final imprimir essas duas tabelas
+// }
+
+void collectFunctionInfo() {
+    printf("\n=== ANÁLISE DE FUNÇÕES ===\n\n");
+    
+    // Estrutura para armazenar informações de função
+    typedef struct FunctionInfo {
+        char name[64];           // Nome da função
+        int paramCount;          // Quantidade de parâmetros
+        ParamInfo params;        // Lista de parâmetros
+        int localVarCount;       // Quantidade de variáveis locais
+        char** localVars;        // Nomes das variáveis locais
+        int callCount;           // Quantidade de chamadas de função
+        char** calledFunctions;  // Funções chamadas
+        int* callOrder;          // Ordem das chamadas (baseada em memloc)
+        struct FunctionInfo* next;
+    } FunctionInfo;
+    
+    FunctionInfo* functionList = NULL;
+    int functionCount = 0;
+    FILE* tempFile = fopen("temp_symtab.txt", "w");
+    
+    if (!tempFile) {
+        fprintf(stderr, "Erro: Não foi possível criar arquivo temporário para análise de funções.\n");
+        return;
+    }
+    
+    // Redireciona a impressão da tabela de símbolos para o arquivo temporário
+    printSymTab(tempFile);
+    fclose(tempFile);
+    
+    // Reabre o arquivo para leitura
+    tempFile = fopen("temp_symtab.txt", "r");
+    if (!tempFile) {
+        fprintf(stderr, "Erro: Não foi possível abrir arquivo temporário para análise de funções.\n");
+        return;
+    }
+    
+    printf("1. Coletando informações de funções da tabela de símbolos...\n");
+    
+    // Pula as duas primeiras linhas (cabeçalhos)
+    char buffer[512];
+    fgets(buffer, sizeof(buffer), tempFile);
+    fgets(buffer, sizeof(buffer), tempFile);
+    
+    // Processa linha por linha da tabela de símbolos
+    while (fgets(buffer, sizeof(buffer), tempFile)) {
+        char name[64], scope[64], idType[32], dataType[32];
+        int location;
+        
+        // Extrai informações da linha
+        if (sscanf(buffer, "%63s %63s %31s %31s %d", name, scope, idType, dataType, &location) >= 5) {
+            // Verifica se é uma função no escopo global
+            if (strcmp(idType, "func") == 0 && strcmp(scope, "global") == 0) {
+                // Criar nova entrada para a função
+                FunctionInfo* newFunc = (FunctionInfo*)malloc(sizeof(FunctionInfo));
+                if (!newFunc) {
+                    fprintf(stderr, "Erro: Falha na alocação de memória para informações de função.\n");
+                    fclose(tempFile);
+                    return;
+                }
+                
+                strncpy(newFunc->name, name, 63);
+                newFunc->name[63] = '\0';
+                
+                // Busca na tabela de símbolos para obter mais informações
+                BucketList funcEntry = st_lookup_in_scope(name, "global");
+                if (funcEntry) {
+                    newFunc->paramCount = funcEntry->paramCount;
+                    newFunc->params = funcEntry->params;
+                } else {
+                    newFunc->paramCount = 0;
+                    newFunc->params = NULL;
+                }
+                
+                newFunc->localVarCount = 0;
+                newFunc->localVars = NULL;
+                newFunc->callCount = 0;
+                newFunc->calledFunctions = NULL;
+                newFunc->callOrder = NULL;
+                newFunc->next = functionList;
+                
+                functionList = newFunc;
+                functionCount++;
+                
+                printf("  - Função encontrada: %s (Parâmetros: %d)\n", newFunc->name, newFunc->paramCount);
+            }
+        }
+    }
+    
+    // Reposiciona o arquivo para o início e pula os cabeçalhos novamente
+    rewind(tempFile);
+    fgets(buffer, sizeof(buffer), tempFile);
+    fgets(buffer, sizeof(buffer), tempFile);
+    
+    if (functionCount == 0) {
+        printf("Nenhuma função encontrada na tabela de símbolos.\n");
+        fclose(tempFile);
+        return;
+    }
+    
+    printf("\n2. Coletando variáveis locais e chamadas de função...\n");
+    
+    // Segunda passagem para encontrar variáveis locais e chamadas de função
+    while (fgets(buffer, sizeof(buffer), tempFile)) {
+        char name[64], scope[64], idType[32], dataType[32];
+        int location;
+        
+        if (sscanf(buffer, "%63s %63s %31s %31s %d", name, scope, idType, dataType, &location) >= 5) {
+            // Procura por variáveis locais
+            if (strcmp(idType, "var") == 0 || strcmp(idType, "param") == 0) {
+                // Se o escopo não for global, é uma variável local
+                if (strcmp(scope, "global") != 0) {
+                    // Encontrar a função que contém esta variável
+                    FunctionInfo* func = functionList;
+                    while (func != NULL) {
+                        if (strcmp(scope, func->name) == 0) {
+                            // Adiciona à lista de variáveis locais se não for parâmetro
+                            if (strcmp(idType, "var") == 0) {
+                                func->localVarCount++;
+                                func->localVars = realloc(func->localVars, func->localVarCount * sizeof(char*));
+                                if (!func->localVars) {
+                                    fprintf(stderr, "Erro: Falha na realocação de memória para variáveis locais.\n");
+                                    fclose(tempFile);
+                                    return;
+                                }
+                                func->localVars[func->localVarCount - 1] = strdup(name);
+                                printf("  - Variável local '%s' encontrada na função '%s'\n", name, func->name);
+                            }
+                            break;
+                        }
+                        func = func->next;
+                    }
+                }
+            }
+            // Procura por chamadas de função
+            else if (strcmp(idType, "func") == 0 && strcmp(scope, "global") != 0) {
+                // O escopo indica a função chamadora
+                FunctionInfo* callerFunc = functionList;
+                while (callerFunc != NULL) {
+                    if (strcmp(scope, callerFunc->name) == 0) {
+                        // O nome indica a função chamada
+                        // Verifica se já não adicionamos esta função
+                        int alreadyAdded = 0;
+                        for (int i = 0; i < callerFunc->callCount; i++) {
+                            if (strcmp(callerFunc->calledFunctions[i], name) == 0) {
+                                alreadyAdded = 1;
+                                break;
+                            }
+                        }
+                        
+                        if (!alreadyAdded) {
+                            callerFunc->callCount++;
+                            callerFunc->calledFunctions = realloc(callerFunc->calledFunctions, callerFunc->callCount * sizeof(char*));
+                            callerFunc->callOrder = realloc(callerFunc->callOrder, callerFunc->callCount * sizeof(int));
+                            if (!callerFunc->calledFunctions || !callerFunc->callOrder) {
+                                fprintf(stderr, "Erro: Falha na realocação de memória para chamadas de função.\n");
+                                fclose(tempFile);
+                                return;
+                            }
+                            
+                            callerFunc->calledFunctions[callerFunc->callCount - 1] = strdup(name);
+                            callerFunc->callOrder[callerFunc->callCount - 1] = location;
+                            
+                            printf("  - Chamada para função '%s' encontrada em '%s' (memloc: %d)\n", 
+                                   name, callerFunc->name, location);
+                        }
+                        break;
+                    }
+                    callerFunc = callerFunc->next;
+                }
+            }
+        }
+    }
+    
+    fclose(tempFile);
+    // Remover o arquivo temporário
+    remove("temp_symtab.txt");
+    
+    // Ordenar as funções chamadas pela ordem de memory location
+    printf("\n3. Ordenando chamadas de função por ordem de memória...\n");
+    
+    FunctionInfo* current = functionList;
+    while (current != NULL) {
+        if (current->callCount > 1) {
+            // Bubble sort simples para ordenar
+            for (int i = 0; i < current->callCount - 1; i++) {
+                for (int j = 0; j < current->callCount - i - 1; j++) {
+                    if (current->callOrder[j] > current->callOrder[j + 1]) {
+                        // Troca a ordem
+                        int tempLoc = current->callOrder[j];
+                        current->callOrder[j] = current->callOrder[j + 1];
+                        current->callOrder[j + 1] = tempLoc;
+                        
+                        // Troca os nomes das funções
+                        char* tempFunc = current->calledFunctions[j];
+                        current->calledFunctions[j] = current->calledFunctions[j + 1];
+                        current->calledFunctions[j + 1] = tempFunc;
+                    }
+                }
+            }
+            printf("  - Ordenadas %d chamadas de função em '%s'\n", current->callCount, current->name);
+        }
+        current = current->next;
+    }
+    
+    // Imprimir a primeira tabela: informações de funções
+    printf("\n=== TABELA DE INFORMAÇÕES DE FUNÇÕES ===\n");
+    printf("+-----------------+----------------+---------------------+-------------------------+\n");
+    printf("| Nome da Função  | Nº Parâmetros  | Variáveis Locais    | Funções Chamadas       |\n");
+    printf("+-----------------+----------------+---------------------+-------------------------+\n");
+    
+    current = functionList;
+    while (current != NULL) {
+        // Formatar string de parâmetros
+        char paramStr[256] = "";
+        ParamInfo param = current->params;
+        while (param != NULL) {
+            strcat(paramStr, param->paramType);
+            strcat(paramStr, param->isArray ? "[]" : "");
+            param = param->next;
+            if (param != NULL) strcat(paramStr, ", ");
+        }
+        
+        // Formatar string de variáveis locais
+        char localVarStr[256] = "";
+        for (int i = 0; i < current->localVarCount; i++) {
+            if (i > 0) strcat(localVarStr, ", ");
+            strcat(localVarStr, current->localVars[i]);
+            if (strlen(localVarStr) > 15 && i < current->localVarCount - 1) {
+                strcat(localVarStr, "...");
+                break;
+            }
+        }
+        
+        // Formatar string de funções chamadas
+        char calledFuncStr[256] = "";
+        for (int i = 0; i < current->callCount; i++) {
+            if (i > 0) strcat(calledFuncStr, ", ");
+            strcat(calledFuncStr, current->calledFunctions[i]);
+            if (strlen(calledFuncStr) > 15 && i < current->callCount - 1) {
+                strcat(calledFuncStr, "...");
+                break;
+            }
+        }
+        
+        printf("| %-15s | %-14d | %-19s | %-23s |\n", 
+               current->name, current->paramCount, 
+               current->localVarCount > 0 ? localVarStr : "-", 
+               current->callCount > 0 ? calledFuncStr : "-");
+        
+        current = current->next;
+    }
+    printf("+-----------------+----------------+---------------------+-------------------------+\n");
+    
+    // Imprimir a segunda tabela: matriz de chamadas de função
+    printf("\n=== MATRIZ DE CHAMADAS DE FUNÇÃO ===\n");
+    printf("Linhas: funções chamadoras; Colunas: funções chamadas\n\n");
+    
+    // Imprimir cabeçalho da tabela
+    printf("%-15s |", "");
+    current = functionList;
+    while (current != NULL) {
+        printf(" %-15s |", current->name);
+        current = current->next;
+    }
+    printf("\n");
+    
+    // Imprimir separador
+    printf("----------------+");
+    for (int i = 0; i < functionCount; i++) {
+        printf("----------------+");
+    }
+    printf("\n");
+    
+    // Imprimir linhas da matriz
+    current = functionList;
+    while (current != NULL) {
+        printf("%-15s |", current->name);
+        
+        // Para cada coluna (possível função chamada)
+        FunctionInfo* column = functionList;
+        while (column != NULL) {
+            // Verificar se a função da linha chama a função da coluna
+            int callsFunction = 0;
+            for (int i = 0; i < current->callCount; i++) {
+                if (strcmp(current->calledFunctions[i], column->name) == 0) {
+                    callsFunction = 1;
+                    break;
+                }
+            }
+            
+            if (callsFunction) {
+                printf(" %-15s |", "X");
+            } else {
+                printf(" %-15s |", "-");
+            }
+            
+            column = column->next;
+        }
+        printf("\n");
+        current = current->next;
+    }
+    
+    // Liberar memória alocada
+    current = functionList;
+    while (current != NULL) {
+        FunctionInfo* temp = current;
+        current = current->next;
+        
+        // Liberar arrays alocados
+        for (int i = 0; i < temp->localVarCount; i++)
+            free(temp->localVars[i]);
+        if (temp->localVars) free(temp->localVars);
+        
+        for (int i = 0; i < temp->callCount; i++)
+            free(temp->calledFunctions[i]);
+        if (temp->calledFunctions) free(temp->calledFunctions);
+        if (temp->callOrder) free(temp->callOrder);
+        
+        free(temp);
+    }
+    
+    printf("\nAnálise de funções concluída!\n");
+}
+
+// Função principal para gerar o código assembly a partir do arquivo de entrada
 void generateAssembly(FILE* inputFile) {
     FILE* output = fopen("Output/assembly.asm", "w");
     // Inicializa os mapeamentos de registradores
     initRegisterMappings();
+    
+    // Variável para controlar o deslocamento da pilha
+    int stackOffset = 0;
     
     // Ignorar o cabeçalho (4 linhas)
     char buffer[256];
@@ -642,9 +1063,9 @@ void generateAssembly(FILE* inputFile) {
                     ehPrimeiraFuncao = 0; // marca que já processou a primeira função
                 }
                 fprintf(output, "%d - %s: # nova função\n", lineIndex++, quad.arg1);
-                // Salva registradores na pilha se necessário
-                fprintf(output, "%d - addi $r1 $r1 -4 # ajusta stack pointer\n", lineIndex++);
-                fprintf(output, "%d - sw $r31 0($r1)  # salva return address\n", lineIndex++);
+                
+                // Configura o frame da função usando nossa nova função
+                setupFrame(output, &lineIndex, &stackOffset);
                 
                 // Ao entrar em uma nova função, registradores não estão preservados inicialmente
                 markRegistersForPreservation(0);
@@ -655,9 +1076,10 @@ void generateAssembly(FILE* inputFile) {
                 if (r1 != 44) { // Evita move redundante se o valor já estiver em v0
                     fprintf(output, "%d - move $r44 $r%d # move valor de retorno para v0\n", lineIndex++, r1);
                 }
-                // Restaura registradores da pilha
-                fprintf(output, "%d - lw $r31 0($r1)  # restaura return address\n", lineIndex++);
-                fprintf(output, "%d - addi $r1 $r1 4  # ajusta stack pointer\n", lineIndex++);
+                
+                // Restaura o frame usando nossa nova função
+                restoreFrame(output, &lineIndex, &stackOffset);
+                
                 fprintf(output, "%d - jr $r31         # retorna\n", lineIndex++);
                 break;
 
@@ -691,50 +1113,14 @@ void generateAssembly(FILE* inputFile) {
                     fprintf(output, "%d - move $r0 $r32\n", lineIndex++); // out r0 (registrador reservado para output)
                     fprintf(output, "%d - out $r0\n", lineIndex++); // out r0 (registrador reservado para output)
                 } else {
-                    // Verifica se a função chamada é a mesma que estamos executando (chamada recursiva)
-                    int isRecursive = (strcmp(quad.arg1, currentFunction) == 0);
-                    
-                    if (isRecursive) {
-                        // Marca registradores para preservação antes da chamada recursiva
-                        markRegistersForPreservation(1); // 1 = preservar
-                        
-                        // Salva registradores usados na pilha se for recursivo
-                        // Precisamos salvar registradores a0-a11 e v0-v11 que estejam em uso
-                        for (int i = 0; i < 12; i++) {
-                            if (paramRegs[i].isUsed && paramRegs[i].preserved) {
-                                fprintf(output, "%d - addi $r1 $r1 -4      # salva param a%d\n", lineIndex++, i);
-                                fprintf(output, "%d - sw $r%d 0($r1)\n", lineIndex++, 32 + i);
-                            }
-                        }
-                        
-                        for (int i = 0; i < 12; i++) {
-                            if (returnRegs[i].isUsed && returnRegs[i].preserved) {
-                                fprintf(output, "%d - addi $r1 $r1 -4      # salva retval v%d\n", lineIndex++, i);
-                                fprintf(output, "%d - sw $r%d 0($r1)\n", lineIndex++, 44 + i);
-                            }
-                        }
-                    }
+                    // Salva registradores que podem ser modificados pela chamada de função
+                    saveCallerSavedRegs(output, &lineIndex, &stackOffset);
                     
                     // Chamada normal de função
                     fprintf(output, "%d - jal %s\n", lineIndex++, quad.arg1);
                     
-                    if (isRecursive) {
-                        // Restaura registradores da pilha após a chamada recursiva
-                        // Restauramos na ordem inversa (LIFO)
-                        for (int i = 11; i >= 0; i--) {
-                            if (returnRegs[i].isUsed && returnRegs[i].preserved) {
-                                fprintf(output, "%d - lw $r%d 0($r1)      # restaura retval v%d\n", lineIndex++, 44 + i, i);
-                                fprintf(output, "%d - addi $r1 $r1 4\n", lineIndex++);
-                            }
-                        }
-                        
-                        for (int i = 11; i >= 0; i--) {
-                            if (paramRegs[i].isUsed && paramRegs[i].preserved) {
-                                fprintf(output, "%d - lw $r%d 0($r1)      # restaura param a%d\n", lineIndex++, 32 + i, i);
-                                fprintf(output, "%d - addi $r1 $r1 4\n", lineIndex++);
-                            }
-                        }
-                    }
+                    // Restaura os registradores salvos
+                    restoreCallerSavedRegs(output, &lineIndex, &stackOffset);
                     
                     // Copia o valor de retorno (v0) para o resultado, verifica se não é redundante
                     if (strcmp(quad.result, "-") != 0 && r3 != 44) { // r44 é v0, evita move para o mesmo registrador
@@ -753,7 +1139,7 @@ void generateAssembly(FILE* inputFile) {
                 }
                 break;
 
-                case OP_ARRAY_LOAD:
+            case OP_ARRAY_LOAD:
                 // Instrução para carregar um elemento de um array: result = arg1[arg2]
                 // Formato da quádrupla: ARRAY_LOAD arg1 arg2 result
                 // arg1 = nome do array (endereço base)
@@ -783,41 +1169,43 @@ void generateAssembly(FILE* inputFile) {
 
             case OP_ALLOC:
                 if (isdigit(quad.arg1[0]) && strcmp(quad.arg2, "array") == 0) {
-                    // É um vetor: arg1 contém o tamanho do vetor
+                    // Implementação otimizada para alocação de array usando manipulação de pilha
                     int size = atoi(quad.arg1);
                     
-                    // Aloca espaço para o vetor e inicializa com zeros
-                    fprintf(output, "%d - li $r3 %d      # tamanho do vetor '%s'\n", lineIndex++, size, quad.result);
-                    fprintf(output, "%d - li $r4 0       # contador de inicialização\n", lineIndex++);
+                    // Aloca espaço na pilha para o array
+                    fprintf(output, "%d - li $r3 %d       # tamanho do array em palavras\n", lineIndex++, size);
+                    fprintf(output, "%d - mul $r3 $r3 4   # tamanho do array em bytes\n", lineIndex++);
+                    fprintf(output, "%d - sub $r1 $r1 $r3 # aloca espaço na pilha\n", lineIndex++);
+                    stackOffset -= (size * 4);
                     
-                    // Gera um label único para este loop
+                    // Salva o endereço base do array no registrador de resultado
+                    fprintf(output, "%d - move $r%d $r1   # endereço base do array '%s'\n", lineIndex++, r3, quad.result);
+                    
+                    // Inicializa o array com zeros
+                    fprintf(output, "%d - move $r4 $r1    # ponteiro para inicialização\n", lineIndex++);
+                    fprintf(output, "%d - li $r5 %d       # contador (bytes a inicializar)\n", lineIndex++, size * 4);
+                    
                     char loopLabel[32], endLoopLabel[32];
                     sprintf(loopLabel, "init_array_%d", quad.line);
                     sprintf(endLoopLabel, "end_init_array_%d", quad.line);
                     
-                    // Loop de inicialização
-                    fprintf(output, "%d - %s:           # início do loop de inicialização\n", lineIndex++, loopLabel);
-                    fprintf(output, "%d - beq $r4 $r3 %s # se contador == tamanho, termina\n", lineIndex++, endLoopLabel);
-                    
-                    // Calcula o endereço do elemento: base + (índice * 4)
-                    fprintf(output, "%d - mul $r5 $r4 4   # índice * 4 (tamanho do inteiro)\n", lineIndex++);
-                    fprintf(output, "%d - add $r5 $r%d $r5 # endereço base + deslocamento\n", lineIndex++, r3);
-                    
-                    // Armazena zero neste endereço
-                    fprintf(output, "%d - sw $r63 0($r5)   # inicializa %s[%s] com 0\n", lineIndex++, quad.result, "$r4");
-                    
-                    // Incrementa o contador e volta ao início do loop
-                    fprintf(output, "%d - addi $r4 $r4 1   # incrementa contador\n", lineIndex++);
-                    fprintf(output, "%d - j %s           # volta para o início do loop\n", lineIndex++, loopLabel);
-                    
-                    // Label de fim do loop
-                    fprintf(output, "%d - %s:           # fim do loop de inicialização\n", lineIndex++, endLoopLabel);
+                    fprintf(output, "%d - %s:\n", lineIndex++, loopLabel);
+                    fprintf(output, "%d - beq $r5 $r63 %s # se contador == 0, termina\n", lineIndex++, endLoopLabel);
+                    fprintf(output, "%d - sw $r63 0($r4)  # inicializa com 0\n", lineIndex++);
+                    fprintf(output, "%d - addi $r4 $r4 4  # próximo elemento\n", lineIndex++);
+                    fprintf(output, "%d - addi $r5 $r5 -4 # decrementa contador\n", lineIndex++);
+                    fprintf(output, "%d - j %s\n", lineIndex++, loopLabel);
+                    fprintf(output, "%d - %s:\n", lineIndex++, endLoopLabel);
                 } else {
-                    // É uma variável simples
-                    fprintf(output, "%d - sw $r63 0($r%d)  # inicializa '%s' com 0\n", lineIndex++, r3, quad.result);
+                    // É uma variável simples, apenas reserva espaço na pilha
+                    fprintf(output, "%d - addi $r1 $r1 -4 # aloca espaço para variável '%s'\n", lineIndex++, quad.result);
+                    fprintf(output, "%d - sw $r63 0($r1)  # inicializa com 0\n", lineIndex++);
+                    stackOffset -= 4;
+                    
+                    // Guarda o endereço da variável no registrador de resultado
+                    fprintf(output, "%d - move $r%d $r1   # endereço da variável '%s'\n", lineIndex++, r3, quad.result);
                 }
                 break;
-            
 
             default:
                 fprintf(output, "%d - ; instrução %s ainda não implementada\n", lineIndex++, quad.op);
@@ -831,5 +1219,6 @@ void generateAssembly(FILE* inputFile) {
     
     // Após gerar o código assembly, inicia a análise de registradores
     analyzeRegisterUsage("Output/assembly.asm");
+    collectFunctionInfo();
     
 }

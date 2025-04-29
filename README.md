@@ -98,16 +98,13 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 ## Próximas Etapas
 - leitura de parametros está errada = tradução é feita top down, fazer uma segunda passagem encontrando melhorias
 - usar uma tabela de registradores. Está sendo usado? Variável está salva na memória? Onde?
+- se next quadruple arg1 == output, otimiza
 - conferir se a posição da memória está correta nos escopos diferentes
-- conferir incrementadas na condição de loop do while
-- registrador fp (r2)
 - stack spilling (limitar registradores) - linha 52 (getnextfreeregs)
-- grafo de chamadas
 - grafo de cores para registradores
 - marcar variáveis que precisam ser salvas na memória
 - liveness analysis
 - Analisar uso do registrador após as chamadas de função
-- funcoes auxiliares de manipulação de pilha
 
 - gerador de código assembly
 - gerador de código binário

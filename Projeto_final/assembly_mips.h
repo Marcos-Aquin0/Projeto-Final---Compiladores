@@ -40,6 +40,18 @@ int getNextFreeReg(RegisterMapping* regs, int count);
 int getRegisterIndexFromName(const char* name);
 void updateCurrentFunction(const char* funcName);
 void checkNextQuadruple(FILE* inputFile, long* filePos, QuadrupleInfo* nextQuad);
+void collectFunctionInfo(void);
 void generateAssembly(FILE* inputFile);
+
+// Funções para manipulação de pilha
+void pushRegister(FILE* output, int reg, int* stackOffset, int* lineIndex);
+void popRegister(FILE* output, int reg, int* stackOffset, int* lineIndex);
+int getParameterOffset(int paramIndex);
+void loadParameter(FILE* output, int paramIndex, int destReg, int* lineIndex);
+void setupFrame(FILE* output, int* lineIndex, int* stackOffset);
+void restoreFrame(FILE* output, int* lineIndex, int* stackOffset);
+void saveCallerSavedRegs(FILE* output, int* lineIndex, int* stackOffset);
+void restoreCallerSavedRegs(FILE* output, int* lineIndex, int* stackOffset);
+
 
 #endif
