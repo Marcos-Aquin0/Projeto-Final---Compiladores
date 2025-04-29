@@ -513,18 +513,6 @@ void restoreCallerSavedRegs(FILE* output, int* lineIndex, int* stackOffset) {
     }
 }
 
-// void collectFunctionInfo(){
-
-//     //cria tabela para funções
-//     //olhar para a tabela de simbolos procurando funcoes BucketList->idType = "function" e insere na primeira coluna de funcao.
-//     //uma coluna de qual funcoes elas chamam, olha para a tabela de simbolos procura BucketList->scope == nome_funcao, e a partir disso pega BucketList->name, essa é a função que é chamada
-//     // para inserir na ordem de chamada, vai olhar BucketList->memlocation, considerando a parte do escopo que ja foi analisada. se estou na main, por exemplo, vou começar buscando a partir da posição dela, quando nome da funcao é main e o escopo é global, para funcoes com escopo main.
-//     //nova coluna com quantidade de parametros e quais parametros, olha para paramlist da arvore sintatica
-//     //nova coluna com variaveis locais, olha para a arvore sintatica e busca LocalDecl
-//     //por fim, uma nova tabela com linhas e colunas nxn com nomes das funcoes, se a funcao da linha i chama a funcao da coluna j, deve ter os argumentos da arglist da arvore como uma lista ali, caso contrario apenas "-"    
-//     //no final imprimir essas duas tabelas
-// }
-
 void collectFunctionInfo() {
     printf("\n=== ANÁLISE DE FUNÇÕES ===\n\n");
     
