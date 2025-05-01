@@ -82,6 +82,36 @@ static void clearErrorTracker(void) {
     }
 }
 
+// Verifica se a expressão em um comando return está declarada
+static void checkReturnStatement(ASTNode* node) {
+    if (!node || !node->left) return;
+    
+    ASTNode* returnExpr = node->left;
+    
+    // Se o retorno é uma variável simples
+    if (returnExpr->type == NODE_VAR && returnExpr->value) {
+        BucketList l = st_lookup(returnExpr->value);
+        if (!l && !errorAlreadyReported(returnExpr->value, node->lineno)) {
+            printError("Erro semântico: Variável '%s' usada em comando return não foi declarada (linha %d)",
+                    returnExpr->value, node->lineno);
+            semanticErrorCount++;
+        }
+    }
+    // Se o retorno é uma expressão mais complexa
+    else if (returnExpr->type == NODE_EXPR || 
+             returnExpr->type == NODE_SUM_EXPR ||
+             returnExpr->type == NODE_TERM) {
+        validateExpressionVariables(returnExpr);
+    }
+    // Se o retorno é um acesso a array
+    else if (returnExpr->type == NODE_ARRAY_ACCESS) {
+        checkArrayAccess(returnExpr);
+    }
+    // Se o retorno é uma chamada de função
+    else if (returnExpr->type == NODE_ACTIVATION) {
+        checkFunctionCall(returnExpr);
+    }
+}
 // Função principal de análise semântica
 void semanticAnalysis(ASTNode* node) {
     if (node == NULL) {
@@ -109,6 +139,50 @@ void semanticAnalysis(ASTNode* node) {
         case NODE_ARRAY_ACCESS:
             checkArrayAccess(node);
             break;
+        
+        case NODE_SIMP_EXPR:
+            printf("DEBUG - NODE_SIMP_EXPR encontrado na linha %d\n", node->lineno);
+            
+            // Verificar se o filho esquerdo é uma variável
+            if (node->left && node->left->type == NODE_VAR && node->left->value) {
+                printf("  Variável esquerda: %s\n", node->left->value);
+                // Verificar se a variável foi declarada
+                BucketList l = st_lookup(node->left->value);
+                if (!l && !errorAlreadyReported(node->left->value, node->lineno)) {
+                    printError("Erro semântico: Variável '%s' usada em comparação não foi declarada (linha %d)",
+                            node->left->value, node->lineno);
+                    semanticErrorCount++;
+                }
+            }
+            
+            // Verificar o operador relacional (filho direito)
+            if (node->right && node->right->type == NODE_RELATIONAL) {
+                printf("  Operador relacional encontrado\n");
+                
+                // Verificar o operador de comparação
+                if (node->right->value) {
+                    printf("  Operador: %s\n", node->right->value);
+                }
+                
+                // Verificar o valor/variável direita (pode ser Factor ou outra Var)
+                if (node->right->right) {
+                    if (node->right->right->type == NODE_VAR && node->right->right->value) {
+                        printf("  Variável direita: %s\n", node->right->right->value);
+                        // Verificar se a variável foi declarada
+                        BucketList l = st_lookup(node->right->right->value);
+                        if (!l && !errorAlreadyReported(node->right->right->value, node->lineno)) {
+                            printError("Erro semântico: Variável '%s' usada em comparação não foi declarada (linha %d)",
+                                    node->right->right->value, node->lineno);
+                            semanticErrorCount++;
+                        }
+                    } 
+                    else if (node->right->right->type == NODE_FACTOR) {
+                        printf("  Constante direita: %s\n", 
+                              node->right->right->value ? node->right->right->value : "desconhecido");
+                    }
+                }
+            }
+            break;
 
         case NODE_ACTIVATION:
             checkFunctionCall(node);
@@ -126,7 +200,9 @@ void semanticAnalysis(ASTNode* node) {
                 hasDeclaration = 1;
             }
             break;
-
+        case NODE_RETURN_DECL:
+            checkReturnStatement(node);
+            break;
         default:
             break;
     }
