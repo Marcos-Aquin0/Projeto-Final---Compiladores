@@ -141,11 +141,11 @@ void semanticAnalysis(ASTNode* node) {
             break;
         
         case NODE_SIMP_EXPR:
-            printf("DEBUG - NODE_SIMP_EXPR encontrado na linha %d\n", node->lineno);
+            // printf("DEBUG - NODE_SIMP_EXPR encontrado na linha %d\n", node->lineno);
             
             // Verificar se o filho esquerdo é uma variável
             if (node->left && node->left->type == NODE_VAR && node->left->value) {
-                printf("  Variável esquerda: %s\n", node->left->value);
+                // printf("  Variável esquerda: %s\n", node->left->value);
                 // Verificar se a variável foi declarada
                 BucketList l = st_lookup(node->left->value);
                 if (!l && !errorAlreadyReported(node->left->value, node->lineno)) {
@@ -157,17 +157,17 @@ void semanticAnalysis(ASTNode* node) {
             
             // Verificar o operador relacional (filho direito)
             if (node->right && node->right->type == NODE_RELATIONAL) {
-                printf("  Operador relacional encontrado\n");
+                // printf("  Operador relacional encontrado\n");
                 
                 // Verificar o operador de comparação
                 if (node->right->value) {
-                    printf("  Operador: %s\n", node->right->value);
+                    // printf("  Operador: %s\n", node->right->value);
                 }
                 
                 // Verificar o valor/variável direita (pode ser Factor ou outra Var)
                 if (node->right->right) {
                     if (node->right->right->type == NODE_VAR && node->right->right->value) {
-                        printf("  Variável direita: %s\n", node->right->right->value);
+                        // printf("  Variável direita: %s\n", node->right->right->value);
                         // Verificar se a variável foi declarada
                         BucketList l = st_lookup(node->right->right->value);
                         if (!l && !errorAlreadyReported(node->right->right->value, node->lineno)) {
@@ -177,8 +177,8 @@ void semanticAnalysis(ASTNode* node) {
                         }
                     } 
                     else if (node->right->right->type == NODE_FACTOR) {
-                        printf("  Constante direita: %s\n", 
-                              node->right->right->value ? node->right->right->value : "desconhecido");
+                        // printf("  Constante direita: %s\n", 
+                            //   node->right->right->value ? node->right->right->value : "desconhecido");
                     }
                 }
             }
