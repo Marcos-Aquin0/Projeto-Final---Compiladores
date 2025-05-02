@@ -21,6 +21,7 @@ OperationType getOpTypeFromString(const char* op) {
     if (strcmp(op, "LTE") == 0) return OP_LTE;  
     if (strcmp(op, "GTE") == 0) return OP_GTE;  
     if (strcmp(op, "PARAM") == 0) return OP_PARAM;
+    if (strcmp(op, "ARGUMENT") == 0) return OP_ARGUMENT;
     if (strcmp(op, "CALL") == 0) return OP_CALL;
     if (strcmp(op, "ARRAY_LOAD") == 0) return OP_ARRAY_LOAD;
     if (strcmp(op, "ARRAY_STORE") == 0) return OP_ARRAY_STORE;
@@ -349,6 +350,20 @@ void restoreCallerSavedRegs(FILE* output, int* lineIndex, int* stackOffset) {
     }
 }
 
+// Nova função: Aloca espaço para parâmetros de funções
+void allocateParameterSpace(FILE* output, int paramCount, int* lineIndex, int* stackOffset) {
+    if (paramCount > 0) {
+        int totalSize = paramCount * 4;  // Cada parâmetro ocupa 4 bytes
+        
+        fprintf(output, "%d - addi $r1 $r1 -%d  # aloca espaço para %d parâmetros\n", 
+                (*lineIndex)++, totalSize, paramCount);
+        
+        *stackOffset -= totalSize;
+        DEBUG_ASSEMBLY("DEBUG - allocateParameterSpace: Alocados %d bytes para %d parâmetros, stack offset agora é %d\n", 
+               totalSize, paramCount, *stackOffset);
+    }
+}
+
 // Função principal para gerar o código assembly a partir do arquivo de entrada
 void generateAssembly(FILE* inputFile) {
     FILE* output = fopen("Output/assembly.asm", "w");
@@ -358,7 +373,7 @@ void generateAssembly(FILE* inputFile) {
     // Variável para controlar o deslocamento da pilha
     int stackOffset = 0;
     
-    // Ignorar o cabeçalho (4 linhas)
+    // Ignora o cabeçalho (4 linhas)
     char buffer[256];
     for (int i = 0; i < 4; i++) {
         if (fgets(buffer, sizeof(buffer), inputFile) == NULL) {
@@ -372,6 +387,7 @@ void generateAssembly(FILE* inputFile) {
     QuadrupleInfo quad, nextQuad;
     int lineIndex = 0;
     long filePos;
+    int paramCount = 0;  // Contador para parâmetros de função
 
     fprintf(output, "%d - nop 1\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
     int ehPrimeiraFuncao = 1;
@@ -400,6 +416,7 @@ void generateAssembly(FILE* inputFile) {
         // Atualiza a função atual quando encontra uma definição de função
         if (strcmp(quad.op, "FUNCTION") == 0) {
             updateCurrentFunction(quad.arg1);
+            paramCount = 0;  // Reset parameter count for new function
         }
 
         // Processa a quádrupla lida, para saber o operador e os index
@@ -569,6 +586,10 @@ void generateAssembly(FILE* inputFile) {
                 
                 // Ao entrar em uma nova função, registradores não estão preservados inicialmente
                 markRegistersForPreservation(0);
+                
+                // Aloca espaço para parâmetros no início da função
+                // Será atualizado quando encontrarmos todos os parâmetros
+                paramCount = 0;
                 break;
 
             case OP_RETURN:
@@ -587,20 +608,32 @@ void generateAssembly(FILE* inputFile) {
                 fprintf(output, "%d - # fim da função %s\n", lineIndex++, quad.arg1);
                 break;
 
-            case OP_PARAM:
+            case OP_ARGUMENT: // Alterado de OP_PARAM para OP_ARGUMENT
                 {
                     int paramNum = atoi(quad.arg2);
                     int destReg = 32 + paramNum; // a0, a1, etc.
                     
                     // Avoid redundant moves
                     if (destReg != r1) {
-                        fprintf(output, "%d - move $r%d $r%d # param %d: %s\n", 
+                        fprintf(output, "%d - move $r%d $r%d # argument %d: %s\n", 
                                 lineIndex++, destReg, r1, paramNum, quad.arg1);
                     } else {
                         // Parameter already in correct register, just add comment
-                        fprintf(output, "%d - # param %d: %s já está em $r%d\n", 
+                        fprintf(output, "%d - # argument %d: %s já está em $r%d\n", 
                                 lineIndex++, paramNum, quad.arg1, destReg);
                     }
+                    
+                    // Atualiza a contagem de parâmetros se necessário
+                    if (paramNum >= paramCount) {
+                        paramCount = paramNum + 1; // +1 porque os parâmetros começam do zero
+                        
+                        // Aloca espaço para os parâmetros na pilha
+                        // Nota: isso será feito ao final quando soubermos todos os parâmetros
+                    }
+                    
+                    // Armazena o parâmetro na pilha para uso futuro
+                    fprintf(output, "%d - sw $r%d %d($r2)  # salva argument %d na pilha\n", 
+                            lineIndex++, destReg, getParameterOffset(paramNum), paramNum);
                 }
                 break;
 
@@ -613,6 +646,12 @@ void generateAssembly(FILE* inputFile) {
                     fprintf(output, "%d - move $r0 $r32\n", lineIndex++); // out r0 (registrador reservado para output)
                     fprintf(output, "%d - out $r0\n", lineIndex++); // out r0 (registrador reservado para output)
                 } else {
+                    // Aloca espaço para os argumentos na pilha antes da chamada
+                    int argCount = atoi(quad.arg2);
+                    if (argCount > 0) {
+                        allocateParameterSpace(output, argCount, &lineIndex, &stackOffset);
+                    }
+                    
                     // Salva registradores que podem ser modificados pela chamada de função
                     saveCallerSavedRegs(output, &lineIndex, &stackOffset);
                     
@@ -621,6 +660,14 @@ void generateAssembly(FILE* inputFile) {
                     
                     // Restaura os registradores salvos
                     restoreCallerSavedRegs(output, &lineIndex, &stackOffset);
+                    
+                    // Libera espaço dos argumentos após chamada
+                    if (argCount > 0) {
+                        int totalSize = argCount * 4;
+                        fprintf(output, "%d - addi $r1 $r1 %d  # libera espaço de %d parâmetros\n", 
+                                lineIndex++, totalSize, argCount);
+                        stackOffset += totalSize;
+                    }
                     
                     // Copia o valor de retorno (v0) para o resultado, verifica se não é redundante
                     if (strcmp(quad.result, "-") != 0 && r3 != 44) { // r44 é v0, evita move para o mesmo registrador

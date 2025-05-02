@@ -27,6 +27,7 @@ typedef enum {
     OP_RETURN,      // Retorno de função
     OP_ARRAY_LOAD,  // Carrega valor de um array
     OP_ARRAY_STORE, // Armazena valor em um array
+    OP_ARGUMENT,    // Argumento para função (alterado de PARAM para ARGUMENT)
     OP_ALLOC,       // Aloca memória para variáveis locais
     OP_FUNCTION,    // Definição de função
     OP_END          // Fim de função

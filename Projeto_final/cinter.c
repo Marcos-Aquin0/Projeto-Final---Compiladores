@@ -33,6 +33,7 @@ const char* getOpName(OperationType op) {
         case OP_JUMPFALSE: return "JUMPFALSE";
         case OP_JUMPTRUE: return "JUMPTRUE";
         case OP_CALL: return "CALL";
+        case OP_ARGUMENT: return "ARGUMENT"; // Alterado de PARAM para ARGUMENT
         case OP_PARAM: return "PARAM";
         case OP_RETURN: return "RETURN";
         case OP_ARRAY_LOAD: return "ARRAY_LOAD";
@@ -201,6 +202,7 @@ void printIRCode(FILE* listing) {
             case OP_CALL: strcpy(op_str, "CALL"); break;
             case OP_PARAM: strcpy(op_str, "PARAM"); break;
             case OP_RETURN: strcpy(op_str, "RETURN"); break;
+            case OP_ARGUMENT: strcpy(op_str, "ARGUMENT"); break; // Alterado de PARAM para ARGUMENT
             case OP_ARRAY_LOAD: strcpy(op_str, "ARRAY_LOAD"); break;
             case OP_ARRAY_STORE: strcpy(op_str, "ARRAY_STORE"); break;
             case OP_ALLOC: strcpy(op_str, "ALLOC"); break;
@@ -311,6 +313,9 @@ void printThreeAddressCode(FILE* listing) {
                     // Chamada de função normal com atribuição
                     sprintf(line, "%s = call %s, %s", current->result, current->arg1, current->arg2);
                 }
+                break;
+            case OP_ARGUMENT: // Alterado de OP_PARAM para OP_ARGUMENT
+                sprintf(line, "argument %s", current->arg1);
                 break;
             case OP_PARAM:
                 sprintf(line, "param %s", current->arg1);
@@ -666,6 +671,42 @@ void genReturnCode(ASTNode* returnStmt) {
     }
 }
 
+// Função para processar parâmetros de uma declaração de função
+void processParamDeclarations(ASTNode* params) {
+    if (params == NULL) return;
+    
+    DEBUG_IR("Processando parâmetros de função, nó tipo: %s", getNodeTypeName(params->type));
+    
+    // Processa o nó de parâmetros
+    if (params->type == NODE_PARAMS) {
+        // Processa a lista de parâmetros
+        processParamDeclarations(params->left);
+    }
+    // Processa a lista de parâmetros
+    else if (params->type == NODE_PARAM_LIST) {
+        if(params->left && params->left->type == NODE_PARAM_LIST) processParamDeclarations(params->left);
+        if (params->left && params->left->type == NODE_PARAM) {
+            ASTNode* param = params->left;
+            if (param->value) {
+                DEBUG_IR("  Declarando parâmetro: %s", param->value);
+                genQuad(OP_PARAM, param->value, NULL, NULL);
+            }
+        }
+        
+        // Depois processa o resto da lista (ordem importante)
+        if (params->right) {
+            processParamDeclarations(params->right);
+        }
+    }
+    // Processa um parâmetro individual
+    else if (params->type == NODE_PARAM) {
+        if (params->value) {
+            DEBUG_IR("  Declarando parâmetro: %s", params->value);
+            genQuad(OP_PARAM, params->value, NULL, NULL);
+        }
+    }
+}
+
 // Gera código para declaração de função
 void genFunctionCode(ASTNode* funcDecl) {
     if (funcDecl == NULL || funcDecl->value == NULL) return;
@@ -674,6 +715,12 @@ void genFunctionCode(ASTNode* funcDecl) {
     
     // Marca o início da função
     genQuad(OP_FUNCTION, funcDecl->value, NULL, NULL);
+    
+    // Processa os parâmetros da função (se houver)
+    if (funcDecl->right->left != NULL) {
+        DEBUG_IR("  Processando parâmetros da função %s", funcDecl->value);
+        processParamDeclarations(funcDecl->right->left);
+    }
     
     // Processa o corpo da função
     generateIRCode(funcDecl->right);
@@ -703,7 +750,7 @@ void processArguments(ASTNode* argNode, int* argCount) {
             // Passa o resultado como parâmetro
             char argNum[12];
             sprintf(argNum, "%d", *argCount);
-            genQuad(OP_PARAM, funcResult, argNum, NULL);
+            genQuad(OP_ARGUMENT, funcResult, argNum, NULL);
             
             (*argCount)++;
         } 
@@ -720,7 +767,7 @@ void processArguments(ASTNode* argNode, int* argCount) {
             // Passa o resultado como parâmetro
             char argNum[12];
             sprintf(argNum, "%d", *argCount);
-            genQuad(OP_PARAM, arrayResult, argNum, NULL);
+            genQuad(OP_ARGUMENT, arrayResult, argNum, NULL);
             
             (*argCount)++;
         }
@@ -738,7 +785,7 @@ void processArguments(ASTNode* argNode, int* argCount) {
             
             char argNum[12];
             sprintf(argNum, "%d", *argCount);
-            genQuad(OP_PARAM, exprResult, argNum, NULL);
+            genQuad(OP_ARGUMENT, exprResult, argNum, NULL);
             
             (*argCount)++;
         }
@@ -763,7 +810,7 @@ void processArguments(ASTNode* argNode, int* argCount) {
             
             char argNum[12];
             sprintf(argNum, "%d", *argCount);
-            genQuad(OP_PARAM, funcResult, argNum, NULL);
+            genQuad(OP_ARGUMENT, funcResult, argNum, NULL);
             
             (*argCount)++;
         }
@@ -778,7 +825,7 @@ void processArguments(ASTNode* argNode, int* argCount) {
             
             char argNum[12];
             sprintf(argNum, "%d", *argCount);
-            genQuad(OP_PARAM, arrayResult, argNum, NULL);
+            genQuad(OP_ARGUMENT, arrayResult, argNum, NULL);
             
             (*argCount)++;
         }
@@ -794,7 +841,7 @@ void processArguments(ASTNode* argNode, int* argCount) {
             
             char argNum[12];
             sprintf(argNum, "%d", *argCount);
-            genQuad(OP_PARAM, exprResult, argNum, NULL);
+            genQuad(OP_ARGUMENT, exprResult, argNum, NULL);
             
             (*argCount)++;
         }
@@ -811,7 +858,7 @@ void processArguments(ASTNode* argNode, int* argCount) {
             
             char argNum[12];
             sprintf(argNum, "%d", *argCount);
-            genQuad(OP_PARAM, argResult, argNum, NULL);
+            genQuad(OP_ARGUMENT, argResult, argNum, NULL);
             
             (*argCount)++;
         }
@@ -830,7 +877,7 @@ void processArguments(ASTNode* argNode, int* argCount) {
             
             char argNum[12];
             sprintf(argNum, "%d", *argCount);
-            genQuad(OP_PARAM, funcResult, argNum, NULL);
+            genQuad(OP_ARGUMENT, funcResult, argNum, NULL);
             
             (*argCount)++;
         }
@@ -845,7 +892,7 @@ void processArguments(ASTNode* argNode, int* argCount) {
             
             char argNum[12];
             sprintf(argNum, "%d", *argCount);
-            genQuad(OP_PARAM, arrayResult, argNum, NULL);
+            genQuad(OP_ARGUMENT, arrayResult, argNum, NULL);
             
             (*argCount)++;
         }
@@ -862,7 +909,7 @@ void processArguments(ASTNode* argNode, int* argCount) {
             
             char argNum[12];
             sprintf(argNum, "%d", *argCount);
-            genQuad(OP_PARAM, exprResult, argNum, NULL);
+            genQuad(OP_ARGUMENT, exprResult, argNum, NULL);
             
             (*argCount)++;
         }
@@ -1049,7 +1096,11 @@ void genVarDeclCode(ASTNode* varDecl) {
         DEBUG_IR("ERRO: Declaração de variável sem nome!");
         return;
     }
-    
+    //se a variavel nao for do escopo global, retorna
+    // char* varInfo = current_scope();
+    // if (strcmp(varInfo,"global") != 0) {
+    //     return;
+    // }
     
     DEBUG_IR("Processando declaração de variável: %s (linha %d)", varName, currentSourceLine);
         
@@ -1310,7 +1361,7 @@ void optimizeIRCode(void) {
             }
             
             // Caso 2: ASSIGN seguido de PARAM com o mesmo resultado/argumento
-            if (current->op == OP_ASSIGN && next->op == OP_PARAM && 
+            if (current->op == OP_ASSIGN && next->op == OP_ARGUMENT && 
                 current->result && next->arg1 && 
                 strcmp(current->result, next->arg1) == 0) {
                 
