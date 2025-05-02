@@ -112,6 +112,9 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 - modelagem sysml faltante e relatório
 - otimização: uso de regs - olhar na tabela de simbolos para ver os escopos das variaveis e contar quantas vezes elas aparecem em cada escopo
 - otimização avançada: grafo de interferência
+- suporte para várias chamadas da mesma função
+- suporte para break em while
+- suporte para float
 
 ## Contribuidores
 
