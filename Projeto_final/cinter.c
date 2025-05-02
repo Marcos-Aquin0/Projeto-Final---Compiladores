@@ -1049,13 +1049,7 @@ void genVarDeclCode(ASTNode* varDecl) {
         DEBUG_IR("ERRO: Declaração de variável sem nome!");
         return;
     }
-    // Verifica se a variável está no escopo global
-    BucketList symbol = st_lookup_in_scope(varName, "global");
     
-    if (symbol == NULL) {
-        DEBUG_IR("Variável %s não encontrada no escopo global, pulando geração de código", varName);
-        return;
-    }
     
     DEBUG_IR("Processando declaração de variável: %s (linha %d)", varName, currentSourceLine);
         
