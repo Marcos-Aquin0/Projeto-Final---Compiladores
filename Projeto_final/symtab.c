@@ -1,5 +1,6 @@
 #include "globals.h"
 #include "symtab.h"
+#include "semantic.h"
 
 #define SIZE 211 //tamanho da tabela hash
 #define SHIFT 4 //deslocamento para a função hash
@@ -71,7 +72,6 @@ void st_insert(char *name, int lineno, int loc, char *scope, char *idType, char 
 }
 
 // Função para adicionar informação de um parâmetro a uma função
-// Function to add parameter information to a function
 void add_param_info(char *func_name, char *param_type, int is_array) {
     // First check if this is a function call in the current scope
     char *current = current_scope();
@@ -140,7 +140,6 @@ BucketList st_lookup_in_scope(char *name, char *scope) {
     return l;
 }
 
-// Nova função para buscar um símbolo em todos os escopos (atual e global)
 BucketList st_lookup_all_scopes(char *name, char *scope) {
     if (name == NULL || scope == NULL) {
         return NULL;
@@ -215,8 +214,7 @@ void printSymTab(FILE *listing) {
     }
 }
 
-static ScopeNode *scope_stack = NULL;
-// scope_stack: Declara uma pilha de escopos para gerenciar os escopos aninhados. Inicialmente, a pilha está vazia (NULL).
+static ScopeNode *scope_stack = NULL; // scope_stack: Declara uma pilha de escopos para gerenciar os escopos aninhados. Inicialmente, a pilha está vazia (NULL).
 
 // Função para empilhar um novo escopo
 void push_scope(char *scope_name) {
@@ -437,8 +435,6 @@ void processArguments_Func(ASTNode* argNode, char* funcName, int* argCount) {
     }
 }
 
-
-
 //um contador estático para manter o controle da localização na memória
 static int location = 0;
 
@@ -448,7 +444,7 @@ static void traverse(ASTNode *t,
                     void (*preProc)(ASTNode *),
                     void (*postProc)(ASTNode *)) {
     if (t != NULL) {
-        // Verifica se o nodo introduz um novo escopo
+        // Verifica se o nó introduz um novo escopo
         if (t->type == NODE_FUNC_DECL) {
             // Para funções, usamos o nome da função como escopo
             if (t->left && t->left->right && t->left->right->value) {
@@ -503,12 +499,13 @@ static void traverse(ASTNode *t,
                         }
                     } else {
                         // Se a função não existe, registra-a
-                        DEBUG_SYMTAB("Função '%s' não encontrada, registrando em global e escopo atual", funcName);
-                        st_insert(funcName, t->lineno, location++, "global", "func", "int", 0, 0);
+                        DEBUG_SYMTAB("Função '%s' não encontrada", funcName);
+                        // st_insert(funcName, t->lineno, location++, "global", "func", "int", 0, 0);
                         
-                        if (strcmp(scope, "global") != 0) {
-                            st_insert(funcName, t->lineno, location++, scope, "func", "int", 0, 0);
-                        }
+                        // if (strcmp(scope, "global") != 0) {
+                        //     st_insert(funcName, t->lineno, location++, scope, "func", "int", 0, 0);
+                        // }
+                        return;
                     }
                     
                     if (t->right != NULL) {
@@ -597,7 +594,11 @@ static void insertNode(ASTNode *t) {
         case NODE_VAR:
             // Busca em todos os escopos relevantes (atual e global)
             existing = st_lookup_all_scopes(t->value, scope);
-            
+            // if(existing != NULL && strcmp(existing->idType, "func") == 0) {
+            //     printError("Erro semântico: '%s' é uma função, não uma variável", t->value);
+            //     semanticErrorCount++;
+            //     return;
+            // }
             if (existing != NULL) {
                 // Se o símbolo existe em algum escopo acessível, adiciona a linha de uso
                 LineList lines = existing->lines;

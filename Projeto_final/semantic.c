@@ -15,7 +15,7 @@ static void checkLastFunctionIsMain(void);
 static void checkArrayAccess(ASTNode* node);
 static void validateExpressionVariables(ASTNode* expr);
 // variáveis globias
-int semanticErrorCount = 0;  // Contador para erros semânticos
+semanticErrorCount = 0;  // Contador para erros semânticos
 static int hasMainFunction = 0;  // flag para verificar existenia da funcao main
 static int hasDeclaration = 0;   // Flag para saber se tem pelo menos uma declaração no código
 static ASTNode* lastFunctionNode = NULL;  // Ponteiro para último nó de função na AST
@@ -125,6 +125,17 @@ void semanticAnalysis(ASTNode* node) {
 
     switch (node->type) {
         case NODE_VAR_DECL:
+            if (node->value != NULL && node->idType != NULL) {
+                checkVariableDeclaration(node);
+            }
+            break;
+        case NODE_VAR:
+            BucketList existing = st_lookup_all_scopes(node->value, "global");
+            if(existing != NULL && strcmp(existing->idType, "func") == 0) {
+                printError("Erro semântico: '%s' é uma função, não uma variável", node->value);
+                semanticErrorCount++;
+                return;
+            }
             if (node->value != NULL && node->idType != NULL) {
                 checkVariableDeclaration(node);
             }
