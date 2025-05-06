@@ -9,6 +9,9 @@
 #define REG_OUT  0   // r0 - registrador de saída (OUT)
 #define REG_RA   31  // r31 - return address (JAL)
 #define REG_ZERO 63  // r63 - sempre contém 0
+#define REG_SP  2   // r2 - stack pointer (SP)
+#define REG_FP  1   // r1 - frame pointer (FP)
+#define REG_IN 3   // r3 - registrador de entrada (IN)
 
 // Estrutura para armazenar uma quádrupla durante a leitura do arquivo
 typedef struct {
@@ -29,7 +32,7 @@ typedef struct {
 } RegisterMapping;
 
 static RegisterMapping paramRegs[12]; // a0-a11
-static RegisterMapping tempRegs[28];  // t0-t27
+static RegisterMapping tempRegs[27];  // t0-t26
 static RegisterMapping returnRegs[12]; // v0-v11
 
 static char currentFunction[50] = ""; // Função atual sendo processada

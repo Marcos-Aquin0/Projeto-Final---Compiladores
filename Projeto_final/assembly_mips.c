@@ -40,7 +40,7 @@ void initRegisterMappings() {
         returnRegs[i].preserved = 0; // inicialmente, não precisam ser preservados
         
     }
-    for (i = 0; i < 28; i++) {
+    for (i = 0; i < 27; i++) {
         tempRegs[i].isUsed = 0;
     }
 }
@@ -103,11 +103,11 @@ int getRegisterIndex(char* name) {
     // Verifica se é um valor constante
     if (isdigit(name[0]) || (name[0] == '-' && isdigit(name[1]))) {
         // Usa um registrador temporário para constantes
-        int tempIdx = getNextFreeReg(tempRegs, 12);
+        int tempIdx = getNextFreeReg(tempRegs, 20);
         sprintf(tempRegs[tempIdx].varName, "%s", name);
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Constante '%s' mapeada para reg temporário t%d (r%d)\n", 
-               name, tempIdx, 3 + tempIdx);
-        return 3 + tempIdx; // t0-t27
+               name, tempIdx, 4 + tempIdx);
+        return 4 + tempIdx; // t0-t19
     }
     
     // Verifica na tabela de símbolos se é um parâmetro ou variável local
@@ -152,8 +152,8 @@ int getRegisterIndex(char* name) {
             for (int i = 0; i < 20; i++) {
                 if (tempRegs[i].isUsed && strcmp(tempRegs[i].varName, name) == 0) {
                     DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Variável local '%s' já mapeada para t%d (r%d)\n", 
-                           name, i, 3 + i);
-                    return 3 + i; // t0-t19
+                           name, i, 4 + i);
+                    return 4 + i; // t0-t19
                 }
             }
             
@@ -161,16 +161,16 @@ int getRegisterIndex(char* name) {
             int tempIdx = getNextFreeReg(tempRegs, 20);
             sprintf(tempRegs[tempIdx].varName, "%s", name);
             DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Nova variável local '%s' mapeada para t%d (r%d)\n", 
-                   name, tempIdx, 3 + tempIdx);
-            return 3 + tempIdx; // t0-t19
+                   name, tempIdx, 4 + tempIdx);
+            return 4 + tempIdx; // t0-t19
         }
         else if (strcmp(symbol->idType, "var") == 0 && strcmp(symbol->scope, "global") == 0){
-            // se a variavel for global, t20 a t27
-            for (int i = 20; i < 28; i++) {
+            // se a variavel for global, t20 a t26
+            for (int i = 20; i < 27; i++) {
                 if (tempRegs[i].isUsed && strcmp(tempRegs[i].varName, name) == 0) {
                     DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Variável global '%s' já mapeada para t%d (r%d)\n", 
                            name, i, 3 + i);
-                    return 3 + i; // t20-t27
+                    return 4 + i; // t20-t26
                 }
             }
             // Nova variável global, mapeia para o próximo registrador livre
@@ -178,7 +178,7 @@ int getRegisterIndex(char* name) {
             sprintf(tempRegs[tempIdx].varName, "%s", name);
             DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Nova variável local '%s' mapeada para t%d (r%d)\n", 
                    name, tempIdx, 3 + tempIdx);
-            return 3 + tempIdx; // t20-t27
+            return 4 + tempIdx; // t20-t27
         }
     } else {
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Símbolo '%s' não encontrado na tabela de símbolos\n", name);
@@ -187,10 +187,10 @@ int getRegisterIndex(char* name) {
     // Temporários genéricos (geralmente variáveis com nome tX)
     if (name[0] == 't' && isdigit(name[1])) {
         int tempNum = atoi(&name[1]);
-        int reg = 3 + (tempNum % 28); // Use todos os 28 registradores temporários
+        int reg = 4 + (tempNum % 27); // Use todos os 27 registradores temporários
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Temporário '%s' mapeado ciclicamente para t%d (r%d)\n", 
-               name, tempNum % 28, reg);
-        return reg; // Mapeia para t0-t27 de forma cíclica
+               name, tempNum % 27, reg);
+        return reg; // Mapeia para t0-t26 de forma cíclica
     }
     
     // Valores de retorno
@@ -299,10 +299,12 @@ void analyzeRegisterUsage(const char* assemblyFilePath) {
             strcpy(regUsage[i].regName, "ra");
         else if (i == 63)
             strcpy(regUsage[i].regName, "zero");
-        else if (i >= 3 && i <= 22)
-            sprintf(regUsage[i].regName, "tl%d", i - 3);
-        else if (i >= 23 && i <= 30)
-            sprintf(regUsage[i].regName, "tg%d", i-23);
+        else if (i == 3)
+            strcpy(regUsage[i].regName, "in");
+        else if (i >= 4 && i <= 23)
+            sprintf(regUsage[i].regName, "tl%d", i - 4);
+        else if (i >= 24 && i <= 30)
+            sprintf(regUsage[i].regName, "tg%d", i-24);
         else if (i >= 32 && i <= 43)
             sprintf(regUsage[i].regName, "a%d", i - 32);
         else if (i >= 44 && i <= 55)
@@ -333,26 +335,44 @@ void analyzeRegisterUsage(const char* assemblyFilePath) {
             char regPattern[10];
             sprintf(regPattern, "$r%d", i);
             
-            if (strstr(buffer, regPattern) != NULL) {
-                // Atualiza informações de uso do registrador
-                if (!regUsage[i].isUsed) {
-                    regUsage[i].isUsed = 1;
-                    regUsage[i].firstUsedAt = lineNum;
-                    
-                    // Determinar finalidade baseado no registrador
-                    if (i == 0) strcpy(regUsage[i].purpose, "output");
-                    else if (i == 1) strcpy(regUsage[i].purpose, "stack pointer");
-                    else if (i == 2) strcpy(regUsage[i].purpose, "frame pointer");
-                    else if (i == 31) strcpy(regUsage[i].purpose, "return address");
-                    else if (i == 63) strcpy(regUsage[i].purpose, "zero constant");
-                    else if (i >= 3 && i <= 30) strcpy(regUsage[i].purpose, "temporary");
-                    else if (i >= 32 && i <= 43) strcpy(regUsage[i].purpose, "argument");
-                    else if (i >= 44 && i <= 55) strcpy(regUsage[i].purpose, "return value");
-                    else strcpy(regUsage[i].purpose, "other");
-                }
+            // Verifica se o registro é realmente usado na instrução, não apenas mencionado em comentário
+            char* regPos = strstr(buffer, regPattern);
+            if (regPos != NULL) {
+                // Verifica se o registro aparece antes de qualquer "#" (comentário)
+                char* commentPos = strstr(buffer, "#");
                 
-                regUsage[i].lastUsedAt = lineNum;
-                regUsage[i].useCount++;
+                // Se não há comentário ou o registro aparece antes do comentário
+                if (commentPos == NULL || regPos < commentPos) {
+                    // Verifica se é um verdadeiro uso (não parte de outro nome de registro)
+                    // Ex: $r3 vs $r30 - queremos detectar $r3, mas não como parte de $r30
+                    char nextChar = *(regPos + strlen(regPattern));
+                    if (nextChar == ' ' || nextChar == ',' || nextChar == '\n' || 
+                        nextChar == ')' || nextChar == '\0' || nextChar == '\r') {
+                        
+                        // Atualiza informações de uso do registrador
+                        if (!regUsage[i].isUsed) {
+                            regUsage[i].isUsed = 1;
+                            regUsage[i].firstUsedAt = lineNum;
+                            
+                            // Determinar finalidade baseado no registrador
+                            if (i == 0) strcpy(regUsage[i].purpose, "output");
+                            else if (i == 1) strcpy(regUsage[i].purpose, "stack pointer");
+                            else if (i == 2) strcpy(regUsage[i].purpose, "frame pointer");
+                            else if (i == 31) strcpy(regUsage[i].purpose, "return address");
+                            else if (i == 63) strcpy(regUsage[i].purpose, "zero constant");
+                            else if (i == 3) strcpy(regUsage[i].purpose, "input");
+                            else if (i >= 4 && i <= 23) strcpy(regUsage[i].purpose, "temporary local");
+                            else if (i >= 24 && i <= 30) strcpy(regUsage[i].purpose, "temporary global");
+                            else if (i >= 32 && i <= 43) strcpy(regUsage[i].purpose, "argument");
+                            else if (i >= 44 && i <= 55) strcpy(regUsage[i].purpose, "return value");
+                            else if (i >= 56 && i <= 58) strcpy(regUsage[i].purpose, "temporary return value");
+                            else if (i >= 59 && i <= 62) strcpy(regUsage[i].purpose, "kernel register");
+                        }
+                        
+                        regUsage[i].lastUsedAt = lineNum;
+                        regUsage[i].useCount++;
+                    }
+                }
             }
         }
     }
@@ -377,7 +397,7 @@ void analyzeRegisterUsage(const char* assemblyFilePath) {
 
 // Calcula o deslocamento de um parâmetro na pilha
 int getParameterOffset(int paramIndex) {
-    return 4 * (paramIndex + 2); // +2 para o endereço de retorno e o frame pointer salvo
+    return 4 * (paramIndex + 1); // +1 por causa do fp atual
 }
 
 // Carrega um parâmetro da pilha para um registrador
@@ -395,9 +415,6 @@ void setupFrame(FILE* output, int* lineIndex, int* stackOffset) {
     
     // Salva o frame pointer atual
     pushRegister(output, 2, stackOffset, lineIndex);   // FP
-    
-    // Estabelece o novo frame pointer
-    fprintf(output, "%d - move $r2 $r1         # fp = sp\n", (*lineIndex)++);
     
     DEBUG_ASSEMBLY("DEBUG - setupFrame: Frame configurado, SP=%d, FP=SP\n", *stackOffset);
 }
@@ -445,8 +462,8 @@ void allocateArgumentSpace(FILE* output, int argumentCount, int* lineIndex, int*
     if (argumentCount > 0) {
         int totalSize = argumentCount * 4;  // Cada parâmetro ocupa 4 bytes
         
-        fprintf(output, "%d - addi $r1 $r1 -%d  # aloca espaço para %d argumentos\n", 
-                (*lineIndex)++, totalSize, argumentCount);
+        // fprintf(output, "%d - addi $r1 $r1 -%d  # aloca espaço para %d argumentos\n", 
+        //         (*lineIndex)++, totalSize, argumentCount);
         
         *stackOffset -= totalSize;
         DEBUG_ASSEMBLY("DEBUG - allocateArgumentSpace: Alocados %d bytes para %d argumentos, stack offset agora é %d\n", 
@@ -478,6 +495,8 @@ void generateAssembly(FILE* inputFile) {
     int lineIndex = 0;
     long filePos;
     int argumentCount = 0;  // Contador para parâmetros de função
+    int varLocalCount = 0;
+    int varGlobalCount = 0;
 
     fprintf(output, "%d - nop 1\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
     int ehPrimeiraFuncao = 1;
@@ -507,6 +526,7 @@ void generateAssembly(FILE* inputFile) {
         if (strcmp(quad.op, "FUNCTION") == 0) {
             updateCurrentFunction(quad.arg1);
             argumentCount = 0;  // Reset parameter count for new function
+            varLocalCount = 0;  // Reset local variable count for new function
         }
 
         // Processa a quádrupla lida, para saber o operador e os index
@@ -674,12 +694,17 @@ void generateAssembly(FILE* inputFile) {
                 // Configura o frame da função usando nossa nova função
                 setupFrame(output, &lineIndex, &stackOffset);
                 
+                checkNextQuadruple(inputFile, &filePos, &nextQuad);
+                if(getOpTypeFromString(nextQuad.op) != OP_PARAM){
+                    fprintf(output, "%d - move $r2 $r1         # fp = sp\n", lineIndex++);
+                }
                 // Ao entrar em uma nova função, registradores não estão preservados inicialmente
                 markRegistersForPreservation(0);
                 
                 // Aloca espaço para parâmetros no início da função
                 // Será atualizado quando encontrarmos todos os parâmetros
                 argumentCount = 0;
+                varLocalCount = 0;
                 break;
 
             case OP_RETURN:
@@ -702,15 +727,29 @@ void generateAssembly(FILE* inputFile) {
                 {
                     int argumentNum = atoi(quad.arg2);
                     int destReg = 32 + argumentNum; // a0, a1, etc.
+                    // Verifica se o argumento é uma variável local (armazenada na memória)
+                    BucketList symbol = NULL;
+                    if (strlen(currentFunction) > 0) {
+                        symbol = st_lookup_in_scope(quad.arg1, currentFunction);
+                    }
                     
-                    // Avoid redundant moves
-                    if (destReg != r1) {
-                        fprintf(output, "%d - move $r%d $r%d # argument %d: %s\n", 
-                                lineIndex++, destReg, r1, argumentNum, quad.arg1);
-                    } else {
-                        // Parameter already in correct register, just add comment
-                        fprintf(output, "%d - # argument %d: %s já está em $r%d\n", 
-                                lineIndex++, argumentNum, quad.arg1, destReg);
+                    // Se o argumento é uma variável local, precisamos carregar seu valor da memória
+                    if (symbol != NULL && strcmp(symbol->idType, "var") == 0) {
+                        // Primeiro carrega o valor da memória 
+                        // Carrega o endereço da variável (que já está em r1) para o registrador de argumento
+                        fprintf(output, "%d - lw $r%d 0($r%d)    # carrega valor da variável local '%s' para argument %d\n", 
+                                lineIndex++, destReg, r1, quad.arg1, argumentNum);
+                    } 
+                    //precisa ver a variavel global varglobalcount $gp 62
+                    else{
+                        if (destReg != r1) {
+                            fprintf(output, "%d - move $r%d $r%d # argument %d: %s\n", 
+                                    lineIndex++, destReg, r1, argumentNum, quad.arg1);
+                        } else {
+                            // Parameter already in correct register, just add comment
+                            fprintf(output, "%d - # argument %d: %s já está em $r%d\n", 
+                                    lineIndex++, argumentNum, quad.arg1, destReg);
+                        }
                     }
                     
                     // Atualiza a contagem de parâmetros se necessário
@@ -722,20 +761,27 @@ void generateAssembly(FILE* inputFile) {
                     }
                     
                     // Armazena o parâmetro na pilha para uso futuro
+                    fprintf(output, "%d - addi $r1 $r1 -4  # aloca espaço na pilha\n", lineIndex++);
                     fprintf(output, "%d - sw $r%d %d($r2)  # salva argument %d na pilha\n", 
-                            lineIndex++, destReg, getParameterOffset(argumentNum), argumentNum);
+                            lineIndex++, destReg, getParameterOffset(argumentNum + varLocalCount), argumentNum);
                 }
                 break;
 
             case OP_PARAM:
                 // Carrega o parâmetro da pilha para o registrador correspondente
                 loadParameter(output, argumentCount++, r1, &lineIndex);
+                checkNextQuadruple(inputFile, &filePos, &nextQuad);
+                if(getOpTypeFromString(nextQuad.op) != OP_PARAM){
+                    fprintf(output, "%d - move $r2 $r1         # fp = sp\n", lineIndex++);
+                }
                 break;
 
             case OP_CALL:
                 if (strcmp(quad.arg1, "input") == 0) {
                     // input() → in $rX
-                    fprintf(output, "%d - in $r%d\n", lineIndex++, r3);
+                    fprintf(output, "%d - in $r3\n", lineIndex++);
+                    fprintf(output, "%d - sw $r3 0($r%d) # armazena em %s\n", 
+                         lineIndex++, r3, quad.result);
                 } else if (strcmp(quad.arg1, "output") == 0) {
                     // Para output, usamos o registro do parâmetro passado (a0)
                     fprintf(output, "%d - move $r0 $r32\n", lineIndex++); // out r0 (registrador reservado para output)
@@ -788,7 +834,6 @@ void generateAssembly(FILE* inputFile) {
                 // arg2 = índice
                 // result = variável de destino
                 
-                // Primeiro calculamos o endereço do elemento: base + (índice * 4)
                 // Usamos um registrador temporário para calcular o endereço
                 fprintf(output, "%d - mul $r3 $r%d 4      # índice * 4 (tamanho do inteiro)\n", lineIndex++, r2);
                 fprintf(output, "%d - add $r3 $r%d $r3    # endereço base + deslocamento\n", lineIndex++, r1);
@@ -816,16 +861,16 @@ void generateAssembly(FILE* inputFile) {
                     
                     // Aloca espaço na pilha para o array
                     fprintf(output, "%d - li $r3 %d       # tamanho do array em palavras\n", lineIndex++, size);
-                    fprintf(output, "%d - mul $r3 $r3 4   # tamanho do array em bytes\n", lineIndex++);
+                    // fprintf(output, "%d - mul $r3 $r3 4   # tamanho do array em bytes\n", lineIndex++);
                     fprintf(output, "%d - sub $r1 $r1 $r3 # aloca espaço na pilha\n", lineIndex++);
-                    stackOffset -= (size * 4);
+                    stackOffset -= (size); //size já é o tamanho em bytes
                     
                     // Salva o endereço base do array no registrador de resultado
                     fprintf(output, "%d - move $r%d $r1   # endereço base do array '%s'\n", lineIndex++, r3, quad.result);
                     
                     // Inicializa o array com zeros
                     fprintf(output, "%d - move $r4 $r1    # ponteiro para inicialização\n", lineIndex++);
-                    fprintf(output, "%d - li $r5 %d       # contador (bytes a inicializar)\n", lineIndex++, size * 4);
+                    fprintf(output, "%d - li $r5 %d       # contador (bytes a inicializar)\n", lineIndex++, size);
                     
                     char loopLabel[32], endLoopLabel[32];
                     sprintf(loopLabel, "init_array_%d", quad.line);
@@ -846,6 +891,7 @@ void generateAssembly(FILE* inputFile) {
                     
                     // Guarda o endereço da variável no registrador de resultado
                     fprintf(output, "%d - move $r%d $r1   # endereço da variável '%s'\n", lineIndex++, r3, quad.result);
+                    varLocalCount++;
                 }
                 break;
 

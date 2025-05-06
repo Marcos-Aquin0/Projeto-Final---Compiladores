@@ -15,7 +15,7 @@ static void checkLastFunctionIsMain(void);
 static void checkArrayAccess(ASTNode* node);
 static void validateExpressionVariables(ASTNode* expr);
 // variáveis globias
-semanticErrorCount = 0;  // Contador para erros semânticos
+int semanticErrorCount = 0;  // Contador para erros semânticos
 static int hasMainFunction = 0;  // flag para verificar existenia da funcao main
 static int hasDeclaration = 0;   // Flag para saber se tem pelo menos uma declaração no código
 static ASTNode* lastFunctionNode = NULL;  // Ponteiro para último nó de função na AST
