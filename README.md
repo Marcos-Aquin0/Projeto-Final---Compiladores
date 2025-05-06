@@ -97,14 +97,11 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 
 ## Próximas Etapas
 - espaço de memória inicial para variáveis globais está invertida. sp salto indice + 4 (armazenar a referencia de vet e cada posição do vetor). começar com fp = sp;
-- arumar otimização do ircode
-- temporarios globais no lugar de v3-v11
-- garantir que r31 está correto
-- jal salva no ra o endereço da proxima instrução
+- garantir que r31 está correto. jal salva no ra o endereço da proxima instrução
 - nop precisa iniciar os registradores sp, fp, ra e 63 como 0
 - reservar registrador r3 para input
 - conferir offset do sw
-- conferir registrador v em varias funcoes
+
 - gerador de código binário
 - integração com o processador MIPS (lab de AOC), modelagem sysml faltante e relatório
 - suporte para várias chamadas da mesma função no mesmo escopo
