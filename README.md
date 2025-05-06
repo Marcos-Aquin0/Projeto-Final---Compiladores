@@ -96,20 +96,9 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 ---
 
 ## Próximas Etapas
-- corrigir assembly
-1. mudar para que a, tv, v sejam apenas registradores t
-se for um parametro, argumento ou retorno irá utilizar a pilha com sp e fp
-
-2. empilhar e desempilhar registradores com a chamada de função, exceto para a main que não é chamada
-
-3. acesso as variaveis globais, deve ter um espaço de memoria apenas para essas variaveis
-
-4. mudança em generateAssembly
-na primeira passada procuro apenas a ordem das funções, cada função vai ter um "arquivo output" (exceto input e output que são instruções específicas do processador, in $rX e out $r0) próprio contendo sua tradução em assembly
-após isso, vou olhar para a função main primeiro, procurando a quadrupla referente a essa funcao no qaudruples.txt e fazendo a definição da pilha normalmente, seguindo a tradução do codigo
-terminando a função main, devo seguir as chamadas de função no escopo da main, e analisando a referencia de parametros, puxando corretamente da pilha, de acordo com o espaço separado
-faz o mesmo para cada função em sua respectiva estrutura.
-terminando todas as funções, irá iniciar o arquivo assembly.asm, começando com nop e j main (como ja está) e incluindo as funções na ordem. por fim um halt
+- arrumar registrador tg
+- espaço de memória inicial para variáveis globais
+- corrigir offset de memoria para ser contíguo
 
 - gerador de código binário
 - integração com o processador MIPS (lab de AOC), modelagem sysml faltante e relatório
