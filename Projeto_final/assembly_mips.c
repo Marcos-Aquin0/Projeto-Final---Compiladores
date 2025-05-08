@@ -32,9 +32,11 @@ OperationType getOpTypeFromString(const char* op) {
 // Inicializa os mapeamentos de registradores
 void initRegisterMappings() {
     int i;
-    for (i = 0; i < 12; i++) { //os regs a seguir possuem 12 regs disponíveis
+    for (i = 0; i < 6; i++) { //os regs a seguir possuem 6 regs disponíveis
         paramRegs[i].isUsed = 0; //marca como não utilizados
         paramRegs[i].preserved = 0; // inicialmente, não precisam ser preservados
+        argumentRegs[i].isUsed = 0;
+        argumentRegs[i].preserved = 0;
     }
     for (i = 0; i < 2; i++) { //os regs a seguir possuem 2 regs disponíveis
         returnRegs[i].isUsed = 0; //marca como não utilizados
@@ -75,8 +77,16 @@ int getNextFreeReg(RegisterMapping* regs, int count) {
 
 // Adicionar esta função para marcar registradores para preservação
 void markRegistersForPreservation(int preserveStatus) {
-    // Marca todos os registradores de parâmetro como preservados/não preservados
-    for (int i = 0; i < 12; i++) {
+    // Marca todos os registradores de argument como preservados/não preservados
+    for (int i = 0; i < 6; i++) {
+        if (argumentRegs[i].isUsed) {
+            argumentRegs[i].preserved = preserveStatus;
+            DEBUG_ASSEMBLY("DEBUG - markRegistersForPreservation: Registrador a%d marcado como %s\n", 
+                   i, preserveStatus ? "preservado" : "não preservado");
+        }
+    }
+
+    for (int i = 0; i < 6; i++) {
         if (paramRegs[i].isUsed) {
             paramRegs[i].preserved = preserveStatus;
             DEBUG_ASSEMBLY("DEBUG - markRegistersForPreservation: Registrador a%d marcado como %s\n", 
@@ -134,20 +144,20 @@ int getRegisterIndex(char* name) {
         // É um parâmetro?
         if (strcmp(symbol->idType, "param") == 0) {
             // Procurar se já mapeamos esse parâmetro
-            for (int i = 0; i < 12; i++) {
+            for (int i = 0; i < 6; i++) {
                 if (paramRegs[i].isUsed && strcmp(paramRegs[i].varName, name) == 0) {
                     DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Parâmetro '%s' já mapeado para a%d (r%d)\n", 
-                           name, i, 47 + i);
-                    return 47 + i; // a0-a11
+                           name, i, 53 + i);
+                    return 53 + i; // p0-p5
                 }
             }
             
             // Novo parâmetro, mapeia para o próximo registrador livre
-            int paramIdx = getNextFreeReg(paramRegs, 12);
+            int paramIdx = getNextFreeReg(paramRegs, 6);
             sprintf(paramRegs[paramIdx].varName, "%s", name);
             DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Novo parâmetro '%s' mapeado para a%d (r%d)\n", 
-                   name, paramIdx, 47 + paramIdx);
-            return 47 + paramIdx; // a0-a11
+                   name, paramIdx, 53 + paramIdx);
+            return 53 + paramIdx; // p0-p5
         }
         // É uma variável local?
         else if (strcmp(symbol->idType, "var") == 0 && strcmp(symbol->scope, currentFunction) == 0) {
@@ -310,7 +320,9 @@ void analyzeRegisterUsage(const char* assemblyFilePath) {
             sprintf(regUsage[i].regName, "tg%d", i - 32);
         else if (i >= 45 && i <= 46)
             sprintf(regUsage[i].regName, "v%d", i - 45);
-        else if (i >= 47 && i <= 58)
+        else if (i >= 47 && i <= 52)
+            sprintf(regUsage[i].regName, "a%d", i - 47);
+        else if (i >= 53 && i <= 58)
             sprintf(regUsage[i].regName, "a%d", i - 47);
         else if (i >= 59 && i <= 62)
             sprintf(regUsage[i].regName, "k%d", i - 59);
@@ -365,7 +377,8 @@ void analyzeRegisterUsage(const char* assemblyFilePath) {
                             else if (i >= 4 && i <= 30) strcpy(regUsage[i].purpose, "temporary local");
                             else if (i >= 32 && i <= 44) strcpy(regUsage[i].purpose, "temporary global");
                             else if (i >= 45 && i <= 46) strcpy(regUsage[i].purpose, "return value");
-                            else if (i >= 47 && i <= 58) strcpy(regUsage[i].purpose, "argument");
+                            else if (i >= 47 && i <= 52) strcpy(regUsage[i].purpose, "argument");
+                            else if (i >= 53 && i <= 58) strcpy(regUsage[i].purpose, "param");
                             else if (i >= 59 && i <= 62) strcpy(regUsage[i].purpose, "kernel register");
                         }
                         

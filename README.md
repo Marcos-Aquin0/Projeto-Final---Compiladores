@@ -101,8 +101,8 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 - garantir que r31 está correto. jal salva no ra o endereço da proxima instrução
 - nop precisa iniciar os registradores sp, fp, ra e 63 como 0 no registrador
 - reservar registrador r3 para input no processador
-- separar reg a0-a11 em a0-a5 e p0-p5
-
+- rever recursao: se eu estou numa funcao que nao é a main, quando eu retorno do jal eu preciso carregar dnv os param: salvar o carregamento de params em um tipo arquivo como o output chamado outparams e sempre carregá-lo após o jal
+- markRegistersForPreservation
 - gerador de código binário
 - integração com o processador MIPS (lab de AOC), modelagem sysml faltante e relatório
 - suporte para várias chamadas da mesma função no mesmo escopo

@@ -31,7 +31,8 @@ typedef struct {
     int preserved;
 } RegisterMapping;
 
-static RegisterMapping paramRegs[12]; // a0-a11
+static RegisterMapping argumentRegs[6]; // a0-a5
+static RegisterMapping paramRegs[6]; // p0-p5
 static RegisterMapping tempLocalRegs[27];  // t0-t26
 static RegisterMapping tempGlobalRegs[13];  // t0-t12
 static RegisterMapping returnRegs[2]; // v0-v1
