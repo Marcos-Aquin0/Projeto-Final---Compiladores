@@ -470,6 +470,45 @@ void allocateArgumentSpace(FILE* output, int argumentCount, int* lineIndex, int*
     }
 }
 
+// Função para contar quantos argumentos existem até encontrar uma chamada de função
+int countArgumentsUntilCall(FILE* inputFile, long currentPos) {
+    char buffer[256];
+    int count = 0;
+    long savedPos = ftell(inputFile); // Salva a posição atual no arquivo
+    
+    // Posiciona o ponteiro do arquivo na posição fornecida
+    fseek(inputFile, currentPos, SEEK_SET);
+    
+    // Lê as quádruplas até encontrar um CALL ou EOF
+    while (fgets(buffer, sizeof(buffer), inputFile) != NULL) {
+        // Ignora linhas de separação e cabeçalho
+        if (strstr(buffer, "---") != NULL || 
+            strstr(buffer, "Quad") != NULL ||
+            strlen(buffer) <= 1) {
+            continue;
+        }
+        
+        // Extrai o operador da quádrupla
+        char op[32] = "";
+        int line, sourceLine;
+        if (sscanf(buffer, "%d %d %s", &line, &sourceLine, op) < 3) {
+            continue;
+        }
+        
+        if (strcmp(op, "ARGUMENT") == 0) {
+            count++;
+        } else if (strcmp(op, "CALL") == 0) {
+            // Encontrou a chamada de função, termina a contagem
+            break;
+        }
+    }
+    
+    // Retorna à posição original no arquivo
+    fseek(inputFile, savedPos, SEEK_SET);
+    
+    return count;
+}
+
 // Função principal para gerar o código assembly a partir do arquivo de entrada
 void generateAssembly(FILE* inputFile) {
     FILE* output = fopen("Output/assembly.asm", "w");
@@ -496,6 +535,7 @@ void generateAssembly(FILE* inputFile) {
     int argumentCount = 0;  // Contador para parâmetros de função
     int varLocalCount = 0;
     int varGlobalCount = 0;
+    int paramCount = 0;
 
     fprintf(output, "%d - nop 1\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
     int ehPrimeiraFuncao = 1;
@@ -526,6 +566,7 @@ void generateAssembly(FILE* inputFile) {
             updateCurrentFunction(quad.arg1);
             argumentCount = 0;  // Reset parameter count for new function
             varLocalCount = 0;  // Reset local variable count for new function
+            paramCount = 0;  // Reset parameter count for new function
         }
 
         // Processa a quádrupla lida, para saber o operador e os index
@@ -694,9 +735,8 @@ void generateAssembly(FILE* inputFile) {
                 setupFrame(output, &lineIndex, &stackOffset);
                 
                 checkNextQuadruple(inputFile, &filePos, &nextQuad);
-                if(getOpTypeFromString(nextQuad.op) != OP_PARAM){
-                    fprintf(output, "%d - move $r2 $r1         # fp = sp\n", lineIndex++);
-                }
+                fprintf(output, "%d - move $r2 $r1         # fp = sp\n", lineIndex++);
+                
                 // Ao entrar em uma nova função, registradores não estão preservados inicialmente
                 markRegistersForPreservation(0);
                 
@@ -704,6 +744,7 @@ void generateAssembly(FILE* inputFile) {
                 // Será atualizado quando encontrarmos todos os parâmetros
                 argumentCount = 0;
                 varLocalCount = 0;
+                paramCount = 0;
                 break;
 
             case OP_RETURN:
@@ -732,6 +773,28 @@ void generateAssembly(FILE* inputFile) {
                         symbol = st_lookup_in_scope(quad.arg1, currentFunction);
                     }
                     
+                    // Atualiza a contagem de parâmetros se necessário
+                    if (argumentNum >= argumentCount) {
+                        argumentCount = argumentNum + 1; // +1 porque os parâmetros começam do zero
+                        
+                        // Aloca espaço para os parâmetros na pilha
+                        // Nota: isso será feito ao final quando soubermos todos os parâmetros
+                    }
+                    
+                    // Verifica se é o primeiro argumento (arg0) e conta o total até o CALL
+                    if (argumentNum == 0) {
+                        long currentPos = ftell(inputFile);
+                        int totalArgs = countArgumentsUntilCall(inputFile, currentPos);
+                        
+                        // Aloca espaço para todos os argumentos de uma vez
+                        fprintf(output, "%d - addi $r1 $r1 -%d  # aloca espaço para %d argumentos\n", 
+                                lineIndex++, (totalArgs+1) * 4, totalArgs+1);
+                        stackOffset -= ((totalArgs+1) * 4);
+                        
+                        DEBUG_ASSEMBLY("DEBUG - OP_ARGUMENT: Alocados %d bytes para %d argumentos\n", 
+                            (totalArgs+1) * 4, totalArgs);
+                    }
+                    
                     // Se o argumento é uma variável local, precisamos carregar seu valor da memória
                     if (symbol != NULL && strcmp(symbol->idType, "var") == 0) {
                         // Primeiro carrega o valor da memória 
@@ -740,6 +803,7 @@ void generateAssembly(FILE* inputFile) {
                                 lineIndex++, destReg, r1, quad.arg1, argumentNum);
                     } 
                     //precisa ver a variavel global varglobalcount $gp 62
+                    
                     else{
                         if (destReg != r1) {
                             fprintf(output, "%d - move $r%d $r%d # argument %d: %s\n", 
@@ -751,28 +815,15 @@ void generateAssembly(FILE* inputFile) {
                         }
                     }
                     
-                    // Atualiza a contagem de parâmetros se necessário
-                    if (argumentNum >= argumentCount) {
-                        argumentCount = argumentNum + 1; // +1 porque os parâmetros começam do zero
-                        
-                        // Aloca espaço para os parâmetros na pilha
-                        // Nota: isso será feito ao final quando soubermos todos os parâmetros
-                    }
-                    
-                    // Armazena o parâmetro na pilha para uso futuro
-                    fprintf(output, "%d - addi $r1 $r1 -4  # aloca espaço na pilha\n", lineIndex++);
-                    fprintf(output, "%d - sw $r%d %d($r2)  # salva argument %d na pilha\n", 
-                            lineIndex++, destReg, getParameterOffset(argumentNum + varLocalCount), argumentNum);
+                    fprintf(output, "%d - sw $r%d %d($r1)  # salva argument %d na pilha\n", 
+                            lineIndex++, destReg, argumentNum * 4, argumentNum);
                 }
                 break;
 
             case OP_PARAM:
                 // Carrega o parâmetro da pilha para o registrador correspondente
-                loadParameter(output, argumentCount++, r1, &lineIndex);
+                loadParameter(output, paramCount++, r1, &lineIndex);
                 checkNextQuadruple(inputFile, &filePos, &nextQuad);
-                if(getOpTypeFromString(nextQuad.op) != OP_PARAM){
-                    fprintf(output, "%d - move $r2 $r1         # fp = sp\n", lineIndex++);
-                }
                 break;
 
             case OP_CALL:
