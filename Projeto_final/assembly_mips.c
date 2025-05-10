@@ -294,7 +294,7 @@ void analyzeRegisterUsage(const char* assemblyFilePath) {
         else if (i >= 47 && i <= 52)
             sprintf(regUsage[i].regName, "a%d", i - 47);
         else if (i >= 53 && i <= 58)
-            sprintf(regUsage[i].regName, "a%d", i - 47);
+            sprintf(regUsage[i].regName, "p%d", i - 53);
         else if (i >= 59 && i <= 62)
             sprintf(regUsage[i].regName, "k%d", i - 59);
     }
