@@ -75,35 +75,6 @@ int getNextFreeReg(RegisterMapping* regs, int count) {
     return 0;
 }
 
-// Adicionar esta função para marcar registradores para preservação
-void markRegistersForPreservation(int preserveStatus) {
-    // Marca todos os registradores de argument como preservados/não preservados
-    for (int i = 0; i < 6; i++) {
-        if (argumentRegs[i].isUsed) {
-            argumentRegs[i].preserved = preserveStatus;
-            DEBUG_ASSEMBLY("DEBUG - markRegistersForPreservation: Registrador a%d marcado como %s\n", 
-                   i, preserveStatus ? "preservado" : "não preservado");
-        }
-    }
-
-    for (int i = 0; i < 6; i++) {
-        if (paramRegs[i].isUsed) {
-            paramRegs[i].preserved = preserveStatus;
-            DEBUG_ASSEMBLY("DEBUG - markRegistersForPreservation: Registrador a%d marcado como %s\n", 
-                   i, preserveStatus ? "preservado" : "não preservado");
-        }
-    }
-    
-    // Marca todos os registradores de retorno como preservados/não preservados
-    for (int i = 0; i < 12; i++) {
-        if (returnRegs[i].isUsed) {
-            returnRegs[i].preserved = preserveStatus;
-            DEBUG_ASSEMBLY("DEBUG - markRegistersForPreservation: Registrador v%d marcado como %s\n", 
-                   i, preserveStatus ? "preservado" : "não preservado");
-        }
-    }
-}
-
 // Função para obter o índice do registrador a partir do nome da variável
 int getRegisterIndex(char* name) {
     DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Procurando registrador para '%s'\n", name ? name : "NULL");
@@ -445,29 +416,7 @@ void restoreFrame(FILE* output, int* lineIndex, int* stackOffset) {
     DEBUG_ASSEMBLY("DEBUG - restoreFrame: Frame restaurado, SP=%d\n", *stackOffset);
 }
 
-// Função para salvar registradores usados em chamadas de função
-void saveCallerSavedRegs(FILE* output, int* lineIndex, int* stackOffset) {
-    // Identifica quais registradores temporários estão em uso
-    for (int i = 0; i < 27; i++) {
-        if (tempLocalRegs[i].isUsed && !tempLocalRegs[i].preserved) {
-            // pushRegister(output, i + 3, stackOffset, lineIndex);  // t0-t11 são r3-r14
-            tempLocalRegs[i].preserved = 1;
-            DEBUG_ASSEMBLY("DEBUG - saveCallerSavedRegs: Salvando registrador temporário t%d (r%d)\n", i, i + 3);
-        }
-    }
-}
 
-// Função para restaurar registradores após chamadas de função
-void restoreCallerSavedRegs(FILE* output, int* lineIndex, int* stackOffset) {
-    // Restaura na ordem inversa (LIFO)
-    for (int i = 26; i >= 0; i--) {
-        if (tempLocalRegs[i].isUsed && tempLocalRegs[i].preserved) {
-            // popRegister(output, i + 3, stackOffset, lineIndex);  // t0-t11 são r3-r14
-            tempLocalRegs[i].preserved = 0;
-            DEBUG_ASSEMBLY("DEBUG - restoreCallerSavedRegs: Restaurando registrador temporário t%d (r%d)\n", i, i + 3);
-        }
-    }
-}
 
 // Nova função: Aloca espaço para parâmetros de funções
 void allocateArgumentSpace(FILE* output, int argumentCount, int* lineIndex, int* stackOffset) {
@@ -549,6 +498,9 @@ void generateAssembly(FILE* inputFile) {
     int varLocalCount = 0;
     int varGlobalCount = 0;
     int paramCount = 0;
+    int parameters[6];
+    int localVars[27];
+    int globalVars[13];
 
     fprintf(output, "%d - nop 1\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
     int ehPrimeiraFuncao = 1;
@@ -750,9 +702,6 @@ void generateAssembly(FILE* inputFile) {
                 checkNextQuadruple(inputFile, &filePos, &nextQuad);
                 fprintf(output, "%d - move $r2 $r1         # fp = sp\n", lineIndex++);
                 
-                // Ao entrar em uma nova função, registradores não estão preservados inicialmente
-                markRegistersForPreservation(0);
-                
                 // Aloca espaço para parâmetros no início da função
                 // Será atualizado quando encontrarmos todos os parâmetros
                 argumentCount = 0;
@@ -835,6 +784,10 @@ void generateAssembly(FILE* inputFile) {
 
             case OP_PARAM:
                 // Carrega o parâmetro da pilha para o registrador correspondente
+                
+                parameters[paramCount] = r1; // Armazena o nome do parâmetro
+                printf("parametro %d, index %d\n", parameters[paramCount], paramCount);
+                printf("quad.arg1 %s\n", quad.arg1);
                 loadParameter(output, paramCount++, r1, &lineIndex);
                 checkNextQuadruple(inputFile, &filePos, &nextQuad);
                 break;
@@ -849,6 +802,7 @@ void generateAssembly(FILE* inputFile) {
                     // Para output, usamos o registro do parâmetro passado (a0)
                     fprintf(output, "%d - move $r0 $r47\n", lineIndex++); // out r0 (registrador reservado para output)
                     fprintf(output, "%d - out $r0\n", lineIndex++); // out r0 (registrador reservado para output)
+                    fprintf(output, "%d - addi $r1 $r1 4 # desaloca espaço na pilha\n", lineIndex++);
                 } else {
                     // Aloca espaço para os argumentos na pilha antes da chamada
                     int argCount = atoi(quad.arg2);
@@ -856,21 +810,38 @@ void generateAssembly(FILE* inputFile) {
                         allocateArgumentSpace(output, argCount, &lineIndex, &stackOffset);
                     }
                     
+
                     // Salva registradores que podem ser modificados pela chamada de função
-                    saveCallerSavedRegs(output, &lineIndex, &stackOffset);
+                    // saveCallerSavedRegs(output, &lineIndex, &stackOffset);
                     
                     // Chamada normal de função
                     fprintf(output, "%d - jal %s\n", lineIndex++, quad.arg1);
-                    
-                    // Restaura os registradores salvos
-                    restoreCallerSavedRegs(output, &lineIndex, &stackOffset);
-                    
                     // Libera espaço dos argumentos após chamada
+                    
                     if (argCount > 0) {
                         int totalSize = argCount * 4;
                         fprintf(output, "%d - addi $r1 $r1 %d  # libera espaço de %d argumentos\n", 
                                 lineIndex++, totalSize, argCount);
                         stackOffset += totalSize;
+                    }
+                    
+                    if (paramCount > 0) {
+                        // Carrega os parâmetros da pilha para os registradores correspondentes
+                        for (int i = 0; i < paramCount; i++) {
+                            printf("parametro %d, registrador\n", parameters[i]);
+                            // int rx = getRegisterIndex(parameters[i]);
+                            loadParameter(output, i, parameters[i], &lineIndex);
+                        }
+                    }
+
+                    if(varLocalCount > 0){
+                     //recarregar variaveis locais 
+                     fprintf(output, "%d - move $r1 $r2 # sp = fp\n", lineIndex++);
+                     // Carrega os parâmetros da pilha para os registradores correspondentes
+                        for (int i = 0; i < varLocalCount; i++) {
+                            fprintf(output, "%d - addi $r1 $r1 -4 # desce na pilha\n", lineIndex++);
+                            fprintf(output, "%d - lw $r%d 0($r1) # recarrega variaveis locais\n", lineIndex++, localVars[i]);
+                        }
                     }
                     
                     // Copia o valor de retorno (v0) para o resultado, verifica se não é redundante
@@ -882,9 +853,7 @@ void generateAssembly(FILE* inputFile) {
                         } else {
                             fprintf(output, "%d - move $r%d $r45 # copia retorno (v0) para %s\n", 
                                         lineIndex++, r3, quad.result);
-                        }
-                        
-                        
+                        } 
                     }
                 }
                 break;
@@ -953,6 +922,7 @@ void generateAssembly(FILE* inputFile) {
                     
                     // Guarda o endereço da variável no registrador de resultado
                     fprintf(output, "%d - move $r%d $r1   # endereço da variável '%s'\n", lineIndex++, r3, quad.result);
+                    localVars[varLocalCount] = r3; // Armazena o registrador da variável local
                     varLocalCount++;
                 }
                 break;

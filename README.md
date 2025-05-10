@@ -101,11 +101,11 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 - garantir que r31 está correto. jal salva no ra o endereço da proxima instrução
 - nop precisa iniciar os registradores sp, fp, ra e 63 como 0 no registrador
 - reservar registrador r3 para input no processador
-- rever recursao: para cada função que não é a main, quando eu retorno do jal eu preciso carregar dnv os param: salvar o carregamento de params em um tipo arquivo como o output chamado outparams_nomefuncao e sempre carregá-lo (imprimi-lo) após o jal
-- carregar param, varlocal e varglobal
-- currentFunction =  quad.arg1; 
-FILE* outparams = fopen(assemblyFilePath, "w");
-- outparams, currentFunction precisa ser vetor, para guardar para cada função.
+- variaveis criadas dentro de blocos
+- RELOAD, ALLOCS (scope), ALLOCB (bloco - ai desaloca no final ou if nextquad == ALLOC desaloca no final, informar de algum jeito que veio de um bloco) 
+- depois do jal, reinicia o uso dos registradores temporarios, de argumentos e de parametros, permanece apenas v0
+- variaveis declaradas em outra funcao estao sendo reconhecidas (tabela e semantico)
+- rever quadruplas
 - markRegistersForPreservation
 - gerador de código binário
 - integração com o processador MIPS (lab de AOC), modelagem sysml faltante e relatório
