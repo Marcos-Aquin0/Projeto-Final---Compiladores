@@ -191,6 +191,32 @@ int getRegisterIndex(char* name) {
     return 59; //kernel r59-r62
 }
 
+// typedef struct {
+//     char labelName[64];
+//     int varCount;
+//     int varRegisters[32]; // Armazena registradores das variáveis alocadas na label
+// } LabelScope;
+
+// LabelScope currentLabel = {"", 0};
+// char lastAllocLabel[64] = "";
+
+// // Adicione esta função para limpar as variáveis alocadas em uma label
+// void deallocateLabelVars(FILE* output, int* lineIndex, int* stackOffset) {
+//     if (currentLabel.varCount > 0) {
+//         fprintf(output, "%d - # Desalocando %d variáveis da label %s\n", 
+//                 (*lineIndex)++, currentLabel.varCount, currentLabel.labelName);
+        
+//         // Libera espaço na pilha para todas as variáveis alocadas
+//         int totalSpace = currentLabel.varCount * 4;
+//         fprintf(output, "%d - addi $r1 $r1 %d # libera espaço das variáveis locais da label\n", 
+//                 (*lineIndex)++, totalSpace);
+//         *stackOffset += totalSpace;
+        
+//         // Reset do contador de variáveis da label
+//         currentLabel.varCount = 0;
+//     }
+// }
+
 // Atualiza a função atual e reinicia os mapeamentos de registradores
 void updateCurrentFunction(const char* funcName) {
     if (funcName != NULL) {
@@ -671,9 +697,17 @@ void generateAssembly(FILE* inputFile) {
 
             case OP_LABEL:
                 fprintf(output, "%d - %s:\n", lineIndex++, quad.result);
+                // Rastrear início de uma nova label
+                // strncpy(currentLabel.labelName, quad.result, sizeof(currentLabel.labelName) - 1);
+                // currentLabel.varCount = 0; // Reset do contador de variáveis para nova label
                 break;
 
             case OP_JUMP:
+                // Desaloca variáveis antes do jump se não for um loop
+                // if (strstr(quad.result, currentLabel.labelName) == NULL) {
+                //     // Não é um salto para a própria label (não é um loop)
+                //     deallocateLabelVars(output, &lineIndex, &stackOffset);
+                // }
                 fprintf(output, "%d - j %s\n", lineIndex++, quad.result);
                 break;
 
@@ -824,6 +858,10 @@ void generateAssembly(FILE* inputFile) {
                                 lineIndex++, totalSize, argCount);
                         stackOffset += totalSize;
                     }
+
+                    if (varGlobalCount > 0){
+                        //basta acessar o registrador global desejado
+                    }
                     
                     if (paramCount > 0) {
                         // Carrega os parâmetros da pilha para os registradores correspondentes
@@ -840,7 +878,7 @@ void generateAssembly(FILE* inputFile) {
                      // Carrega os parâmetros da pilha para os registradores correspondentes
                         for (int i = 0; i < varLocalCount; i++) {
                             fprintf(output, "%d - addi $r1 $r1 -4 # desce na pilha\n", lineIndex++);
-                            fprintf(output, "%d - lw $r%d 0($r1) # recarrega variaveis locais\n", lineIndex++, localVars[i]);
+                            fprintf(output, "%d - lw $r%d 0($r1) # recarrega variavel local\n", lineIndex++, localVars[i]);
                         }
                     }
                     
@@ -886,32 +924,36 @@ void generateAssembly(FILE* inputFile) {
                 break;
 
             case OP_ALLOC:
+                // strncpy(lastAllocLabel, currentLabel.labelName, sizeof(lastAllocLabel) - 1);
+    
                 if (isdigit(quad.arg1[0]) && strcmp(quad.arg2, "array") == 0) {
                     // Implementação otimizada para alocação de array usando manipulação de pilha
                     int size = atoi(quad.arg1);
                     
-                    // Aloca espaço na pilha para o array
-                    fprintf(output, "%d - li $r3 %d       # tamanho do array em palavras\n", lineIndex++, size);
-                    // fprintf(output, "%d - mul $r3 $r3 4   # tamanho do array em bytes\n", lineIndex++);
-                    fprintf(output, "%d - sub $r1 $r1 $r3 # aloca espaço na pilha\n", lineIndex++);
-                    stackOffset -= (size); //size já é o tamanho em bytes
-                    
+                    fprintf(output, "%d - addi $r1 $r1 -4  # aloca espaço para referência do array '%s'\n", lineIndex++, quad.result);
                     // Salva o endereço base do array no registrador de resultado
                     fprintf(output, "%d - move $r%d $r1   # endereço base do array '%s'\n", lineIndex++, r3, quad.result);
-                    
-                    // Inicializa o array com zeros
-                    fprintf(output, "%d - move $r4 $r1    # ponteiro para inicialização\n", lineIndex++);
-                    fprintf(output, "%d - li $r5 %d       # contador (bytes a inicializar)\n", lineIndex++, size);
+                    if (strcmp(currentFunction, "global") == 0) {
+                        globalVars[varGlobalCount] = r3; // Armazena o registrador da variável global
+                        varGlobalCount++;
+                    }
+                    else {
+                        localVars[varLocalCount] = r3; // Armazena o registrador da variável local
+                        varLocalCount++;
+                    }
+                    int rindex = getRegisterIndex(quad.arg1);
+                    fprintf(output, "%d - li $r%d -%d # espaço na pilha para os valores de vet\n", lineIndex++, rindex, size);
+                    stackOffset -= (size); //size já é o tamanho em bytes
                     
                     char loopLabel[32], endLoopLabel[32];
                     sprintf(loopLabel, "init_array_%d", quad.line);
                     sprintf(endLoopLabel, "end_init_array_%d", quad.line);
                     
                     fprintf(output, "%d - %s:\n", lineIndex++, loopLabel);
-                    fprintf(output, "%d - beq $r5 $r63 %s # se contador == 0, termina\n", lineIndex++, endLoopLabel);
-                    fprintf(output, "%d - sw $r63 0($r4)  # inicializa com 0\n", lineIndex++);
-                    fprintf(output, "%d - addi $r4 $r4 4  # próximo elemento\n", lineIndex++);
-                    fprintf(output, "%d - addi $r5 $r5 -4 # decrementa contador\n", lineIndex++);
+                    fprintf(output, "%d - beq $r%d $r63 %s # se contador == 0, termina\n", lineIndex++, rindex, endLoopLabel);
+                    fprintf(output, "%d - addi $r1 $r1 -4  # próximo elemento\n", lineIndex++);
+                    fprintf(output, "%d - sw $r63 0($r1)  # inicializa com 0\n", lineIndex++);
+                    fprintf(output, "%d - addi $r%d $r%d 4 # decrementa contador\n", lineIndex++, rindex, rindex);
                     fprintf(output, "%d - j %s\n", lineIndex++, loopLabel);
                     fprintf(output, "%d - %s:\n", lineIndex++, endLoopLabel);
                 } else {
@@ -922,8 +964,16 @@ void generateAssembly(FILE* inputFile) {
                     
                     // Guarda o endereço da variável no registrador de resultado
                     fprintf(output, "%d - move $r%d $r1   # endereço da variável '%s'\n", lineIndex++, r3, quad.result);
-                    localVars[varLocalCount] = r3; // Armazena o registrador da variável local
-                    varLocalCount++;
+                    
+                    //se escopo == global
+                    if (strcmp(currentFunction, "global") == 0) {
+                        globalVars[varGlobalCount] = r3; // Armazena o registrador da variável global
+                        varGlobalCount++;
+                    } else {
+                        // printf("currentLabel.labelName %s\n", currentLabel.labelName);
+                        localVars[varLocalCount] = r3; // Armazena o registrador da variável local
+                        varLocalCount++;
+                    }
                 }
                 break;
 

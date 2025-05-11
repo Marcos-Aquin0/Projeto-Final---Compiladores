@@ -98,17 +98,16 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 ## Próximas Etapas
 - espaço de memória inicial para variáveis globais está invertida. sp salto indice + 4 (armazenar a referencia de vet e cada posição do vetor). começar com fp = sp;
 
+- variaveis criadas dentro de blocos
+- avaliar acesso a posição de vetores
+- variaveis declaradas em outra funcao estao sendo reconhecidas (tabela e semantico)
+- rever quadruplas
+
 - garantir que r31 está correto. jal salva no ra o endereço da proxima instrução
 - nop precisa iniciar os registradores sp, fp, ra e 63 como 0 no registrador
 - reservar registrador r3 para input no processador
-- variaveis criadas dentro de blocos
-- RELOAD, ALLOCS (scope), ALLOCB (bloco - ai desaloca no final ou if nextquad == ALLOC desaloca no final, informar de algum jeito que veio de um bloco) 
-- depois do jal, reinicia o uso dos registradores temporarios, de argumentos e de parametros, permanece apenas v0
-- variaveis declaradas em outra funcao estao sendo reconhecidas (tabela e semantico)
-- rever quadruplas
-- markRegistersForPreservation
-- gerador de código binário
 - integração com o processador MIPS (lab de AOC), modelagem sysml faltante e relatório
+- gerador de código binário
 - suporte para várias chamadas da mesma função no mesmo escopo
 - suporte para break em while
 - suporte para float
