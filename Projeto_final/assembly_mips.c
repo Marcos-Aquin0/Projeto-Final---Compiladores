@@ -527,6 +527,9 @@ void generateAssembly(FILE* inputFile) {
     int parameters[6];
     int localVars[27];
     int globalVars[13];
+    int rvet; 
+    int rindice;
+    int rbase;
 
     fprintf(output, "%d - nop 1\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
     int ehPrimeiraFuncao = 1;
@@ -761,6 +764,8 @@ void generateAssembly(FILE* inputFile) {
 
             case OP_ARGUMENT: // Alterado de OP_PARAM para OP_ARGUMENT
                 {
+                    
+                    checkNextQuadruple(inputFile, &filePos, &nextQuad);
                     int argumentNum = atoi(quad.arg2);
                     int destReg = 47 + argumentNum; // a0, a1, etc.
                     // Verifica se o argumento é uma variável local (armazenada na memória)
@@ -771,10 +776,9 @@ void generateAssembly(FILE* inputFile) {
                     
                     // Atualiza a contagem de parâmetros se necessário
                     if (argumentNum >= argumentCount) {
-                        argumentCount = argumentNum + 1; // +1 porque os parâmetros começam do zero
-                        
-                        // Aloca espaço para os parâmetros na pilha
-                        // Nota: isso será feito ao final quando soubermos todos os parâmetros
+                        if(strcmp(nextQuad.arg1,"output") !=0){
+                            argumentCount = argumentNum + 1; // +1 porque os parâmetros começam do zero
+                        }
                     }
                     
                     // Verifica se é o primeiro argumento (arg0) e conta o total até o CALL
@@ -782,17 +786,23 @@ void generateAssembly(FILE* inputFile) {
                         long currentPos = ftell(inputFile);
                         int totalArgs = countArgumentsUntilCall(inputFile, currentPos);
                         
-                        // Aloca espaço para todos os argumentos de uma vez
-                        fprintf(output, "%d - addi $r1 $r1 -%d  # aloca espaço para %d argumentos\n", 
-                                lineIndex++, (totalArgs+1) * 4, totalArgs+1);
-                        stackOffset -= ((totalArgs+1) * 4);
-                        
-                        DEBUG_ASSEMBLY("DEBUG - OP_ARGUMENT: Alocados %d bytes para %d argumentos\n", 
-                            (totalArgs+1) * 4, totalArgs);
+                        if(strcmp(nextQuad.arg1,"output") !=0){
+                            // Aloca espaço para todos os argumentos de uma vez
+                            fprintf(output, "%d - addi $r1 $r1 -%d  # aloca espaço para %d argumentos\n", 
+                                    lineIndex++, (totalArgs+1) * 4, totalArgs+1);
+                            stackOffset -= ((totalArgs+1) * 4);
+                            
+                            DEBUG_ASSEMBLY("DEBUG - OP_ARGUMENT: Alocados %d bytes para %d argumentos\n", 
+                                (totalArgs+1) * 4, totalArgs);
+                        }
                     }
                     
+                    //se o argumento é uma constante, carrega o valor em um registrador primeiro
+                    if (isdigit(quad.arg1[0])) {
+                        fprintf(output, "%d - li $r%d %s # argument %d: %s\n", lineIndex++, destReg, quad.arg1, argumentNum, quad.arg1);
+                    }
                     // Se o argumento é uma variável local, precisamos carregar seu valor da memória
-                    if (symbol != NULL && strcmp(symbol->idType, "var") == 0) {
+                    else if (symbol != NULL && strcmp(symbol->idType, "var") == 0) {
                         // Primeiro carrega o valor da memória 
                         // Carrega o endereço da variável (que já está em r1) para o registrador de argumento
                         fprintf(output, "%d - lw $r%d 0($r%d)    # carrega valor da variável local '%s' para argument %d\n", 
@@ -805,14 +815,14 @@ void generateAssembly(FILE* inputFile) {
                             fprintf(output, "%d - move $r%d $r%d # argument %d: %s\n", 
                                     lineIndex++, destReg, r1, argumentNum, quad.arg1);
                         } else {
-                            // Parameter already in correct register, just add comment
                             fprintf(output, "%d - # argument %d: %s já está em $r%d\n", 
                                     lineIndex++, argumentNum, quad.arg1, destReg);
                         }
                     }
-                    
-                    fprintf(output, "%d - sw $r%d %d($r1)  # salva argument %d na pilha\n", 
-                            lineIndex++, destReg, argumentNum * 4, argumentNum);
+                    if(strcmp(nextQuad.arg1,"output") !=0){
+                        fprintf(output, "%d - sw $r%d %d($r1)  # salva argument %d na pilha\n", 
+                                lineIndex++, destReg, argumentNum * 4, argumentNum);
+                    }
                 }
                 break;
 
@@ -830,13 +840,19 @@ void generateAssembly(FILE* inputFile) {
                 if (strcmp(quad.arg1, "input") == 0) {
                     // input() → in $rX
                     fprintf(output, "%d - in $r3\n", lineIndex++);
-                    fprintf(output, "%d - sw $r3 0($r%d) # armazena em %s\n", 
-                         lineIndex++, r3, quad.result);
+                    if(quad.result[0] == 't'){
+                        tempLocalRegs[r3-4].isUsed = 1;
+                        fprintf(output, "%d - move $r%d $r3 # move valor de input para %s\n", 
+                                lineIndex++, r3, quad.result);
+                    } else {
+                        fprintf(output, "%d - sw $r3 0($r%d) # armazena em %s\n", 
+                             lineIndex++, r3, quad.result);
+                    }
                 } else if (strcmp(quad.arg1, "output") == 0) {
                     // Para output, usamos o registro do parâmetro passado (a0)
                     fprintf(output, "%d - move $r0 $r47\n", lineIndex++); // out r0 (registrador reservado para output)
                     fprintf(output, "%d - out $r0\n", lineIndex++); // out r0 (registrador reservado para output)
-                    fprintf(output, "%d - addi $r1 $r1 4 # desaloca espaço na pilha\n", lineIndex++);
+                    // fprintf(output, "%d - addi $r1 $r1 4 # desaloca espaço na pilha\n", lineIndex++);
                 } else {
                     // Aloca espaço para os argumentos na pilha antes da chamada
                     int argCount = atoi(quad.arg2);
@@ -904,9 +920,14 @@ void generateAssembly(FILE* inputFile) {
                 // result = variável de destino
                 
                 // Usamos um registrador temporário para calcular o endereço
-                fprintf(output, "%d - mul $r3 $r%d 4      # índice * 4 (tamanho do inteiro)\n", lineIndex++, r2);
-                fprintf(output, "%d - add $r3 $r%d $r3    # endereço base + deslocamento\n", lineIndex++, r1);
-                fprintf(output, "%d - lw $r%d 0($r3)      # carrega %s[%s] em %s\n", lineIndex++, r3, quad.arg1, quad.arg2, quad.result);
+                rvet = getRegisterIndex(quad.arg1); //precisa ser referente ao local do vetor e nao o conteudo
+                rindice = getRegisterIndex(quad.arg2);
+                rbase = getNextFreeReg(tempLocalRegs, 27) + 4;
+                tempLocalRegs[rbase-4].isUsed = 1;
+                fprintf(output, "%d - addi $r%d $r%d 1 # índice + 1\n", lineIndex++, rindice, rindice);
+                fprintf(output, "%d - mul $r%d $r%d -4      # índice * 4 (tamanho do inteiro)\n", lineIndex++, rindice, rindice);
+                fprintf(output, "%d - addi $r%d $r%d r%d    # endereço base + deslocamento\n", lineIndex++, rbase, rvet, rindice);
+                fprintf(output, "%d - lw $r%d 0($r%d)      # carrega %s[%s] em %s\n", lineIndex++, r3, rbase, quad.arg1, quad.arg2, quad.result);
                 break;
 
             case OP_ARRAY_STORE:
@@ -918,9 +939,14 @@ void generateAssembly(FILE* inputFile) {
                 
                 // Primeiro calculamos o endereço do elemento: base + (índice * 4)
                 // Usamos um registrador temporário para calcular o endereço
-                fprintf(output, "%d - mul $r3 $r%d 4      # índice * 4 (tamanho do inteiro)\n", lineIndex++, r2);
-                fprintf(output, "%d - add $r3 $r%d $r3    # endereço base + deslocamento\n", lineIndex++, r3);
-                fprintf(output, "%d - sw $r%d 0($r3)      # armazena %s em %s[%s]\n", lineIndex++, r1, quad.arg1, quad.result, quad.arg2);
+                rvet = getRegisterIndex(quad.result); //precisa ser referente ao local do vetor e nao o conteudo
+                rindice = getRegisterIndex(quad.arg2);
+                rbase = getNextFreeReg(tempLocalRegs, 27) + 4;
+                tempLocalRegs[rbase-4].isUsed = 1;
+                fprintf(output, "%d - addi $r%d $r%d 1 # índice + 1\n", lineIndex++, rindice, rindice);
+                fprintf(output, "%d - mul $r%d $r%d -4      # índice * 4 (tamanho do inteiro)\n", lineIndex++, rindice, rindice);
+                fprintf(output, "%d - addi $r%d $r%d r%d    # endereço base + deslocamento\n", lineIndex++, rbase, rvet, rindice);
+                fprintf(output, "%d - sw $r%d 0($r%d)      # armazena %s em %s[%s]\n", lineIndex++, r1, rbase, quad.arg1, quad.result, quad.arg2);
                 break;
 
             case OP_ALLOC:

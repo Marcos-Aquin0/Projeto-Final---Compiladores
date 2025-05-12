@@ -96,18 +96,19 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 ---
 
 ## Próximas Etapas
-- espaço de memória inicial para variáveis globais está invertida. sp salto indice + 4 (armazenar a referencia de vet e cada posição do vetor). começar com fp = sp;
-
 - variaveis criadas dentro de blocos
-- avaliar acesso a posição de vetores
 - variaveis declaradas em outra funcao estao sendo reconhecidas (tabela e semantico)
+- rever sort
+- rever registrador t_
 - rever quadruplas
 
 - garantir que r31 está correto. jal salva no ra o endereço da proxima instrução
 - nop precisa iniciar os registradores sp, fp, ra e 63 como 0 no registrador
 - reservar registrador r3 para input no processador
 - integração com o processador MIPS (lab de AOC), modelagem sysml faltante e relatório
+
 - gerador de código binário
+- instrução de "enter" no processador para pegar um valor e esperar (era output2)
 - suporte para várias chamadas da mesma função no mesmo escopo
 - suporte para break em while
 - suporte para float
