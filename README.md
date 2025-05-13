@@ -98,10 +98,10 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 ## Próximas Etapas
 - variaveis criadas dentro de blocos
 - rever sort
-- rever registrador t_
+- rever registrador t_.verificar todos os t e reservar o registrador antes
 - rever quadruplas
 
-- garantir que r31 está correto. jal salva no ra o endereço da proxima instrução
+- o pc é + 1 e a memória +4?
 - nop precisa iniciar os registradores sp, fp, ra e 63 como 0 no registrador
 - reservar registrador r3 para input no processador
 - integração com o processador MIPS (lab de AOC), modelagem sysml faltante e relatório
