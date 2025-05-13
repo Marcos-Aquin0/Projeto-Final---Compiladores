@@ -90,7 +90,14 @@ static void checkReturnStatement(ASTNode* node) {
     
     // Se o retorno é uma variável simples
     if (returnExpr->type == NODE_VAR && returnExpr->value) {
-        BucketList l = st_lookup(returnExpr->value);
+        char* currentScope = current_scope();
+        BucketList l = st_lookup_in_scope(returnExpr->value, currentScope);
+        
+        // Se não encontrou no escopo atual, tenta no escopo global
+        if (!l && strcmp(currentScope, "global") != 0) {
+            l = st_lookup_in_scope(returnExpr->value, "global");
+        }
+        
         if (!l && !errorAlreadyReported(returnExpr->value, node->lineno)) {
             printError("Erro semântico: Variável '%s' usada em comando return não foi declarada (linha %d)",
                     returnExpr->value, node->lineno);
@@ -156,9 +163,13 @@ void semanticAnalysis(ASTNode* node) {
             
             // Verificar se o filho esquerdo é uma variável
             if (node->left && node->left->type == NODE_VAR && node->left->value) {
-                // printf("  Variável esquerda: %s\n", node->left->value);
-                // Verificar se a variável foi declarada
-                BucketList l = st_lookup(node->left->value);
+                char* currentScope = current_scope();
+                BucketList l = st_lookup_in_scope(node->left->value, currentScope);
+                
+                // Se não encontrou no escopo atual, tenta no escopo global
+                if (!l && strcmp(currentScope, "global") != 0) {
+                    l = st_lookup_in_scope(node->left->value, "global");
+                }
                 if (!l && !errorAlreadyReported(node->left->value, node->lineno)) {
                     printError("Erro semântico: Variável '%s' usada em comparação não foi declarada (linha %d)",
                             node->left->value, node->lineno);
@@ -180,7 +191,13 @@ void semanticAnalysis(ASTNode* node) {
                     if (node->right->right->type == NODE_VAR && node->right->right->value) {
                         // printf("  Variável direita: %s\n", node->right->right->value);
                         // Verificar se a variável foi declarada
-                        BucketList l = st_lookup(node->right->right->value);
+                        char* currentScope = current_scope();
+                        BucketList l = st_lookup_in_scope(node->right->right->value, currentScope);
+                        
+                        // Se não encontrou no escopo atual, tenta no escopo global
+                        if (!l && strcmp(currentScope, "global") != 0) {
+                            l = st_lookup_in_scope(node->right->right->value, "global");
+                        }
                         if (!l && !errorAlreadyReported(node->right->right->value, node->lineno)) {
                             printError("Erro semântico: Variável '%s' usada em comparação não foi declarada (linha %d)",
                                     node->right->right->value, node->lineno);
@@ -369,7 +386,7 @@ static void checkFunctionCallParameters(ASTNode* node) {
 static void checkFunctionCall(ASTNode* node) {
     if (!node->left || !node->left->value) return;
 
-    BucketList l = st_lookup(node->left->value);
+    BucketList l = st_lookup_in_scope(node->left->value, "global");
     if (!l) {
         if (!errorAlreadyReported(node->left->value, node->lineno)) {
             printError("Erro semântico: Função '%s' não declarada (linha %d)",
@@ -404,15 +421,23 @@ static void checkFunctionCall(ASTNode* node) {
                 argName = args->left->value;
             }
 
-            if (argName != NULL) {
-                // Verificar se a variável está declarada
-                BucketList argVar = st_lookup(argName);
-                if (!argVar && !errorAlreadyReported(argName, node->lineno)) {
-                    printError("Erro semântico: Argumento '%s' usado na chamada da função '%s' não foi declarado (linha %d)",
-                            argName, node->left->value, node->lineno);
-                    semanticErrorCount++;
-                }
+            // Dentro de checkFunctionCall, onde verifica os argumentos:
+        if (argName != NULL) {
+            // Verificar se a variável está declarada
+            char* currentScope = current_scope();
+            BucketList argVar = st_lookup_in_scope(argName, currentScope);
+            
+            // Se não encontrou no escopo atual, tenta no escopo global
+            if (!argVar && strcmp(currentScope, "global") != 0) {
+                argVar = st_lookup_in_scope(argName, "global");
             }
+            
+            if (!argVar && !errorAlreadyReported(argName, node->lineno)) {
+                printError("Erro semântico: Argumento '%s' usado na chamada da função '%s' não foi declarado (linha %d)",
+                        argName, node->left->value, node->lineno);
+                semanticErrorCount++;
+            }
+        }
         }
         // Se for uma expressão mais complexa, devemos validar recursivamente
         // que todos os componentes estão declarados
@@ -440,7 +465,14 @@ static void validateExpressionVariables(ASTNode* expr) {
 
     // Verificar o nó atual se for uma variável
     if (expr->type == NODE_VAR && expr->value != NULL) {
-        BucketList var = st_lookup(expr->value);
+        char* currentScope = current_scope();
+        BucketList var = st_lookup_in_scope(expr->value, currentScope);
+        
+        // Se não encontrou no escopo atual, tenta no escopo global
+        if (!var && strcmp(currentScope, "global") != 0) {
+            var = st_lookup_in_scope(expr->value, "global");
+        }
+        
         if (!var && !errorAlreadyReported(expr->value, expr->lineno)) {
             printError("Erro semântico: Variável '%s' usada em expressão não foi declarada (linha %d)",
                     expr->value, expr->lineno);
@@ -470,8 +502,15 @@ static char* getExpressionType(ASTNode* node) {
 
             // Se for um acesso a array (tem filho direito que é o índice)
             if (node->right != NULL) {
-                // Buscar na tabela de símbolos
-                BucketList l = st_lookup(node->value);
+                // Buscar na tabela de símbolos APENAS no escopo atual ou global
+                char* currentScope = current_scope();
+                BucketList l = st_lookup_in_scope(node->value, currentScope);
+                
+                // Se não encontrou no escopo atual, tenta no escopo global
+                if (!l && strcmp(currentScope, "global") != 0) {
+                    l = st_lookup_in_scope(node->value, "global");
+                }
+                
                 if (l && strstr(l->dataType, "[]") != NULL) {
                     // Verifica se o índice é um inteiro
                     char* indexType = getExpressionType(node->right);
@@ -487,8 +526,15 @@ static char* getExpressionType(ASTNode* node) {
                 }
             }
 
-            // Caso normal (não é acesso a array)
-            BucketList l = st_lookup(node->value);
+            // Caso normal (não é acesso a array) - verificar apenas no escopo atual ou global
+            char* currentScope = current_scope();
+            BucketList l = st_lookup_in_scope(node->value, currentScope);
+            
+            // Se não encontrou no escopo atual, tenta no escopo global
+            if (!l && strcmp(currentScope, "global") != 0) {
+                l = st_lookup_in_scope(node->value, "global");
+            }
+            
             return l ? l->dataType : NULL;
         }
 
@@ -563,7 +609,14 @@ void freeSemanticResources(void) {
 static void checkArrayAccess(ASTNode* node) {
     if (!node->value) return;
 
-    BucketList l = st_lookup(node->value);
+    char* currentScope = current_scope();
+    BucketList l = st_lookup_in_scope(node->value, currentScope);
+    
+    // Se não encontrou no escopo atual, tenta no escopo global
+    if (!l && strcmp(currentScope, "global") != 0) {
+        l = st_lookup_in_scope(node->value, "global");
+    }
+    
     if (!l) {
         printError("Erro semântico: Variável '%s' não declarada (linha %d)",
                 node->value, node->lineno);

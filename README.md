@@ -97,7 +97,6 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 
 ## Próximas Etapas
 - variaveis criadas dentro de blocos
-- variaveis declaradas em outra funcao estao sendo reconhecidas (tabela e semantico)
 - rever sort
 - rever registrador t_
 - rever quadruplas

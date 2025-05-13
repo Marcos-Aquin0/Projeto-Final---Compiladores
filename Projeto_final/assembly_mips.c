@@ -830,8 +830,8 @@ void generateAssembly(FILE* inputFile) {
                 // Carrega o parâmetro da pilha para o registrador correspondente
                 
                 parameters[paramCount] = r1; // Armazena o nome do parâmetro
-                printf("parametro %d, index %d\n", parameters[paramCount], paramCount);
-                printf("quad.arg1 %s\n", quad.arg1);
+                // printf("parametro %d, index %d\n", parameters[paramCount], paramCount);
+                // printf("quad.arg1 %s\n", quad.arg1);
                 loadParameter(output, paramCount++, r1, &lineIndex);
                 checkNextQuadruple(inputFile, &filePos, &nextQuad);
                 break;
@@ -882,7 +882,7 @@ void generateAssembly(FILE* inputFile) {
                     if (paramCount > 0) {
                         // Carrega os parâmetros da pilha para os registradores correspondentes
                         for (int i = 0; i < paramCount; i++) {
-                            printf("parametro %d, registrador\n", parameters[i]);
+                            // printf("parametro %d, registrador\n", parameters[i]);
                             // int rx = getRegisterIndex(parameters[i]);
                             loadParameter(output, i, parameters[i], &lineIndex);
                         }
