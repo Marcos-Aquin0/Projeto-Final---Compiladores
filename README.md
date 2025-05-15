@@ -97,17 +97,18 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 
 ## Próximas Etapas
 - variaveis criadas dentro de blocos
-- rever sort
-- rever registrador t_.verificar todos os t e reservar o registrador antes
+- rever registrador t_.verificar todos os t e reservar o registrador antes, está gerando conflito
+- multiplicação com imediato (-4)
 - rever quadruplas
 
 - o pc é + 1 e a memória +4?
 - nop precisa iniciar os registradores sp, fp, ra e 63 como 0 no registrador
 - reservar registrador r3 para input no processador
 - integração com o processador MIPS (lab de AOC), modelagem sysml faltante e relatório
+- instrução de "enter" no processador para pegar um valor e esperar (era output2)
 
 - gerador de código binário
-- instrução de "enter" no processador para pegar um valor e esperar (era output2)
+
 - suporte para várias chamadas da mesma função no mesmo escopo
 - suporte para break em while
 - suporte para float
