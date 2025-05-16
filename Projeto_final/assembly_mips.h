@@ -28,14 +28,15 @@ typedef struct {
     char varName[64];
     int regIndex;
     int isUsed;
-    int preserved;
+    char tempReg[64]; // Nome do registrador temporário
 } RegisterMapping;
 
 static RegisterMapping argumentRegs[6]; // a0-a5
 static RegisterMapping paramRegs[6]; // p0-p5
 static RegisterMapping tempLocalRegs[27];  // t0-t26
-static RegisterMapping tempGlobalRegs[13];  // t0-t12
-static RegisterMapping returnRegs[2]; // v0-v1
+static RegisterMapping tempGlobalRegs[9];  // t0-t8
+static RegisterMapping constantRegs[4]; // c0-c3
+static RegisterMapping returnRegs[1]; // v0-v1
 
 static char currentFunction[50] = ""; // Função atual sendo processada
 
