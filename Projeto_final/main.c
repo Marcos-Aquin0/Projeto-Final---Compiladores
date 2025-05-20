@@ -5,6 +5,7 @@
 #include "semantic.h"
 #include "cinter.h"
 #include "assembly_mips.h"
+#include "binario_proc.h"
 
 extern int yyparse(); /*função do parser*/
 extern int lexErrorCount; /*contador de erros léxicos*/
@@ -58,16 +59,25 @@ int main(int argc, char *argv[]) {
             ircode_generate(root);
             printSuccess("Geração de código intermediário concluída!\n");
             //abrir arquivo e para usar a função e salvar na pasta output
-            FILE* out = fopen("Output/quadruples.txt", "r");
-            if (out == NULL) {
+            FILE* out_qd = fopen("Output/quadruples.txt", "r");
+            if (out_qd == NULL) {
                 printError("Erro ao abrir o arquivo.\n");
                 return 1;
             }
-            generateAssembly(out);  
-            fclose(out);
+            generateAssembly(out_qd);  
+            fclose(out_qd);
             printSuccess("Código assembly gerado e salvo na pasta Output\n");
+
+            FILE* out_asm = fopen("Output/assembly.asm", "r");
+            if (out_asm == NULL) {
+                printError("Erro ao abrir o arquivo.\n");
+                return 1;
+            }
+            read_assembly_file(out_asm);
+            fclose(out_asm);
+
         } else {
-            printError("\nGeração de código intermediário e de código assembly ignorada devido a erros.\n");
+            printError("\nGeração de código intermediário, de código assembly e de código binário ignorada devido a erros.\n");
         }
 
         pop_scope();

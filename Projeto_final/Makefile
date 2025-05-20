@@ -35,7 +35,7 @@ $(EXEC): $(BISON_C) $(LEX_C) $(MAIN_FILE) $(ASNT_FILES) $(SYMTAB_FILES)
 
 # Limpeza
 clean:
-	rm -f $(LEX_C) $(BISON_C) $(BISON_H) $(EXEC) Output/assembly.asm Output/quadruples.txt Output/three_address_code.txt
+	rm -f $(LEX_C) $(BISON_C) $(BISON_H) $(EXEC) Output/assembly.asm Output/quadruples.txt Output/three_address_code.txt Output/binary.txt
 
 # Adicionar flag de debug para compilação
 debug: CFLAGS += -DDEBUG

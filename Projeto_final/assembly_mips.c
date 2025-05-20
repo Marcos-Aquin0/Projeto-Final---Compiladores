@@ -771,7 +771,7 @@ void generateAssembly(FILE* inputFile) {
                 break;
 
             case OP_LABEL:
-                fprintf(output, "%d - %s:\n", lineIndex++, quad.result);
+                fprintf(output, "%d - %s: #Nova Label %s\n", lineIndex++, quad.result, quad.result);
                 // Rastrear início de uma nova label
                 // strncpy(currentLabel.labelName, quad.result, sizeof(currentLabel.labelName) - 1);
                 // currentLabel.varCount = 0; // Reset do contador de variáveis para nova label
@@ -804,7 +804,7 @@ void generateAssembly(FILE* inputFile) {
                     fprintf(output, "%d - j main\n", lineIndex++); //começa na main
                     ehPrimeiraFuncao = 0; // marca que já processou a primeira função
                 }
-                fprintf(output, "%d - %s: # nova função\n", lineIndex++, quad.arg1);
+                fprintf(output, "%d - %s: # nova função %s\n", lineIndex++, quad.arg1, quad.arg1);
                 
                 // Configura o frame da função usando nossa nova função
                 setupFrame(output, &lineIndex, &stackOffset);
@@ -872,7 +872,7 @@ void generateAssembly(FILE* inputFile) {
                     
                     //se o argumento é uma constante, carrega o valor em um registrador primeiro
                     if (isdigit(quad.arg1[0])) {
-                        fprintf(output, "%d - li $r%d %s # argument %d: %s\n", lineIndex++, destReg, quad.arg1, argumentNum, quad.arg1);
+                        fprintf(output, "%d - li $r%d %s # argument %d (%s)\n", lineIndex++, destReg, quad.arg1, argumentNum, quad.arg1);
                     }
                     // Se o argumento é uma variável local, precisamos carregar seu valor da memória
                     else if (symbol != NULL && strcmp(symbol->idType, "var") == 0) {
@@ -885,10 +885,10 @@ void generateAssembly(FILE* inputFile) {
                     
                     else{
                         if (destReg != r1) {
-                            fprintf(output, "%d - move $r%d $r%d # argument %d: %s\n", 
+                            fprintf(output, "%d - move $r%d $r%d # argument %d (%s)\n", 
                                     lineIndex++, destReg, r1, argumentNum, quad.arg1);
                         } else {
-                            fprintf(output, "%d - # argument %d: %s já está em $r%d\n", 
+                            fprintf(output, "%d - # argument (%d) %s já está em $r%d\n", 
                                     lineIndex++, argumentNum, quad.arg1, destReg);
                         }
                     }
