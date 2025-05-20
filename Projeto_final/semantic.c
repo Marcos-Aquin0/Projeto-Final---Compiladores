@@ -28,7 +28,7 @@ static struct {
     int reported;
 } errorTracker[ERROR_TRACK_SIZE] = {{NULL, 0, 0}};
 
-// Função de hash (mantida do código original)
+// Função de hash 
 static int hash(char* key) {
     unsigned long hash = 5381;  // Valor inicial para o algoritmo DJB2
     int c;
@@ -38,12 +38,6 @@ static int hash(char* key) {
     }
 
     return hash % ERROR_TRACK_SIZE;
-}
-
-// Verifica compatibilidade de tipos
-static int checkTypeCompatibility(const char* type1, const char* type2) {
-    if (!type1 || !type2) return 0;
-    return (strcmp(type1, type2) == 0);
 }
 
 // Função para verificar se um erro já foi reportado para uma variável
@@ -82,6 +76,12 @@ static void clearErrorTracker(void) {
     }
 }
 
+// Verifica compatibilidade de tipos
+static int checkTypeCompatibility(const char* type1, const char* type2) {
+    if (!type1 || !type2) return 0;
+    return (strcmp(type1, type2) == 0);
+}
+
 // Verifica se a expressão em um comando return está declarada
 static void checkReturnStatement(ASTNode* node) {
     if (!node || !node->left) return;
@@ -117,131 +117,6 @@ static void checkReturnStatement(ASTNode* node) {
     // Se o retorno é uma chamada de função
     else if (returnExpr->type == NODE_ACTIVATION) {
         checkFunctionCall(returnExpr);
-    }
-}
-// Função principal de análise semântica
-void semanticAnalysis(ASTNode* node) {
-    if (node == NULL) {
-        return;
-    }
-
-    // Limpar o rastreador de erros quando começamos a análise da AST
-    if (node->type == NODE_PROGRAM) {
-        clearErrorTracker();
-    }
-
-    switch (node->type) {
-        case NODE_VAR_DECL:
-            if (node->value != NULL && node->idType != NULL) {
-                checkVariableDeclaration(node);
-            }
-            break;
-        case NODE_VAR:
-            BucketList existing = st_lookup_all_scopes(node->value, "global");
-            if(existing != NULL && strcmp(existing->idType, "func") == 0) {
-                printError("Erro semântico: '%s' é uma função, não uma variável", node->value);
-                semanticErrorCount++;
-                return;
-            }
-            if (node->value != NULL && node->idType != NULL) {
-                checkVariableDeclaration(node);
-            }
-            break;
-
-        case NODE_EXPR:
-            if (node->value != NULL && strcmp(node->value, "=") == 0) {
-                checkAssignment(node);
-            }
-            break;
-
-        case NODE_ARRAY_ACCESS:
-            checkArrayAccess(node);
-            break;
-        
-        case NODE_SIMP_EXPR:
-            // printf("DEBUG - NODE_SIMP_EXPR encontrado na linha %d\n", node->lineno);
-            
-            // Verificar se o filho esquerdo é uma variável
-            if (node->left && node->left->type == NODE_VAR && node->left->value) {
-                char* currentScope = current_scope();
-                BucketList l = st_lookup_in_scope(node->left->value, currentScope);
-                
-                // Se não encontrou no escopo atual, tenta no escopo global
-                if (!l && strcmp(currentScope, "global") != 0) {
-                    l = st_lookup_in_scope(node->left->value, "global");
-                }
-                if (!l && !errorAlreadyReported(node->left->value, node->lineno)) {
-                    printError("Erro semântico: Variável '%s' usada em comparação não foi declarada (linha %d)",
-                            node->left->value, node->lineno);
-                    semanticErrorCount++;
-                }
-            }
-            
-            // Verificar o operador relacional (filho direito)
-            if (node->right && node->right->type == NODE_RELATIONAL) {
-                // printf("  Operador relacional encontrado\n");
-                
-                // Verificar o operador de comparação
-                if (node->right->value) {
-                    // printf("  Operador: %s\n", node->right->value);
-                }
-                
-                // Verificar o valor/variável direita (pode ser Factor ou outra Var)
-                if (node->right->right) {
-                    if (node->right->right->type == NODE_VAR && node->right->right->value) {
-                        // printf("  Variável direita: %s\n", node->right->right->value);
-                        // Verificar se a variável foi declarada
-                        char* currentScope = current_scope();
-                        BucketList l = st_lookup_in_scope(node->right->right->value, currentScope);
-                        
-                        // Se não encontrou no escopo atual, tenta no escopo global
-                        if (!l && strcmp(currentScope, "global") != 0) {
-                            l = st_lookup_in_scope(node->right->right->value, "global");
-                        }
-                        if (!l && !errorAlreadyReported(node->right->right->value, node->lineno)) {
-                            printError("Erro semântico: Variável '%s' usada em comparação não foi declarada (linha %d)",
-                                    node->right->right->value, node->lineno);
-                            semanticErrorCount++;
-                        }
-                    } 
-                    else if (node->right->right->type == NODE_FACTOR) {
-                        // printf("  Constante direita: %s\n", 
-                            //   node->right->right->value ? node->right->right->value : "desconhecido");
-                    }
-                }
-            }
-            break;
-
-        case NODE_ACTIVATION:
-            checkFunctionCall(node);
-            break;
-
-        case NODE_FUNC_DECL:
-            if (node->value != NULL) {
-                push_scope(node->value);
-                lastFunctionNode = node;
-
-                if (strcmp(node->value, "main") == 0) {
-                    hasMainFunction = 1;
-                }
-
-                hasDeclaration = 1;
-            }
-            break;
-        case NODE_RETURN_DECL:
-            checkReturnStatement(node);
-            break;
-        default:
-            break;
-    }
-
-    semanticAnalysis(node->left);
-    semanticAnalysis(node->right);
-
-    if (node->type == NODE_PROGRAM) {
-        checkMainFunction();
-        checkAtLeastOneDeclaration();
-        checkLastFunctionIsMain();
     }
 }
 
@@ -459,7 +334,80 @@ static void checkFunctionCall(ASTNode* node) {
     }
 }
 
-// Nova função auxiliar para validar variáveis em expressões
+static void checkMainFunction(void) {
+    if (!hasMainFunction) {
+        printError("Erro semântico: Função 'main' não declarada.");
+        semanticErrorCount++;
+    }
+}
+
+// Adicionar função para verificar se há pelo menos uma declaração
+static void checkAtLeastOneDeclaration(void) {
+    if (!hasDeclaration) {
+        printError("Erro semântico: O código deve conter pelo menos uma declaração (função ou variável).");
+        semanticErrorCount++;
+    }
+}
+
+// Adicionar função para verificar se a última função é void main(void)
+static void checkLastFunctionIsMain(void) {
+    if (lastFunctionNode && strcmp(lastFunctionNode->value, "main") != 0) {
+        printError("Erro semântico: A última declaração de função deve ser 'void main(void)'.");
+        semanticErrorCount++;
+    }
+}
+
+static void checkArrayAccess(ASTNode* node) {
+    if (!node->value) return;
+
+    char* currentScope = current_scope();
+    BucketList l = st_lookup_in_scope(node->value, currentScope);
+    
+    // Se não encontrou no escopo atual, tenta no escopo global
+    if (!l && strcmp(currentScope, "global") != 0) {
+        l = st_lookup_in_scope(node->value, "global");
+    }
+    
+    if (!l) {
+        printError("Erro semântico: Variável '%s' não declarada (linha %d)",
+                node->value, node->lineno);
+        semanticErrorCount++;
+        return;
+    }
+
+    if (!l->isArray) {
+        printError("Erro semântico: Variável '%s' não é um array (linha %d)",
+                node->value, node->lineno);
+        semanticErrorCount++;
+        return;
+    }
+
+    // Verifica se o índice é uma expressão inteira
+    if (node->right) {
+        char* indexType = getExpressionType(node->right);
+        if (!indexType || strcmp(indexType, "int") != 0) {
+            printError("Erro semântico: Índice do array deve ser do tipo int (linha %d)",
+                    node->lineno);
+            semanticErrorCount++;
+        }
+
+        // Se o índice é uma constante, verifica os limites
+        if (node->right->type == NODE_FACTOR && node->right->value) {
+            int index = atoi(node->right->value);
+            if (index < 0) {
+                printError("Erro semântico: Índice negativo (%d) no acesso ao array '%s' (linha %d)",
+                        index, node->value, node->lineno);
+                semanticErrorCount++;
+            } 
+            else if (l->arraySize > 0 && index >= l->arraySize) {
+                printError("Erro semântico: Índice %d fora dos limites do array '%s[%d]' (linha %d)",
+                        index, node->value, l->arraySize, node->lineno);
+                semanticErrorCount++;
+            }
+        }
+    }
+}
+
 static void validateExpressionVariables(ASTNode* expr) {
     if (expr == NULL) return;
 
@@ -578,81 +526,133 @@ static char* getExpressionType(ASTNode* node) {
     return NULL;
 }
 
-static void checkMainFunction(void) {
-    if (!hasMainFunction) {
-        printError("Erro semântico: Função 'main' não declarada.");
-        semanticErrorCount++;
-    }
-}
-
-// Adicionar função para verificar se há pelo menos uma declaração
-static void checkAtLeastOneDeclaration(void) {
-    if (!hasDeclaration) {
-        printError("Erro semântico: O código deve conter pelo menos uma declaração (função ou variável).");
-        semanticErrorCount++;
-    }
-}
-
-// Adicionar função para verificar se a última função é void main(void)
-static void checkLastFunctionIsMain(void) {
-    if (lastFunctionNode && strcmp(lastFunctionNode->value, "main") != 0) {
-        printError("Erro semântico: A última declaração de função deve ser 'void main(void)'.");
-        semanticErrorCount++;
-    }
-}
-
 // Liberar recursos utilizados pelo analisador semântico
 void freeSemanticResources(void) {
     clearErrorTracker();
 }
 
-static void checkArrayAccess(ASTNode* node) {
-    if (!node->value) return;
-
-    char* currentScope = current_scope();
-    BucketList l = st_lookup_in_scope(node->value, currentScope);
-    
-    // Se não encontrou no escopo atual, tenta no escopo global
-    if (!l && strcmp(currentScope, "global") != 0) {
-        l = st_lookup_in_scope(node->value, "global");
-    }
-    
-    if (!l) {
-        printError("Erro semântico: Variável '%s' não declarada (linha %d)",
-                node->value, node->lineno);
-        semanticErrorCount++;
+// Função principal de análise semântica
+void semanticAnalysis(ASTNode* node) {
+    if (node == NULL) {
         return;
     }
 
-    if (!l->isArray) {
-        printError("Erro semântico: Variável '%s' não é um array (linha %d)",
-                node->value, node->lineno);
-        semanticErrorCount++;
-        return;
+    // Limpar o rastreador de erros quando começamos a análise da AST
+    if (node->type == NODE_PROGRAM) {
+        clearErrorTracker();
     }
 
-    // Verifica se o índice é uma expressão inteira
-    if (node->right) {
-        char* indexType = getExpressionType(node->right);
-        if (!indexType || strcmp(indexType, "int") != 0) {
-            printError("Erro semântico: Índice do array deve ser do tipo int (linha %d)",
-                    node->lineno);
-            semanticErrorCount++;
-        }
-
-        // Se o índice é uma constante, verifica os limites
-        if (node->right->type == NODE_FACTOR && node->right->value) {
-            int index = atoi(node->right->value);
-            if (index < 0) {
-                printError("Erro semântico: Índice negativo (%d) no acesso ao array '%s' (linha %d)",
-                        index, node->value, node->lineno);
-                semanticErrorCount++;
-            } 
-            else if (l->arraySize > 0 && index >= l->arraySize) {
-                printError("Erro semântico: Índice %d fora dos limites do array '%s[%d]' (linha %d)",
-                        index, node->value, l->arraySize, node->lineno);
-                semanticErrorCount++;
+    switch (node->type) {
+        case NODE_VAR_DECL:
+            if (node->value != NULL && node->idType != NULL) {
+                checkVariableDeclaration(node);
             }
-        }
+            break;
+        case NODE_VAR:
+            BucketList existing = st_lookup_all_scopes(node->value, "global");
+            if(existing != NULL && strcmp(existing->idType, "func") == 0) {
+                printError("Erro semântico: '%s' é uma função, não uma variável", node->value);
+                semanticErrorCount++;
+                return;
+            }
+            if (node->value != NULL && node->idType != NULL) {
+                checkVariableDeclaration(node);
+            }
+            break;
+
+        case NODE_EXPR:
+            if (node->value != NULL && strcmp(node->value, "=") == 0) {
+                checkAssignment(node);
+            }
+            break;
+
+        case NODE_ARRAY_ACCESS:
+            checkArrayAccess(node);
+            break;
+        
+        case NODE_SIMP_EXPR:
+            // printf("DEBUG - NODE_SIMP_EXPR encontrado na linha %d\n", node->lineno);
+            
+            // Verificar se o filho esquerdo é uma variável
+            if (node->left && node->left->type == NODE_VAR && node->left->value) {
+                char* currentScope = current_scope();
+                BucketList l = st_lookup_in_scope(node->left->value, currentScope);
+                
+                // Se não encontrou no escopo atual, tenta no escopo global
+                if (!l && strcmp(currentScope, "global") != 0) {
+                    l = st_lookup_in_scope(node->left->value, "global");
+                }
+                if (!l && !errorAlreadyReported(node->left->value, node->lineno)) {
+                    printError("Erro semântico: Variável '%s' usada em comparação não foi declarada (linha %d)",
+                            node->left->value, node->lineno);
+                    semanticErrorCount++;
+                }
+            }
+            
+            // Verificar o operador relacional (filho direito)
+            if (node->right && node->right->type == NODE_RELATIONAL) {
+                // printf("  Operador relacional encontrado\n");
+                
+                // Verificar o operador de comparação
+                if (node->right->value) {
+                    // printf("  Operador: %s\n", node->right->value);
+                }
+                
+                // Verificar o valor/variável direita (pode ser Factor ou outra Var)
+                if (node->right->right) {
+                    if (node->right->right->type == NODE_VAR && node->right->right->value) {
+                        // printf("  Variável direita: %s\n", node->right->right->value);
+                        // Verificar se a variável foi declarada
+                        char* currentScope = current_scope();
+                        BucketList l = st_lookup_in_scope(node->right->right->value, currentScope);
+                        
+                        // Se não encontrou no escopo atual, tenta no escopo global
+                        if (!l && strcmp(currentScope, "global") != 0) {
+                            l = st_lookup_in_scope(node->right->right->value, "global");
+                        }
+                        if (!l && !errorAlreadyReported(node->right->right->value, node->lineno)) {
+                            printError("Erro semântico: Variável '%s' usada em comparação não foi declarada (linha %d)",
+                                    node->right->right->value, node->lineno);
+                            semanticErrorCount++;
+                        }
+                    } 
+                    else if (node->right->right->type == NODE_FACTOR) {
+                        // printf("  Constante direita: %s\n", 
+                            //   node->right->right->value ? node->right->right->value : "desconhecido");
+                    }
+                }
+            }
+            break;
+
+        case NODE_ACTIVATION: //chamada de função
+            checkFunctionCall(node);
+            break;
+
+        case NODE_FUNC_DECL:
+            if (node->value != NULL) {
+                push_scope(node->value);
+                lastFunctionNode = node;
+
+                if (strcmp(node->value, "main") == 0) {
+                    hasMainFunction = 1;
+                }
+
+                hasDeclaration = 1;
+            }
+            break;
+        case NODE_RETURN_DECL:
+            checkReturnStatement(node);
+            break;
+        default:
+            break;
+    }
+
+    semanticAnalysis(node->left);
+    semanticAnalysis(node->right);
+
+    if (node->type == NODE_PROGRAM) {
+        checkMainFunction();
+        checkAtLeastOneDeclaration();
+        checkLastFunctionIsMain();
     }
 }
