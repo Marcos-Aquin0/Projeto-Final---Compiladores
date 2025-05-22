@@ -159,59 +159,63 @@ BucketList st_lookup_all_scopes(char *name, char *scope) {
 
 void printSymTab(FILE *listing) {
     int i;
-    fprintf(listing, "Variable Name  Scope       ID Type  Data Type  Location  Line Numbers\n");
-    fprintf(listing, "-------------  ----------  -------  ---------  --------  ------------\n");
+    FILE* outfile = fopen("Output/symtab.txt", "w");
+    
+    fprintf(outfile, "Variable Name  Scope       ID Type  Data Type  Location  Line Numbers\n");
+    fprintf(outfile, "-------------  ----------  -------  ---------  --------  ------------\n");
     for (i = 0; i < SIZE; ++i) {
         if (hashTable[i] != NULL) {
             BucketList l = hashTable[i];
             while (l != NULL) {
                 LineList t = l->lines;
-                fprintf(listing, "%-14s %-12s %-8s %-10s %-9d ", l->name, l->scope, l->idType, l->dataType, l->memloc);
+                fprintf(outfile, "%-14s %-12s %-8s %-10s %-9d ", l->name, l->scope, l->idType, l->dataType, l->memloc);
                 
                 // // Mostrar informações de parâmetros para funções
                 // if (strcmp(l->idType, "func") == 0) {
-                //     fprintf(listing, "%d params: ", l->paramCount);
+                //     fprintf(outfile, "%d params: ", l->paramCount);
                 //     ParamInfo param = l->params;
                 //     while (param != NULL) {
-                //         fprintf(listing, "%s%s ", param->paramType, param->isArray ? "[]" : "");
+                //         fprintf(outfile, "%s%s ", param->paramType, param->isArray ? "[]" : "");
                 //         param = param->next;
-                //         if (param != NULL) fprintf(listing, ", ");
+                //         if (param != NULL) fprintf(outfile, ", ");
                 //     }
-                //     fprintf(listing, "   ");
+                //     fprintf(outfile, "   ");
                 // } else {
-                //     fprintf(listing, "%-17s ", l->isArray ? "[array]" : "");
+                //     fprintf(outfile, "%-17s ", l->isArray ? "[array]" : "");
                 // }
                 
                 // Para funções no escopo global, a primeira linha é a declaração
                 if (strcmp(l->idType, "func") == 0 && strcmp(l->scope, "global") == 0) {
-                    fprintf(listing, "%4d(D) ", t->lineno);
+                    fprintf(outfile, "%4d(D) ", t->lineno);
                     t = t->next;
                     // As linhas restantes são chamadas
                     while (t != NULL) {
-                        fprintf(listing, "%4d ", t->lineno);
+                        fprintf(outfile, "%4d ", t->lineno);
                         t = t->next;
                     }
                 } 
                 // Para funções em outros escopos, todas são chamadas
                 else if (strcmp(l->idType, "func") == 0) {
                     while (t != NULL) {
-                        fprintf(listing, "%4d(C) ", t->lineno);
+                        fprintf(outfile, "%4d(C) ", t->lineno);
                         t = t->next;
                     }
                 }
                 else {
                     // Para variáveis, mostrar todas as linhas normalmente
                     while (t != NULL) {
-                        fprintf(listing, "%4d ", t->lineno);
+                        fprintf(outfile, "%4d ", t->lineno);
                         t = t->next;
                     }
                 }
                 
-                fprintf(listing, "\n");
+                fprintf(outfile, "\n");
                 l = l->next;
             }
         }
     }
+    printf("Tabela de símbolos salvo em 'Projeto_final/Output/symtab.txt'\n");
+    fclose(outfile);
 }
 
 static ScopeNode *scope_stack = NULL; // scope_stack: Declara uma pilha de escopos para gerenciar os escopos aninhados. Inicialmente, a pilha está vazia (NULL).
@@ -649,6 +653,5 @@ void buildSymtab(ASTNode *syntaxTree) {
     traverse(syntaxTree, insertNode, nullProc); //percorre a árvore sintática
     pop_scope();
 
-    printf("\nSymbol table:\n");
     printSymTab(stdout); 
 }

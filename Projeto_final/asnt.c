@@ -93,18 +93,18 @@ static void getNodeValue(ASTNode* node, char* buffer) {
 }
 
 // Função auxiliar recursiva para imprimir a árvore verticalmente com ASCII simples
-static void _printASTVerticalSimpleHelper(ASTNode* root, char* prefix, int isLast) {
+static void _printASTVerticalSimpleHelper(ASTNode* root, char* prefix, int isLast, FILE* outfile) {
     if (root == NULL) return;
 
     // Imprimir o prefixo atual
-    printf("%s", prefix);
+    fprintf(outfile, "%s", prefix);
     // Escolher o conector baseado se é o último filho ou não
-    printf(isLast ? "\\-- " : "|-- "); // "\\--" : Representa que o nó atual é o último filho.
+    fprintf(outfile, isLast ? "\\-- " : "|-- "); // "\\--" : Representa que o nó atual é o último filho.
 
     // Imprimir o valor do nó
     char value[100];
     getNodeValue(root, value); //Obtém a representação legível do valor do nó e armazena no buffer value.
-    printf("%s\n", value);
+    fprintf(outfile, "%s\n", value);
 
     // Preparar o prefixo para os próximos níveis
     char newPrefix[1000];
@@ -125,20 +125,19 @@ static void _printASTVerticalSimpleHelper(ASTNode* root, char* prefix, int isLas
         if (root->left) {
             // Se houver apenas um filho, ele é o último
             int isLastChild = (numChildren == 1) ? 1 : 0;
-            _printASTVerticalSimpleHelper(root->left, newPrefix, isLastChild);
+            _printASTVerticalSimpleHelper(root->left, newPrefix, isLastChild, outfile);
         }
         if (root->right) {
             // O segundo filho (se existir) é sempre o último
-            _printASTVerticalSimpleHelper(root->right, newPrefix, 1);
+            _printASTVerticalSimpleHelper(root->right, newPrefix, 1, outfile);
         }
     }
 }
 
 // Função pública para imprimir a árvore verticalmente
-void printASTVertical(ASTNode* root) {
-    printf("arvore de analise sintatica:\n\n");
+void printASTVertical(ASTNode* root, FILE* outfile) {
     
-    _printASTVerticalSimpleHelper(root, "", 1);
+    _printASTVerticalSimpleHelper(root, "", 1, outfile);
     //"": Prefixo inicial vazio.
     //1: Indica que o nó raiz é o último nó (não tem irmãos).
 }

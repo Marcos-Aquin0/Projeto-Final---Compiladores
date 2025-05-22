@@ -35,13 +35,18 @@ int main(int argc, char *argv[]) {
         // Imprime a árvore se solicitado
         if (argc > 1 && strcmp(argv[1], "--print-tree") == 0) 
             printReducedAST(root, 0);
-        else if (argc > 1 && strcmp(argv[1], "--print-full-tree") == 0) 
-            printASTVertical(root);
+        else if (argc > 1 && strcmp(argv[1], "--print-full-tree") == 0){
+            FILE* outfile = fopen("Output/asnt.txt", "w");
+            printASTVertical(root, outfile);
+            fclose(outfile);
+            printf("Árvore sintática completa impressa em 'Projeto_final/Output/asnt.txt'.\n");
+        } 
+            
 
         // Construção da tabela de símbolos
         printf("\nConstruindo tabela de símbolos...\n"); 
         buildSymtab(root);
-        
+        printf("Tabela de símbolos construída com sucesso! \n");
         // Análise semântica
         printf("\nIniciando análise semântica...\n");
         semanticAnalysis(root);

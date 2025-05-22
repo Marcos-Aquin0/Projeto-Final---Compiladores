@@ -33,7 +33,7 @@ ASTNode* createNode(NodeType type, ASTNode* left, ASTNode* right, char* value, i
 //liberar a memória utilizada para a árvore
 void freeAST(ASTNode* root);
 //imprimir a árvore completa
-void printASTVertical(ASTNode* root);
+void printASTVertical(ASTNode* root, FILE* outfile);
 
 //imprimir a árvore reduzida (ainda em desenvolvimento)
 void printReducedAST(ASTNode* root, int depth);
