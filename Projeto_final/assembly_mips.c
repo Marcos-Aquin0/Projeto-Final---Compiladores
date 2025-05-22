@@ -29,23 +29,7 @@ OperationType getOpTypeFromString(const char* op) {
     return -1;
 }
 
-// Inicializa os mapeamentos de registradores
-void reinitRegisterMappings() {
-    int i;
-    for (i = 0; i < 6; i++) { //os regs a seguir possuem 6 regs disponíveis
-        paramRegs[i].isUsed = 0; //marca como não utilizados
-        argumentRegs[i].isUsed = 0;
-    }
-    for (i = 0; i < 27; i++) {
-        tempLocalRegs[i].isUsed = 0;
-    }
-    for (i = 0; i < 4; i++) {
-        constantRegs[i].isUsed = 0;
-        constantRegs[i].varName[0] = '\0'; // Limpa o nome da variável
-        constantRegs[i].tempReg[0] = '\0'; // Limpa o nome do registrador temporário
-    }
-}
-
+//Inicialização dos registradores
 void initRegisterMappings() {
     int i;
     for (i = 0; i < 6; i++) { //os regs a seguir possuem 6 regs disponíveis
@@ -53,7 +37,7 @@ void initRegisterMappings() {
         argumentRegs[i].isUsed = 0;
     }
     for (i = 0; i < 1; i++) { 
-        returnRegs[i].isUsed = 0; //marca como não utilizados
+        returnRegs[i].isUsed = 0;
     }
     for (i = 0; i < 27; i++) {
         tempLocalRegs[i].isUsed = 0;
@@ -66,20 +50,36 @@ void initRegisterMappings() {
     }
 }
 
+// Reinicializa os mapeamentos de registradores
+void reinitRegisterMappings() {
+    int i;
+    for (i = 0; i < 6; i++) { 
+        paramRegs[i].isUsed = 0;
+        argumentRegs[i].isUsed = 0;
+    }
+    for (i = 0; i < 27; i++) {
+        tempLocalRegs[i].isUsed = 0;
+    }
+    returnRegs[0].isUsed = 0;
+    for (i = 0; i < 4; i++) {
+        constantRegs[i].isUsed = 0;
+        constantRegs[i].varName[0] = '\0'; // Limpa o nome da variável
+        constantRegs[i].tempReg[0] = '\0'; // Limpa o nome do registrador temporário
+    }
+}
+
 // pega o próximo registrador livre
 int getNextFreeReg(RegisterMapping* regs, int count) {
     // Primeiro procura por registradores não utilizados
     for (int i = 0; i < count; i++) {
-        if (!regs[i].isUsed) {
+        if (regs[i].isUsed == 0) {
             regs[i].isUsed = 1;
             return i;
         }
     }
     
-    // Se todos os registradores estão em uso e preservados, usamos o primeiro como fallback
-    // spilling 
     DEBUG_ASSEMBLY("DEBUG - getNextFreeReg: AVISO - Todos os registradores preservados, reutilizando reg 0\n");
-    return 0;
+    return 0; //se por algum motivo estourou, retorna o primeiro registrador
 }
 
 // Função para obter o índice do registrador a partir do nome da variável
@@ -213,43 +213,17 @@ int getRegisterIndex(char* name) {
 
     // Valores de retorno
     if (strncmp(name, "ret", 3) == 0 || strstr(name, "return") != NULL) {
-        int retIdx = getNextFreeReg(returnRegs, 2);
+        int retIdx = getNextFreeReg(returnRegs, 1);
         sprintf(returnRegs[retIdx].varName, "%s", name);
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Valor de retorno '%s' mapeado para v%d (r%d)\n", 
                name, retIdx, 45 + retIdx);
-        return 45 + retIdx; // v0-v1
+        return 45 + retIdx; // v0
     }
     
     // Fallback: usa registrador do kernel
     DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Fallback para '%s', usando registrador kernel r59\n", name);
     return 59; //kernel r58-r60
 }
-
-// typedef struct {
-//     char labelName[64];
-//     int varCount;
-//     int varRegisters[32]; // Armazena registradores das variáveis alocadas na label
-// } LabelScope;
-
-// LabelScope currentLabel = {"", 0};
-// char lastAllocLabel[64] = "";
-
-// // Adicione esta função para limpar as variáveis alocadas em uma label
-// void deallocateLabelVars(FILE* output, int* lineIndex, int* stackOffset) {
-//     if (currentLabel.varCount > 0) {
-//         fprintf(output, "%d - # Desalocando %d variáveis da label %s\n", 
-//                 (*lineIndex)++, currentLabel.varCount, currentLabel.labelName);
-        
-//         // Libera espaço na pilha para todas as variáveis alocadas
-//         int totalSpace = currentLabel.varCount * 4;
-//         fprintf(output, "%d - addi $r1 $r1 %d # libera espaço das variáveis locais da label\n", 
-//                 (*lineIndex)++, totalSpace);
-//         *stackOffset += totalSpace;
-        
-//         // Reset do contador de variáveis da label
-//         currentLabel.varCount = 0;
-//     }
-// }
 
 // Atualiza a função atual e reinicia os mapeamentos de registradores
 void updateCurrentFunction(const char* funcName) {
@@ -258,11 +232,11 @@ void updateCurrentFunction(const char* funcName) {
         currentFunction[sizeof(currentFunction) - 1] = '\0';
         
         // Reinicia mapeamentos ao mudar de função
-        initRegisterMappings();
+        reinitRegisterMappings();
     }
 }
 
-// Função auxiliar para verificar se a próxima quádrupla é um JUMPTRUE ou JUMPFALSE
+// Função auxiliar para verificar a próxima quádrupla
 void checkNextQuadruple(FILE* inputFile, long* filePos, QuadrupleInfo* nextQuad) {
     char buffer[256];
     
@@ -311,6 +285,7 @@ void popRegister(FILE* output, int reg, int* stackOffset, int* lineIndex) {
     DEBUG_ASSEMBLY("DEBUG - popRegister: Desempilhando para r%d, stack offset agora é %d\n", reg, *stackOffset);
 }
 
+//função auxiliar para imprimir o uso de registradores
 void analyzeRegisterUsage(const char* assemblyFilePath) {
     FILE* assemblyFile = fopen(assemblyFilePath, "r");
     if (!assemblyFile) {
@@ -485,9 +460,7 @@ void restoreFrame(FILE* output, int* lineIndex, int* stackOffset) {
     DEBUG_ASSEMBLY("DEBUG - restoreFrame: Frame restaurado, SP=%d\n", *stackOffset);
 }
 
-
-
-// Nova função: Aloca espaço para parâmetros de funções
+// Aloca espaço para parâmetros de funções
 void allocateArgumentSpace(FILE* output, int argumentCount, int* lineIndex, int* stackOffset) {
     if (argumentCount > 0) {
         int totalSize = argumentCount * 4;  // Cada parâmetro ocupa 4 bytes
@@ -501,7 +474,7 @@ void allocateArgumentSpace(FILE* output, int argumentCount, int* lineIndex, int*
     }
 }
 
-// Função para contar quantos argumentos existem até encontrar uma chamada de função
+// Função para contar quantos argumentos existem até encontrar uma chamada de função, para empilhar o último primeiro
 int countArgumentsUntilCall(FILE* inputFile, long currentPos) {
     char buffer[256];
     int count = 0;
@@ -540,6 +513,28 @@ int countArgumentsUntilCall(FILE* inputFile, long currentPos) {
     return count;
 }
 
+void reiniciarRg(int r1){
+    if(r1 > 3 && r1 < 31){
+        // Se for um registrador temporário local
+        tempLocalRegs[r1-4].isUsed = 0;
+    } else if(r1 > 31 && r1 < 41){
+        // Se for um registrador temporário global
+        tempGlobalRegs[r1-32].isUsed = 0;
+    } else if(r1 > 45 && r1 < 52){
+        // Se for um registrador de argumento
+        argumentRegs[r1-46].isUsed = 0;
+    } else if(r1 > 52 && r1 < 58){
+        // Se for um registrador de parâmetro
+        paramRegs[r1-52].isUsed = 0;
+    } else if(r1 == 45){
+        // Se for o registrador de retorno
+        returnRegs[0].isUsed = 0;
+    } else if(r1 > 41 && r1 < 45){
+        // Se for um registrador constante
+        constantRegs[r1-41].isUsed = 0;
+    }
+}
+
 // Função principal para gerar o código assembly a partir do arquivo de entrada
 void generateAssembly(FILE* inputFile) {
     FILE* output = fopen("Output/assembly.asm", "w");
@@ -549,7 +544,7 @@ void generateAssembly(FILE* inputFile) {
     // Variável para controlar o deslocamento da pilha
     int stackOffset = 0;
     
-    // Ignora o cabeçalho (4 linhas)
+    // Ignora o cabeçalho da tabela (4 linhas)
     char buffer[256];
     for (int i = 0; i < 4; i++) {
         if (fgets(buffer, sizeof(buffer), inputFile) == NULL) {
@@ -561,9 +556,10 @@ void generateAssembly(FILE* inputFile) {
     }
 
     QuadrupleInfo quad, nextQuad;
+    //variáveis para controle de quádruplas
     int lineIndex = 0;
     long filePos;
-    int argumentCount = 0;  // Contador para parâmetros de função
+    int argumentCount = 0;  
     int varLocalCount = 0;
     int varGlobalCount = 0;
     int paramCount = 0;
@@ -575,6 +571,8 @@ void generateAssembly(FILE* inputFile) {
     int rbase;
     char* pularTemp = "";
     int addehone = 0;
+    int r1comp;
+    int r2comp;
 
     fprintf(output, "%d - nop 1\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
     int ehPrimeiraFuncao = 1;
@@ -603,9 +601,10 @@ void generateAssembly(FILE* inputFile) {
         // Atualiza a função atual quando encontra uma definição de função
         if (strcmp(quad.op, "FUNCTION") == 0) {
             updateCurrentFunction(quad.arg1);
-            argumentCount = 0;  // Reset parameter count for new function
-            varLocalCount = 0;  // Reset local variable count for new function
-            paramCount = 0;  // Reset parameter count for new function
+            //reseta contadores
+            argumentCount = 0;  
+            varLocalCount = 0;  
+            paramCount = 0;  
         }
 
         // Processa a quádrupla lida, para saber o operador e os index
@@ -639,6 +638,8 @@ void generateAssembly(FILE* inputFile) {
                             fprintf(output, "%d - beq $r%d $r%d %s # jump se %s == %s\n", 
                                     lineIndex++, r1, r2, nextQuad.result, quad.arg1, quad.arg2);
                         }
+                        r1comp = r1;
+                        r2comp = r2;
                         break;
                         
                     case OP_NEQ:
@@ -651,6 +652,8 @@ void generateAssembly(FILE* inputFile) {
                             fprintf(output, "%d - bne $r%d $r%d %s # jump se !=\n", 
                                     lineIndex++, r1, r2, nextQuad.result);
                         }
+                        r1comp = r1;
+                        r2comp = r2;
                         break;
                         
                     case OP_LT:
@@ -663,6 +666,8 @@ void generateAssembly(FILE* inputFile) {
                             fprintf(output, "%d - blt $r%d $r%d %s # jump se <\n", 
                                     lineIndex++, r1, r2, nextQuad.result);
                         }
+                        r1comp = r1;
+                        r2comp = r2;
                         break;
                         
                     case OP_GT:
@@ -675,6 +680,8 @@ void generateAssembly(FILE* inputFile) {
                             fprintf(output, "%d - bgt $r%d $r%d %s # jump se >\n",
                                     lineIndex++, r1, r2, nextQuad.result);
                         }
+                        r1comp = r1;
+                        r2comp = r2;
                         break;
                         
                     case OP_LTE:  // <=
@@ -687,6 +694,8 @@ void generateAssembly(FILE* inputFile) {
                             fprintf(output, "%d - ble $r%d $r%d %s # jump se <=\n", 
                                     lineIndex++, r1, r2, nextQuad.result);
                         }
+                        r1comp = r1;
+                        r2comp = r2;
                         break;
                         
                     case OP_GTE:  // >=
@@ -699,6 +708,8 @@ void generateAssembly(FILE* inputFile) {
                             fprintf(output, "%d - bge $r%d $r%d %s # jump se >=\n", 
                                     lineIndex++, r1, r2, nextQuad.result);
                         }
+                        r1comp = r1;
+                        r2comp = r2;
                         break;
                         default:
                             fprintf(output, "%d - ; operação relacional não suportada\n", lineIndex++);
@@ -740,7 +751,19 @@ void generateAssembly(FILE* inputFile) {
             case OP_ASSIGN:
                 // Verifica se é uma movimentação redundante (mesmo registrador fonte e destino)
                 if (r1 != r3) {
-                    fprintf(output, "%d - move $r%d $r%d # copiando %s para %s\n", lineIndex++, r3, r1, quad.arg1, quad.result);
+                    if (((r1 > 3 && r1 < 31) || (r1 > 31 && r1 < 45)) && (quad.result[0] == 't' && isdigit(quad.result[1]))){
+                        fprintf(output, "%d - lw $r%d 0($r%d) # movendo %s para %s\n", lineIndex++, r3, r1, quad.arg1, quad.result); 
+                    }
+                    else if (((r3 > 3 && r3 < 31) || (r3 > 31 && r3 < 45)) && (quad.arg1[0] == 't' && isdigit(quad.arg1[1]))) {
+                        fprintf(output, "%d - sw $r%d 0($r%d) # movendo %s para %s\n", lineIndex++, r1, r3, quad.arg1, quad.result);
+                    }
+                    else  {
+                        fprintf(output, "%d - move $r%d $r%d # movendo %s para %s\n", lineIndex++, r3, r1, quad.arg1, quad.result);
+                    }
+                    if(quad.arg1[0] == 't' && isdigit(quad.arg1[1])){
+                        reiniciarRg(r1);
+                    }
+                    
                 }
                 break;
 
@@ -752,37 +775,42 @@ void generateAssembly(FILE* inputFile) {
                     fprintf(output, "%d - add $r%d $r%d $r61\n", lineIndex++, r3, r1);
                     pularTemp = "";
                     addehone = 0;
+                    reiniciarRg(r1);
                 } else {
                     fprintf(output, "%d - add $r%d $r%d $r%d\n", lineIndex++, r3, r1, r2);
+                    reiniciarRg(r1);
+                    reiniciarRg(r2);
                 }
             
                 break;
 
             case OP_SUB:
                 fprintf(output, "%d - sub $r%d $r%d $r%d\n", lineIndex++, r3, r1, r2);
+                reiniciarRg(r1);
+                reiniciarRg(r2);
                 break;
 
             case OP_MULT:
                 fprintf(output, "%d - mul $r%d $r%d $r%d\n", lineIndex++, r3, r1, r2);
+                reiniciarRg(r1);
+                reiniciarRg(r2);
                 break;
 
             case OP_DIV:
                 fprintf(output, "%d - div $r%d $r%d $r%d\n", lineIndex++, r3, r1, r2);
+                reiniciarRg(r1);
+                reiniciarRg(r2);
                 break;
 
             case OP_LABEL:
                 fprintf(output, "%d - %s: #Nova Label %s\n", lineIndex++, quad.result, quad.result);
-                // Rastrear início de uma nova label
-                // strncpy(currentLabel.labelName, quad.result, sizeof(currentLabel.labelName) - 1);
-                // currentLabel.varCount = 0; // Reset do contador de variáveis para nova label
+                reiniciarRg(r1comp);
+                if(r2comp != 63){
+                    reiniciarRg(r2comp);
+                }
                 break;
 
             case OP_JUMP:
-                // Desaloca variáveis antes do jump se não for um loop
-                // if (strstr(quad.result, currentLabel.labelName) == NULL) {
-                //     // Não é um salto para a própria label (não é um loop)
-                //     deallocateLabelVars(output, &lineIndex, &stackOffset);
-                // }
                 fprintf(output, "%d - j %s\n", lineIndex++, quad.result);
                 break;
 
@@ -790,12 +818,16 @@ void generateAssembly(FILE* inputFile) {
                 // Jump se o valor é falso (igual a zero)
                 fprintf(output, "%d - beq $r%d $r63 %s # jump se é falso\n", 
                         lineIndex++, r1, quad.result);
+                r1comp = r1;
+                r2comp = 63;
                 break;
 
             case OP_JUMPTRUE:
                 // Jump se o valor é verdadeiro (diferente de zero)
                 fprintf(output, "%d - bne $r%d $r63 %s # jump se é verdadeiro\n", 
                         lineIndex++, r1, quad.result);
+                r1comp = r1;
+                r2comp = 63;
                 break;
 
             case OP_FUNCTION:
@@ -835,9 +867,8 @@ void generateAssembly(FILE* inputFile) {
                 fprintf(output, "%d - # fim da função %s\n", lineIndex++, quad.arg1);
                 break;
 
-            case OP_ARGUMENT: // Alterado de OP_PARAM para OP_ARGUMENT
+            case OP_ARGUMENT: 
                 {
-                    
                     checkNextQuadruple(inputFile, &filePos, &nextQuad);
                     int argumentNum = atoi(quad.arg2);
                     int destReg = 46 + argumentNum; // a0, a1, etc.
@@ -1001,6 +1032,7 @@ void generateAssembly(FILE* inputFile) {
                 fprintf(output, "%d - mul $r%d $r%d $r62      # índice * 4 (tamanho do inteiro)\n", lineIndex++, rindice, rindice);
                 fprintf(output, "%d - addi $r%d $r%d r%d    # endereço base + deslocamento\n", lineIndex++, rbase, rvet, rindice);
                 fprintf(output, "%d - lw $r%d 0($r%d)      # carrega %s[%s] em %s\n", lineIndex++, r3, rbase, quad.arg1, quad.arg2, quad.result);
+                reiniciarRg(rbase);
                 break;
 
             case OP_ARRAY_STORE:
@@ -1020,6 +1052,8 @@ void generateAssembly(FILE* inputFile) {
                 fprintf(output, "%d - mul $r%d $r%d $r62      # índice * 4 (tamanho do inteiro)\n", lineIndex++, rindice, rindice);
                 fprintf(output, "%d - addi $r%d $r%d r%d    # endereço base + deslocamento\n", lineIndex++, rbase, rvet, rindice);
                 fprintf(output, "%d - sw $r%d 0($r%d)      # armazena %s em %s[%s]\n", lineIndex++, r1, rbase, quad.arg1, quad.result, quad.arg2);
+                reiniciarRg(rbase);
+                reiniciarRg(r1);
                 break;
 
             case OP_ALLOC:
@@ -1052,7 +1086,7 @@ void generateAssembly(FILE* inputFile) {
                     fprintf(output, "%d - beq $r%d $r63 %s # se contador == 0, termina\n", lineIndex++, rindex, endLoopLabel);
                     fprintf(output, "%d - addi $r1 $r1 -4  # próximo elemento\n", lineIndex++);
                     fprintf(output, "%d - sw $r63 0($r1)  # inicializa com 0\n", lineIndex++);
-                    fprintf(output, "%d - addi $r%d $r%d 4 # decrementa contador\n", lineIndex++, rindex, rindex);
+                    fprintf(output, "%d - addi $r%d $r%d 4 # incrementa contador para comparar com 0\n", lineIndex++, rindex, rindex);
                     fprintf(output, "%d - j %s\n", lineIndex++, loopLabel);
                     fprintf(output, "%d - %s:\n", lineIndex++, endLoopLabel);
                 } else {

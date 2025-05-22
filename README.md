@@ -96,9 +96,9 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 ---
 
 ## Próximas Etapas
-- variaveis criadas dentro de blocos
-- provavelmente está reservando o registrador (r5, r27) em algum lugar, mas sem usar
-- verificar a liberação de temporários e imediatos
+- variaveis criadas dentro de blocos (ver pela arvore,quando sai de um node de if, else ou while)
+
+- constantRegs
 - rever gcd e sort
 - integração com o processador MIPS (lab de AOC), modelagem sysml faltante e relatório
 - o pc é + 1 e a memória +4?
