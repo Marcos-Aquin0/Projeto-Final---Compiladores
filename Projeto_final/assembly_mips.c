@@ -213,11 +213,7 @@ int getRegisterIndex(char* name) {
 
     // Valores de retorno
     if (strncmp(name, "ret", 3) == 0 || strstr(name, "return") != NULL) {
-        int retIdx = getNextFreeReg(returnRegs, 1);
-        sprintf(returnRegs[retIdx].varName, "%s", name);
-        DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Valor de retorno '%s' mapeado para v%d (r%d)\n", 
-               name, retIdx, 45 + retIdx);
-        return 45 + retIdx; // v0
+        return 45;
     }
     
     // Fallback: usa registrador do kernel
