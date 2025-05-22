@@ -383,7 +383,6 @@ void genExprCode(ASTNode* expr, char* target) {
             break;
             
         case NODE_ARRAY_ACCESS:
-            // Tratar explicitamente NODE_ARRAY_ACCESS
             genArrayAccessCode(expr, target);
             break;
             

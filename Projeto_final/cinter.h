@@ -23,12 +23,12 @@ typedef enum {
     OP_JUMPFALSE,   // Desvio condicional se falso
     OP_JUMPTRUE,    // Desvio condicional se verdadeiro
     OP_CALL,        // Chamada de função
-    OP_PARAM,       // Parâmetro para função
+    OP_PARAM,       // Parâmetro para definição de função
     OP_RETURN,      // Retorno de função
     OP_ARRAY_LOAD,  // Carrega valor de um array
     OP_ARRAY_STORE, // Armazena valor em um array
-    OP_ARGUMENT,    // Argumento para função (alterado de PARAM para ARGUMENT)
-    OP_ALLOC,       // Aloca memória para variáveis locais
+    OP_ARGUMENT,    // Argumento para chamada função 
+    OP_ALLOC,       // Aloca memória para variáveis
     OP_FUNCTION,    // Definição de função
     OP_END          // Fim de função
 } OperationType;
