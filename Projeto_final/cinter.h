@@ -39,8 +39,8 @@ typedef struct Quadruple {
     char* arg1;
     char* arg2;
     char* result;
-    int line;           // Linha da quadrupla
-    int sourceLine;     // Nova: linha do código fonte
+    int line;           
+    int sourceLine;     
     struct Quadruple* next;
 } Quadruple;
 

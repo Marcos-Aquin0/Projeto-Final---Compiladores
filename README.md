@@ -97,11 +97,9 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 
 ## Próximas Etapas
 - variaveis criadas dentro de blocos
-- rever quadruplas, rever cinter, assembly_mips
 - provavelmente está reservando o registrador (r5, r27) em algum lugar, mas sem usar
-- o que fazer se todos os tl foram usados. imediato nao está reiniciando
+- verificar a liberação de temporários e imediatos
 - rever gcd e sort
-- se todos os tl foram usados, uso globais disponívies
 
 - integração com o processador MIPS (lab de AOC), modelagem sysml faltante e relatório
 - o pc é + 1 e a memória +4?

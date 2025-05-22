@@ -163,11 +163,6 @@ void genQuad(OperationType op, char* arg1, char* arg2, char* result) {
 
 // Imprime o código intermediário gerado em quádruplas
 void printIRCode(FILE* listing) {
-    // fprintf(listing, "Código Intermediário (Quadruplas):\n");
-    // fprintf(listing, "------------------------------------------------------------\n");
-    // fprintf(listing, "Quad  Fonte  Operação    Arg1        Arg2        Resultado\n");
-    // fprintf(listing, "------------------------------------------------------------\n");
-    
     // Cria arquivo de saída para as quádruplas
     FILE* outfile = fopen("Output/quadruples.txt", "w");
     if (outfile == NULL) {
@@ -211,14 +206,6 @@ void printIRCode(FILE* listing) {
             default: strcpy(op_str, "UNKNOWN"); break;
         }
         
-        // fprintf(listing, "%-6d %-6d %-12s %-12s %-12s %-12s\n",
-        //         current->line,
-        //         current->sourceLine,
-        //         op_str,
-        //         current->arg1 ? current->arg1 : "-",
-        //         current->arg2 ? current->arg2 : "-",
-        //         current->result ? current->result : "-");
-        
         // Escreve também no arquivo de saída
         if (outfile != NULL) {
             fprintf(outfile, "%-6d %-6d %-12s %-12s %-12s %-12s\n",
@@ -232,7 +219,6 @@ void printIRCode(FILE* listing) {
         
         current = current->next;
     }
-    // fprintf(listing, "------------------------------------------------------------\n");
     
     if (outfile != NULL) {
         fprintf(outfile, "------------------------------------------------------------\n");
@@ -243,9 +229,6 @@ void printIRCode(FILE* listing) {
 
 // Função para imprimir as quadruplas como código intermediário de 3 endereços
 void printThreeAddressCode(FILE* listing) {
-    // fprintf(listing, "Código Intermediário de 3 Endereços:\n");
-    // fprintf(listing, "-------------------------------------\n");
-    
     // Cria arquivo de saída para o código de 3 endereços
     FILE* outfile = fopen("Output/three_address_code.txt", "w");
     if (outfile == NULL) {
@@ -347,8 +330,6 @@ void printThreeAddressCode(FILE* listing) {
                 break;
         }
         
-        // fprintf(listing, "%s\n", line);
-        
         // Escreve também no arquivo de saída
         if (outfile != NULL) {
             fprintf(outfile, "%s\n", line);
@@ -356,8 +337,7 @@ void printThreeAddressCode(FILE* listing) {
         
         current = current->next;
     }
-    // fprintf(listing, "-------------------------------------\n");
-    
+
     if (outfile != NULL) {
         fprintf(outfile, "-------------------------------------\n");
         fclose(outfile);
@@ -729,7 +709,7 @@ void genFunctionCode(ASTNode* funcDecl) {
     genQuad(OP_END, funcDecl->value, NULL, NULL);
 }
 
-//processa os parâmetros da chamada de função
+//processa os argumentos da chamada de função
 void processArguments(ASTNode* argNode, int* argCount) {
     if (argNode == NULL) return;
     
@@ -1125,7 +1105,6 @@ void genVarDeclCode(ASTNode* varDecl) {
     }
 }
 
-// Também podemos modificar a função generateIRCode para imprimir tipos dos nós
 void generateIRCode(ASTNode* node) {
     if (node == NULL) return;
     
