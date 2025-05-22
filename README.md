@@ -97,9 +97,8 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 
 ## Próximas Etapas
 - variaveis criadas dentro de blocos (ver pela arvore,quando sai de um node de if, else ou while)
-
-- constantRegs
 - rever gcd e sort
+
 - integração com o processador MIPS (lab de AOC), modelagem sysml faltante e relatório
 - o pc é + 1 e a memória +4?
 - nop precisa iniciar os registradores sp, fp, ra e 63 como 0 , 62 com -4 e 61 com 1
@@ -112,6 +111,7 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 - suporte para break em while
 - suporte para float
 - arrumar static void do semantic
+- otimização, r1, r2 e r3 apenas quando necessário.
 
 ## Contribuidores
 

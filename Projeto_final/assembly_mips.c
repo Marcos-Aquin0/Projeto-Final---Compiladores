@@ -42,11 +42,8 @@ void initRegisterMappings() {
     for (i = 0; i < 27; i++) {
         tempLocalRegs[i].isUsed = 0;
     }
-    for (i = 0; i < 9; i++) {
+    for (i = 0; i < 13; i++) {
         tempGlobalRegs[i].isUsed = 0;
-    }
-    for (i = 0; i < 4; i++) {
-        constantRegs[i].isUsed = 0;
     }
 }
 
@@ -61,11 +58,6 @@ void reinitRegisterMappings() {
         tempLocalRegs[i].isUsed = 0;
     }
     returnRegs[0].isUsed = 0;
-    for (i = 0; i < 4; i++) {
-        constantRegs[i].isUsed = 0;
-        constantRegs[i].varName[0] = '\0'; // Limpa o nome da variável
-        constantRegs[i].tempReg[0] = '\0'; // Limpa o nome do registrador temporário
-    }
 }
 
 // pega o próximo registrador livre
@@ -93,19 +85,19 @@ int getRegisterIndex(char* name) {
     
     // Verifica se é um valor constante
     if (isdigit(name[0]) || (name[0] == '-' && isdigit(name[1]))) {
-        for (int i = 0; i < 5; i++) {
-            if (constantRegs[i].isUsed && strcmp(constantRegs[i].varName, name) == 0) {
+        for (int i = 0; i < 27; i++) {
+            if (tempLocalRegs[i].isUsed && strcmp(tempLocalRegs[i].varName, name) == 0) {
                 DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Constante '%s' já mapeado para a%d (r%d)\n", 
-                       name, i, 41 + i);
-                return 41 + i; 
+                       name, i, 4 + i);
+                return 4 + i; 
             }
         }
         // Usa um registrador temporário para constantes
-        int tempIdx = getNextFreeReg(constantRegs, 4);
-        sprintf(constantRegs[tempIdx].varName, "%s", name);
+        int tempIdx = getNextFreeReg(tempLocalRegs, 27);
+        sprintf(tempLocalRegs[tempIdx].varName, "%s", name);
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Constante '%s' mapeada para reg temporário t%d (r%d)\n", 
-               name, tempIdx, 41 + tempIdx);
-        return 41 + tempIdx; // c0-c3
+               name, tempIdx, 4 + tempIdx);
+        return 4 + tempIdx;
     }
     
     // Verifica na tabela de símbolos se é um parâmetro ou variável local
@@ -182,16 +174,6 @@ int getRegisterIndex(char* name) {
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Símbolo '%s' não encontrado na tabela de símbolos\n", name);
     }
     
-    // Temporários genéricos (geralmente variáveis com nome tX)
-    if (name[0] == 't' && isdigit(name[1])) {
-        for(int j = 0; j < 4; j++){
-            if (constantRegs[j].isUsed == 1 && strcmp(name, constantRegs[j].tempReg) == 0){
-                DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Variável temporária '%s' já mapeada para c%d (r%d)\n", 
-                    name, j, 41 + j);
-                return 41 + j; // c0-c3
-            }
-        }
-    }
  
     if (name[0] == 't' && isdigit(name[1])) {
         // Procurar se já mapeamos essa variável
@@ -322,10 +304,8 @@ void analyzeRegisterUsage(const char* assemblyFilePath) {
             strcpy(regUsage[i].regName, "in");
         else if (i >= 4 && i <= 30)
             sprintf(regUsage[i].regName, "tl%d", i - 4);
-        else if (i >= 32 && i <= 40)
+        else if (i >= 32 && i <= 44)
             sprintf(regUsage[i].regName, "tg%d", i - 32);
-        else if (i >= 41 && i <= 44)
-            sprintf(regUsage[i].regName, "c%d", i - 41);
         else if (i == 45)
             sprintf(regUsage[i].regName, "v%d", i - 45);
         else if (i >= 46 && i <= 51)
@@ -385,8 +365,7 @@ void analyzeRegisterUsage(const char* assemblyFilePath) {
                             else if (i == 62) strcpy(regUsage[i].purpose, "stack pointer offset");
                             else if (i == 3) strcpy(regUsage[i].purpose, "input");
                             else if (i >= 4 && i <= 30) strcpy(regUsage[i].purpose, "temporary local");
-                            else if (i >= 32 && i <= 40) strcpy(regUsage[i].purpose, "temporary global");
-                            else if (i >= 41 && i <= 44) strcpy(regUsage[i].purpose, "constant");
+                            else if (i >= 32 && i <= 44) strcpy(regUsage[i].purpose, "temporary global");
                             else if (i == 45) strcpy(regUsage[i].purpose, "return value");
                             else if (i >= 46 && i <= 51) strcpy(regUsage[i].purpose, "argument");
                             else if (i >= 52 && i <= 57) strcpy(regUsage[i].purpose, "param");
@@ -513,7 +492,7 @@ void reiniciarRg(int r1){
     if(r1 > 3 && r1 < 31){
         // Se for um registrador temporário local
         tempLocalRegs[r1-4].isUsed = 0;
-    } else if(r1 > 31 && r1 < 41){
+    } else if(r1 > 31 && r1 < 45){
         // Se for um registrador temporário global
         tempGlobalRegs[r1-32].isUsed = 0;
     } else if(r1 > 45 && r1 < 52){
@@ -525,9 +504,6 @@ void reiniciarRg(int r1){
     } else if(r1 == 45){
         // Se for o registrador de retorno
         returnRegs[0].isUsed = 0;
-    } else if(r1 > 41 && r1 < 45){
-        // Se for um registrador constante
-        constantRegs[r1-41].isUsed = 0;
     }
 }
 
@@ -729,15 +705,8 @@ void generateAssembly(FILE* inputFile) {
                     addehone = 1;
                     // printf("pularTemp = %s\n", pularTemp);
                 } else{
-                    fprintf(output, "%d - li $r%d %s\n", lineIndex++, r1, quad.arg1);
-                    sprintf(constantRegs[r1 - 41].tempReg, "%s", quad.result);
-                    constantRegs[r1 - 41].isUsed = 1;
-                    getRegisterIndex(quad.result);
-                    // printf("constantRegs[%d].tempReg = %s\n", r1 - 41, constantRegs[r1 - 41].tempReg);
-                    // printf("quad.result = %s\n", quad.result);
-                    // printf("result = %d\n", result);
-                    // printf("constantRegs[%d].varName = %s\n", r1 - 41, constantRegs[r1 - 41].varName);
-                    //atribuir ao mesmo registrador
+                    reiniciarRg(r1);
+                    fprintf(output, "%d - li $r%d %s\n", lineIndex++, r3, quad.arg1);
                 }
                 continue;
             }
@@ -753,7 +722,7 @@ void generateAssembly(FILE* inputFile) {
                     else if (((r3 > 3 && r3 < 31) || (r3 > 31 && r3 < 45)) && (quad.arg1[0] == 't' && isdigit(quad.arg1[1]))) {
                         fprintf(output, "%d - sw $r%d 0($r%d) # movendo %s para %s\n", lineIndex++, r1, r3, quad.arg1, quad.result);
                     }
-                    else  {
+                    else {
                         fprintf(output, "%d - move $r%d $r%d # movendo %s para %s\n", lineIndex++, r3, r1, quad.arg1, quad.result);
                     }
                     if(quad.arg1[0] == 't' && isdigit(quad.arg1[1])){
@@ -1085,6 +1054,7 @@ void generateAssembly(FILE* inputFile) {
                     fprintf(output, "%d - addi $r%d $r%d 4 # incrementa contador para comparar com 0\n", lineIndex++, rindex, rindex);
                     fprintf(output, "%d - j %s\n", lineIndex++, loopLabel);
                     fprintf(output, "%d - %s:\n", lineIndex++, endLoopLabel);
+                    reiniciarRg(rindex);
                 } else {
                     // É uma variável simples, apenas reserva espaço na pilha
                     fprintf(output, "%d - addi $r1 $r1 -4 # aloca espaço para variável '%s'\n", lineIndex++, quad.result);
