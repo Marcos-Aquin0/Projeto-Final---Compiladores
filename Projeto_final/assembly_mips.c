@@ -545,6 +545,7 @@ void generateAssembly(FILE* inputFile) {
     int addehone = 0;
     int r1comp;
     int r2comp;
+    int pularJump = 0;
 
     fprintf(output, "%d - nop 1\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
     int ehPrimeiraFuncao = 1;
@@ -737,12 +738,12 @@ void generateAssembly(FILE* inputFile) {
                 // printf("pularTempoi = %s\n", pularTemp);
                 // printf("quad.arg2 = %s\n", quad.arg2);
                 if(addehone == 1 && strcmp(pularTemp, quad.arg2) == 0){
-                    fprintf(output, "%d - add $r%d $r61 $r%d # salva em %s (r%d)\n", lineIndex++, r1, r3, quad.result, r3);
+                    fprintf(output, "%d - add $r%d $r%d $r61 # salva em %s (r%d)\n", lineIndex++, r3, r1, quad.result, r3);
                     pularTemp = "";
                     addehone = 0;
                     reiniciarRg(r1);
                 } else {
-                    fprintf(output, "%d - add $r%d $r%d $r%d # salva em %s (r%d) \n", lineIndex++, r1, r2, r3, quad.result, r3);
+                    fprintf(output, "%d - add $r%d $r%d $r%d # salva em %s (r%d) \n", lineIndex++, r3, r1, r2, quad.result, r3);
                     reiniciarRg(r1);
                     reiniciarRg(r2);
                 }
@@ -750,33 +751,41 @@ void generateAssembly(FILE* inputFile) {
                 break;
 
             case OP_SUB:
-                fprintf(output, "%d - sub $r%d $r%d $r%d # salva em %s (r%d) \n", lineIndex++, r1, r2, r3, quad.result, r3);
+                fprintf(output, "%d - sub $r%d $r%d $r%d # salva em %s (r%d) \n", lineIndex++, r3, r1, r2, quad.result, r3);
                 reiniciarRg(r1);
                 reiniciarRg(r2);
                 break;
 
             case OP_MULT:
-                fprintf(output, "%d - mul $r%d $r%d $r%d # salva em %s (r%d) \n", lineIndex++, r1, r2, r3, quad.result, r3);
+                fprintf(output, "%d - mul $r%d $r%d $r%d # salva em %s (r%d) \n", lineIndex++, r3, r1, r2, quad.result, r3);
                 reiniciarRg(r1);
                 reiniciarRg(r2);
                 break;
 
             case OP_DIV:
-                fprintf(output, "%d - div $r%d $r%d $r%d # salva em %s (r%d) \n", lineIndex++, r1, r2, r3, quad.result, r3);
+                fprintf(output, "%d - div $r%d $r%d $r%d # salva em %s (r%d) \n", lineIndex++, r3, r1, r2, quad.result, r3);
                 reiniciarRg(r1);
                 reiniciarRg(r2);
                 break;
 
             case OP_LABEL:
-                fprintf(output, "%d - %s: #Nova Label %s\n", lineIndex++, quad.result, quad.result);
-                reiniciarRg(r1comp);
-                if(r2comp != 63){
-                    reiniciarRg(r2comp);
+                checkNextQuadruple(inputFile, &filePos, &nextQuad);
+                if (strcmp(nextQuad.op, "END") != 0){   
+                    fprintf(output, "%d - %s: #Nova Label %s\n", lineIndex++, quad.result, quad.result);
+                    reiniciarRg(r1comp);
+                    if(r2comp != 63){
+                        reiniciarRg(r2comp);
+                    }
                 }
-                break;
+                    break;
 
             case OP_JUMP:
-                fprintf(output, "%d - j %s\n", lineIndex++, quad.result);
+                if(pularJump == 0){
+                    fprintf(output, "%d - j %s\n", lineIndex++, quad.result);
+                }
+                else {
+                    pularJump = 0;
+                }
                 break;
 
             case OP_JUMPFALSE:
@@ -826,10 +835,14 @@ void generateAssembly(FILE* inputFile) {
                 restoreFrame(output, &lineIndex, &stackOffset);
                 
                 fprintf(output, "%d - jr $r31         # retorna\n", lineIndex++);
+                checkNextQuadruple(inputFile, &filePos, &nextQuad);
+                if(strcmp(nextQuad.op,"JUMP")== 0){
+                     pularJump = 1;
+                }
                 break;
 
             case OP_END:
-                fprintf(output, "%d - # fim da função %s\n", lineIndex++, quad.arg1);
+                // fprintf(output, "%d - # fim da função %s\n", lineIndex++, quad.arg1);
                 break;
 
             case OP_ARGUMENT: 
