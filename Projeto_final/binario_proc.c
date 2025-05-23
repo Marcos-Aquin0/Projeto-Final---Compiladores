@@ -81,6 +81,8 @@ void getLabelNumber(char* line, char* label, int* index) {
     }
 }
 
+
+
 int read_assembly_file(FILE* input_file) {
     FILE* output = fopen("Output/binary.txt", "w");
     if (output == NULL) {

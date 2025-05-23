@@ -737,12 +737,12 @@ void generateAssembly(FILE* inputFile) {
                 // printf("pularTempoi = %s\n", pularTemp);
                 // printf("quad.arg2 = %s\n", quad.arg2);
                 if(addehone == 1 && strcmp(pularTemp, quad.arg2) == 0){
-                    fprintf(output, "%d - add $r%d $r%d $r61\n", lineIndex++, r3, r1);
+                    fprintf(output, "%d - add $r%d $r61 $r%d # salva em %s (r%d)\n", lineIndex++, r1, r3, quad.result, r3);
                     pularTemp = "";
                     addehone = 0;
                     reiniciarRg(r1);
                 } else {
-                    fprintf(output, "%d - add $r%d $r%d $r%d\n", lineIndex++, r3, r1, r2);
+                    fprintf(output, "%d - add $r%d $r%d $r%d # salva em %s (r%d) \n", lineIndex++, r1, r2, r3, quad.result, r3);
                     reiniciarRg(r1);
                     reiniciarRg(r2);
                 }
@@ -750,19 +750,19 @@ void generateAssembly(FILE* inputFile) {
                 break;
 
             case OP_SUB:
-                fprintf(output, "%d - sub $r%d $r%d $r%d\n", lineIndex++, r3, r1, r2);
+                fprintf(output, "%d - sub $r%d $r%d $r%d # salva em %s (r%d) \n", lineIndex++, r1, r2, r3, quad.result, r3);
                 reiniciarRg(r1);
                 reiniciarRg(r2);
                 break;
 
             case OP_MULT:
-                fprintf(output, "%d - mul $r%d $r%d $r%d\n", lineIndex++, r3, r1, r2);
+                fprintf(output, "%d - mul $r%d $r%d $r%d # salva em %s (r%d) \n", lineIndex++, r1, r2, r3, quad.result, r3);
                 reiniciarRg(r1);
                 reiniciarRg(r2);
                 break;
 
             case OP_DIV:
-                fprintf(output, "%d - div $r%d $r%d $r%d\n", lineIndex++, r3, r1, r2);
+                fprintf(output, "%d - div $r%d $r%d $r%d # salva em %s (r%d) \n", lineIndex++, r1, r2, r3, quad.result, r3);
                 reiniciarRg(r1);
                 reiniciarRg(r2);
                 break;
