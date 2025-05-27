@@ -604,7 +604,7 @@ void generateAssembly(FILE* inputFile) {
                                 quad.arg1, r1, quad.arg2, r2);
                             
                             // Se EQ é falso (valores diferentes), pula para o label
-                            fprintf(output, "%d - bne $r%d $r%d %s # jump se %s != %s\n", 
+                            fprintf(output, "%d - bnq $r%d $r%d %s # jump se %s != %s\n", 
                                     lineIndex++, r1, r2, nextQuad.result, quad.arg1, quad.arg2);
                         } else { // JUMPTRUE
                             // Se EQ é verdadeiro (valores iguais), pula para o label
@@ -622,7 +622,7 @@ void generateAssembly(FILE* inputFile) {
                                     lineIndex++, r1, r2, nextQuad.result);
                         } else { // JUMPTRUE
                             // Se NEQ é verdadeiro (valores diferentes), pula para o label
-                            fprintf(output, "%d - bne $r%d $r%d %s # jump se !=\n", 
+                            fprintf(output, "%d - bnq $r%d $r%d %s # jump se !=\n", 
                                     lineIndex++, r1, r2, nextQuad.result);
                         }
                         r1comp = r1;
@@ -798,7 +798,7 @@ void generateAssembly(FILE* inputFile) {
 
             case OP_JUMPTRUE:
                 // Jump se o valor é verdadeiro (diferente de zero)
-                fprintf(output, "%d - bne $r%d $r63 %s # jump se é verdadeiro\n", 
+                fprintf(output, "%d - bnq $r%d $r63 %s # jump se é verdadeiro\n", 
                         lineIndex++, r1, quad.result);
                 r1comp = r1;
                 r2comp = 63;
@@ -984,8 +984,7 @@ void generateAssembly(FILE* inputFile) {
                     if (strcmp(quad.result, "-") != 0 && r3 != 45) { // r45 é v0, evita move para o mesmo registrador
                         if (strncmp(quad.result, "tv", 2) == 0 && isdigit(quad.result[2])) {
                             // Função void, não gera instrução de move, apenas adiciona comentário
-                            fprintf(output, "%d - # Chamada void para função %s, sem valor de retorno\n", 
-                                    lineIndex++, quad.arg1);
+                            // fprintf(output, "%d - # Chamada void para função %s, sem valor de retorno\n", lineIndex++, quad.arg1);
                         } else {
                             fprintf(output, "%d - move $r%d $r45 # copia retorno (v0) para %s\n", 
                                         lineIndex++, r3, quad.result);

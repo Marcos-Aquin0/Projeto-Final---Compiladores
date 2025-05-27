@@ -96,7 +96,7 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 ---
 
 ## Próximas Etapas
-- rever gcd e sort
+- rever assembly gcd e sort
 
 - integração com o processador MIPS (lab de AOC), modelagem sysml faltante e relatório
 - o pc é + 1 e a memória +4?
@@ -104,6 +104,7 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 - reservar registrador r3 para input no processador
 - instrução de "enter" no processador para pegar um valor e esperar (era output2)
 - mostrar o sinal do número no display 5
+- bge (13) e ble (14), controle da ula e sinal de controle
 
 - gerador de código binário
 conferir complemento de 2 nas operações aritméticas
