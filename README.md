@@ -104,7 +104,6 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 - reservar registrador r3 para input no processador
 - instrução de "enter" no processador para pegar um valor e esperar (era output2)
 - mostrar o sinal do número no display 5
-- bge (13) e ble (14), controle da ula e sinal de controle
 
 - gerador de código binário
 conferir complemento de 2 nas operações aritméticas
