@@ -100,16 +100,11 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 
 - integração com o processador MIPS (lab de AOC), modelagem sysml faltante e relatório
 - o pc é + 1 e a memória +4?
-- nop precisa iniciar os registradores sp, fp, ra e 63 como 0 , 62 com -4 e 61 com 1
-- reservar registrador r3 para input no processador
 - instrução de "enter" no processador para pegar um valor e esperar (era output2)
-- mostrar o sinal do número no display 5
+- mostrar o sinal em um led ou mudar para lcd
 
 - gerador de código binário
 conferir complemento de 2 nas operações aritméticas
-
-https://biblioteca.unifesp.br/acervo/5063471
-https://biblioteca.unifesp.br/acervo/5102060
 
 - suporte para várias chamadas da mesma função no mesmo escopo
 - suporte para break em while
