@@ -103,8 +103,8 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 - instrução de "enter" no processador para pegar um valor e esperar (era output2)
 - mostrar o sinal em um led ou mudar para lcd
 
-- gerador de código binário
-conferir complemento de 2 nas operações aritméticas
+led para o indice da instrucao
+input e output com enter, ligar led
 
 - suporte para várias chamadas da mesma função no mesmo escopo
 - suporte para break em while

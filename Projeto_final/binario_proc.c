@@ -47,7 +47,7 @@ void getLabelNumber(char* line, char* label, int* index) {
         // Converter string para inteiro
         if (index_str[0] != '\0') {
             *index = atoi(index_str);
-            *index = *index + 1; // Incrementar o índice em 1, para começar pela instrução 1 da função
+            // *index = *index + 1; // Incrementar o índice em 1, para começar pela instrução 1 da função
         }
         
         // Extrair o rótulo (label)
@@ -329,7 +329,7 @@ void generateBinary(const char* instruction, char* binaryOutput) {
     }
     binaryStr[32] = '\0';
     
-    sprintf(binaryOutput, "%s // %s", binaryStr, instruction);
+    sprintf(binaryOutput, "%s\n", binaryStr);
 }
 
 int read_assembly_file(FILE* input_file) {
@@ -449,7 +449,7 @@ int read_assembly_file(FILE* input_file) {
             fprintf(output, "%s", binaryInstruction);
         } else if (processed_line[0] != '\0') {
             // This is a comment line, pass it through
-            fprintf(output, "%s", processed_line);
+            // fprintf(output, "%s", processed_line);
         }
     }
     
