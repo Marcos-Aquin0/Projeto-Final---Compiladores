@@ -250,7 +250,7 @@ void checkNextQuadruple(FILE* inputFile, long* filePos, QuadrupleInfo* nextQuad)
 // Empurra um registrador na pilha
 void pushRegister(FILE* output, int reg, int* stackOffset, int* lineIndex) {
     (*stackOffset) -= 4;
-    fprintf(output, "%d - addi $r1 $r1 -4      # aloca espaço na pilha\n", (*lineIndex)++);
+    fprintf(output, "%d - subi $r1 $r1 4      # aloca espaço na pilha\n", (*lineIndex)++);
     fprintf(output, "%d - sw $r%d 0($r1)       # empilha registrador\n", (*lineIndex)++, reg);
     DEBUG_ASSEMBLY("DEBUG - pushRegister: Empilhando r%d, stack offset agora é %d\n", reg, *stackOffset);
 }
@@ -770,13 +770,13 @@ void generateAssembly(FILE* inputFile) {
 
             case OP_LABEL:
                 checkNextQuadruple(inputFile, &filePos, &nextQuad);
-                if (strcmp(nextQuad.op, "END") != 0){   
+                   
                     fprintf(output, "%d - %s: #Nova Label %s\n", lineIndex++, quad.result, quad.result);
                     reiniciarRg(r1comp);
                     if(r2comp != 63){
                         reiniciarRg(r2comp);
                     }
-                }
+                
                     break;
 
             case OP_JUMP:
@@ -870,7 +870,7 @@ void generateAssembly(FILE* inputFile) {
                         
                         if(strcmp(nextQuad.arg1,"output") !=0){
                             // Aloca espaço para todos os argumentos de uma vez
-                            fprintf(output, "%d - addi $r1 $r1 -%d  # aloca espaço para %d argumentos\n", 
+                            fprintf(output, "%d - subi $r1 $r1 %d  # aloca espaço para %d argumentos\n", 
                                     lineIndex++, (totalArgs+1) * 4, totalArgs+1);
                             stackOffset -= ((totalArgs+1) * 4);
                             
@@ -975,7 +975,7 @@ void generateAssembly(FILE* inputFile) {
                      fprintf(output, "%d - move $r1 $r2 # sp = fp\n", lineIndex++);
                      // Carrega os parâmetros da pilha para os registradores correspondentes
                         for (int i = 0; i < varLocalCount; i++) {
-                            fprintf(output, "%d - addi $r1 $r1 -4 # desce na pilha\n", lineIndex++);
+                            fprintf(output, "%d - subi $r1 $r1 4 # desce na pilha\n", lineIndex++);
                             fprintf(output, "%d - lw $r%d 0($r1) # recarrega variavel local\n", lineIndex++, localVars[i]);
                         }
                     }
@@ -1007,7 +1007,7 @@ void generateAssembly(FILE* inputFile) {
                 tempLocalRegs[rbase-4].isUsed = 1;
                 fprintf(output, "%d - addi $r%d $r%d 1 # índice + 1\n", lineIndex++, rindice, rindice);
                 fprintf(output, "%d - mul $r%d $r%d $r62      # índice * 4 (tamanho do inteiro)\n", lineIndex++, rindice, rindice);
-                fprintf(output, "%d - addi $r%d $r%d r%d    # endereço base + deslocamento\n", lineIndex++, rbase, rvet, rindice);
+                fprintf(output, "%d - subi $r%d $r%d r%d    # endereço base + deslocamento\n", lineIndex++, rbase, rvet, rindice);
                 fprintf(output, "%d - lw $r%d 0($r%d)      # carrega %s[%s] em %s\n", lineIndex++, r3, rbase, quad.arg1, quad.arg2, quad.result);
                 reiniciarRg(rbase);
                 break;
@@ -1027,7 +1027,7 @@ void generateAssembly(FILE* inputFile) {
                 tempLocalRegs[rbase-4].isUsed = 1;
                 fprintf(output, "%d - addi $r%d $r%d 1 # índice + 1\n", lineIndex++, rindice, rindice);
                 fprintf(output, "%d - mul $r%d $r%d $r62      # índice * 4 (tamanho do inteiro)\n", lineIndex++, rindice, rindice);
-                fprintf(output, "%d - addi $r%d $r%d r%d    # endereço base + deslocamento\n", lineIndex++, rbase, rvet, rindice);
+                fprintf(output, "%d - subi $r%d $r%d r%d    # endereço base + deslocamento\n", lineIndex++, rbase, rvet, rindice);
                 fprintf(output, "%d - sw $r%d 0($r%d)      # armazena %s em %s[%s]\n", lineIndex++, r1, rbase, quad.arg1, quad.result, quad.arg2);
                 reiniciarRg(rbase);
                 reiniciarRg(r1);
@@ -1040,7 +1040,7 @@ void generateAssembly(FILE* inputFile) {
                     // Implementação otimizada para alocação de array usando manipulação de pilha
                     int size = atoi(quad.arg1);
                     
-                    fprintf(output, "%d - addi $r1 $r1 -4  # aloca espaço para referência do array '%s'\n", lineIndex++, quad.result);
+                    fprintf(output, "%d - subi $r1 $r1 4  # aloca espaço para referência do array '%s'\n", lineIndex++, quad.result);
                     // Salva o endereço base do array no registrador de resultado
                     fprintf(output, "%d - move $r%d $r1   # endereço base do array '%s'\n", lineIndex++, r3, quad.result);
                     if (strcmp(currentFunction, "global") == 0) {
@@ -1061,7 +1061,7 @@ void generateAssembly(FILE* inputFile) {
                     
                     fprintf(output, "%d - %s:\n", lineIndex++, loopLabel);
                     fprintf(output, "%d - beq $r%d $r63 %s # se contador == 0, termina\n", lineIndex++, rindex, endLoopLabel);
-                    fprintf(output, "%d - addi $r1 $r1 -4  # próximo elemento\n", lineIndex++);
+                    fprintf(output, "%d - subi $r1 $r1 4  # próximo elemento\n", lineIndex++);
                     fprintf(output, "%d - sw $r63 0($r1)  # inicializa com 0\n", lineIndex++);
                     fprintf(output, "%d - addi $r%d $r%d 4 # incrementa contador para comparar com 0\n", lineIndex++, rindex, rindex);
                     fprintf(output, "%d - j %s\n", lineIndex++, loopLabel);
@@ -1069,7 +1069,7 @@ void generateAssembly(FILE* inputFile) {
                     reiniciarRg(rindex);
                 } else {
                     // É uma variável simples, apenas reserva espaço na pilha
-                    fprintf(output, "%d - addi $r1 $r1 -4 # aloca espaço para variável '%s'\n", lineIndex++, quad.result);
+                    fprintf(output, "%d - subi $r1 $r1 4 # aloca espaço para variável '%s'\n", lineIndex++, quad.result);
                     fprintf(output, "%d - sw $r63 0($r1)  # inicializa com 0\n", lineIndex++);
                     stackOffset -= 4;
                     

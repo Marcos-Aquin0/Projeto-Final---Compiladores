@@ -8,7 +8,7 @@ int labelCount = 0;
 void addLabelMapping(const char* label, int index) {
     if (labelCount < MAX_LABELS && label[0] != '\0') {
         mappingLabel[labelCount].label = strdup(label);
-        mappingLabel[labelCount].index = index;
+        mappingLabel[labelCount].index = index-labelCount;
         labelCount++;
     }
 }
@@ -129,7 +129,7 @@ InstructionInfo* findInstruction(const char* mnemonic) {
     return NULL; 
 }
 
-void generateBinary(const char* instruction, char* binaryOutput) {
+void generateBinary(const char* instruction, char* binaryOutput, int index_atual) {
     char instr_copy[MAX_LINE_LENGTH];
     strcpy(instr_copy, instruction);
     
@@ -204,7 +204,7 @@ void generateBinary(const char* instruction, char* binaryOutput) {
                 }
                 
                 if (targetIndex != -1) {
-                    immediate = targetIndex;
+                    immediate = targetIndex-index_atual;
                 } else {
                     immediate = atoi(labelStr); 
                 }
@@ -368,7 +368,7 @@ int read_assembly_file(FILE* input_file) {
     
     // Voltar ao início do arquivo para a segunda passagem
     rewind(input_file);
-    
+    int index_atual = 0;
     // Processar o arquivo linha por linha
     while (fgets(line, MAX_LINE_LENGTH, input_file) != NULL) {
         char processed_line[MAX_LINE_LENGTH];
@@ -445,8 +445,9 @@ int read_assembly_file(FILE* input_file) {
         // Now generate binary for the processed instruction
         if (processed_line[0] != '\0' && processed_line[0] != '/') {
             char binaryInstruction[MAX_LINE_LENGTH];
-            generateBinary(processed_line, binaryInstruction);
+            generateBinary(processed_line, binaryInstruction, index_atual);
             fprintf(output, "%s", binaryInstruction);
+            index_atual++;
         } else if (processed_line[0] != '\0') {
             // This is a comment line, pass it through
             // fprintf(output, "%s", processed_line);
