@@ -204,7 +204,7 @@ void generateBinary(const char* instruction, char* binaryOutput, int index_atual
                 }
                 
                 if (targetIndex != -1) {
-                    immediate = targetIndex-index_atual;
+                    immediate = targetIndex-index_atual-1;
                 } else {
                     immediate = atoi(labelStr); 
                 }
