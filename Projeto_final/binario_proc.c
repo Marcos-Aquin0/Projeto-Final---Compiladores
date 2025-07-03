@@ -159,8 +159,10 @@ void generateBinary(const char* instruction, char* binaryOutput, int index_atual
             int rt = extractRegister(rtStr);
             
             if (rd == REG_RA){
-                rs = 0;
+                rs = rd;
                 rt = 0;
+                rd = 0;
+
             }
             else if (rd != REG_RA && (rd < 0 || rs < 0 || rt < 0)) {
                 sprintf(binaryOutput, "// Registrador inválido: %s", instruction);
@@ -204,7 +206,7 @@ void generateBinary(const char* instruction, char* binaryOutput, int index_atual
                 }
                 
                 if (targetIndex != -1) {
-                    immediate = targetIndex-index_atual-1;
+                    immediate = targetIndex-index_atual;
                 } else {
                     immediate = atoi(labelStr); 
                 }
