@@ -159,8 +159,8 @@ void generateBinary(const char* instruction, char* binaryOutput, int index_atual
             int rt = extractRegister(rtStr);
             
             if (rd == REG_RA){
-                rs = rd;
-                rt = 0;
+                rt = rd;
+                rs = 0;
                 rd = 0;
 
             }
@@ -206,7 +206,7 @@ void generateBinary(const char* instruction, char* binaryOutput, int index_atual
                 }
                 
                 if (targetIndex != -1) {
-                    immediate = targetIndex-index_atual;
+                    immediate = targetIndex-index_atual-1;
                 } else {
                     immediate = atoi(labelStr); 
                 }
@@ -236,14 +236,12 @@ void generateBinary(const char* instruction, char* binaryOutput, int index_atual
                 }
                 
                 rs = extractRegister(baseRegStr);
-                immediate = atoi(offsetStr);
+                immediate = atoi(offsetStr)*2; // por algum motivo, o offset no addi e no subi é 8 ao invés de 4, então é necessário multiplicar por 2
                 
-                // Determine which LW variant to use (LW1, LW2, LW3)
                 if (strcmp(mnemonic, "lw") == 0) {
-                    // This is simplified - you may need more logic to determine the variant
-                    if (immediate == 0) info->opcode = 8;      // LW1
-                    else if (immediate > 0) info->opcode = 9;  // LW2
-                    else info->opcode = 10;                    // LW3
+                    info->opcode = 8;      // LW1
+                    // else if (immediate > 0) info->opcode = 9;  // LW2
+                    // else info->opcode = 10;                    // LW3
                 }
             }
             else if (strcmp(mnemonic, "in") == 0 || strcmp(mnemonic, "out") == 0) {
