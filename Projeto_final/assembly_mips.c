@@ -1007,7 +1007,7 @@ void generateAssembly(FILE* inputFile) {
                 tempLocalRegs[rbase-4].isUsed = 1;
                 fprintf(output, "%d - addi $r%d $r%d 1 # índice + 1\n", lineIndex++, rindice, rindice);
                 fprintf(output, "%d - mul $r%d $r%d $r62      # índice * 4 (tamanho do inteiro)\n", lineIndex++, rindice, rindice);
-                fprintf(output, "%d - subi $r%d $r%d r%d    # endereço base + deslocamento\n", lineIndex++, rbase, rvet, rindice);
+                fprintf(output, "%d - sub $r%d $r%d $r%d    # endereço base + deslocamento\n", lineIndex++, rbase, rvet, rindice);
                 fprintf(output, "%d - lw $r%d 0($r%d)      # carrega %s[%s] em %s\n", lineIndex++, r3, rbase, quad.arg1, quad.arg2, quad.result);
                 reiniciarRg(rbase);
                 break;
@@ -1027,7 +1027,7 @@ void generateAssembly(FILE* inputFile) {
                 tempLocalRegs[rbase-4].isUsed = 1;
                 fprintf(output, "%d - addi $r%d $r%d 1 # índice + 1\n", lineIndex++, rindice, rindice);
                 fprintf(output, "%d - mul $r%d $r%d $r62      # índice * 4 (tamanho do inteiro)\n", lineIndex++, rindice, rindice);
-                fprintf(output, "%d - subi $r%d $r%d r%d    # endereço base + deslocamento\n", lineIndex++, rbase, rvet, rindice);
+                fprintf(output, "%d - sub $r%d $r%d $r%d    # endereço base + deslocamento\n", lineIndex++, rbase, rvet, rindice);
                 fprintf(output, "%d - sw $r%d 0($r%d)      # armazena %s em %s[%s]\n", lineIndex++, r1, rbase, quad.arg1, quad.result, quad.arg2);
                 reiniciarRg(rbase);
                 reiniciarRg(r1);
@@ -1052,7 +1052,7 @@ void generateAssembly(FILE* inputFile) {
                         varLocalCount++;
                     }
                     int rindex = getRegisterIndex(quad.arg1);
-                    fprintf(output, "%d - li $r%d -%d # espaço na pilha para os valores de vet\n", lineIndex++, rindex, size);
+                    fprintf(output, "%d - li $r%d %d # espaço na pilha para os valores de vet\n", lineIndex++, rindex, size);
                     stackOffset -= (size); //size já é o tamanho em bytes
                     
                     char loopLabel[32], endLoopLabel[32];
@@ -1063,7 +1063,7 @@ void generateAssembly(FILE* inputFile) {
                     fprintf(output, "%d - beq $r%d $r63 %s # se contador == 0, termina\n", lineIndex++, rindex, endLoopLabel);
                     fprintf(output, "%d - subi $r1 $r1 4  # próximo elemento\n", lineIndex++);
                     fprintf(output, "%d - sw $r63 0($r1)  # inicializa com 0\n", lineIndex++);
-                    fprintf(output, "%d - addi $r%d $r%d 4 # incrementa contador para comparar com 0\n", lineIndex++, rindex, rindex);
+                    fprintf(output, "%d - subi $r%d $r%d 4 # incrementa contador para comparar com 0\n", lineIndex++, rindex, rindex);
                     fprintf(output, "%d - j %s\n", lineIndex++, loopLabel);
                     fprintf(output, "%d - %s:\n", lineIndex++, endLoopLabel);
                     reiniciarRg(rindex);
