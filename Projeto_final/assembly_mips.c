@@ -636,7 +636,7 @@ void generateAssembly(FILE* inputFile) {
                                     lineIndex++, r1, r2, nextQuad.result);
                         } else { // JUMPTRUE
                             // Se LT é verdadeiro (<), pula para o label
-                            fprintf(output, "%d - blt $r%d $r%d %s # jump se <\n", 
+                            fprintf(output, "%d - blt $r%d $r%d %s #jump se <\n", 
                                     lineIndex++, r1, r2, nextQuad.result);
                         }
                         r1comp = r1;
@@ -719,12 +719,15 @@ void generateAssembly(FILE* inputFile) {
                 if (r1 != r3) {
                     if (((r1 > 3 && r1 < 31) || (r1 > 31 && r1 < 45)) && (quad.result[0] == 't' && isdigit(quad.result[1]))){
                         fprintf(output, "%d - lw $r%d 0($r%d) # movendo %s para %s\n", lineIndex++, r3, r1, quad.arg1, quad.result); 
+                        // fprintf(output, "%d - out $r%d # movendo %s para %s\n", lineIndex++, r3, quad.arg1, quad.result);
                     }
                     else if (((r3 > 3 && r3 < 31) || (r3 > 31 && r3 < 45)) && (quad.arg1[0] == 't' && isdigit(quad.arg1[1]))) {
                         fprintf(output, "%d - sw $r%d 0($r%d) # movendo %s para %s\n", lineIndex++, r1, r3, quad.arg1, quad.result);
                     }
                     else {
                         fprintf(output, "%d - move $r%d $r%d # movendo %s para %s\n", lineIndex++, r3, r1, quad.arg1, quad.result);
+                        // fprintf(output, "%d - out $r%d # movendo %s para %s\n", lineIndex++, r3, quad.arg1, quad.result);
+                   
                     }
                     if(quad.arg1[0] == 't' && isdigit(quad.arg1[1])){
                         reiniciarRg(r1);
@@ -751,9 +754,17 @@ void generateAssembly(FILE* inputFile) {
                 break;
 
             case OP_SUB:
-                fprintf(output, "%d - sub $r%d $r%d $r%d # salva em %s (r%d) \n", lineIndex++, r3, r1, r2, quad.result, r3);
-                reiniciarRg(r1);
-                reiniciarRg(r2);
+                // Se o segundo operando é a constante "1", usar diretamente $r61 (que já contém o valor 1)
+                if(addehone == 1 && strcmp(pularTemp, quad.arg2) == 0){
+                    fprintf(output, "%d - sub $r%d $r%d $r61 # salva em %s (r%d)\n", lineIndex++, r3, r1, quad.result, r3);
+                    pularTemp = "";
+                    addehone = 0;
+                    reiniciarRg(r1);
+                } else {
+                    fprintf(output, "%d - sub $r%d $r%d $r%d # salva em %s (r%d) \n", lineIndex++, r3, r1, r2, quad.result, r3);
+                    reiniciarRg(r1);
+                    reiniciarRg(r2);
+                }
                 break;
 
             case OP_MULT:
@@ -811,7 +822,7 @@ void generateAssembly(FILE* inputFile) {
                     ehPrimeiraFuncao = 0; // marca que já processou a primeira função
                 }
                 fprintf(output, "%d - %s: # nova função %s\n", lineIndex++, quad.arg1, quad.arg1);
-                
+                // fprintf(output, "%d - out $r1 # define o início da função\n", lineIndex++);
                 // Configura o frame da função usando nossa nova função
                 setupFrame(output, &lineIndex, &stackOffset);
                 
@@ -842,8 +853,15 @@ void generateAssembly(FILE* inputFile) {
                 break;
 
             case OP_END:
-                // fprintf(output, "%d - # fim da função %s\n", lineIndex++, quad.arg1);
-                break;
+                if (strcmp(currentFunction, "main") != 0) {
+                    BucketList funcSymbol = st_lookup_in_scope(currentFunction, "global");
+                    int isVoidFunction = (funcSymbol && strcmp(funcSymbol->dataType, "void") == 0);
+                    if (isVoidFunction) {
+                        restoreFrame(output, &lineIndex, &stackOffset);
+                        fprintf(output, "%d - jr $r31         # retorna (void function end)\n", lineIndex++);
+                    }
+                }
+            break;
 
             case OP_ARGUMENT: 
                 {
@@ -1043,6 +1061,7 @@ void generateAssembly(FILE* inputFile) {
                     fprintf(output, "%d - subi $r1 $r1 4  # aloca espaço para referência do array '%s'\n", lineIndex++, quad.result);
                     // Salva o endereço base do array no registrador de resultado
                     fprintf(output, "%d - move $r%d $r1   # endereço base do array '%s'\n", lineIndex++, r3, quad.result);
+                    // fprintf(output, "%d - out $r32\n", lineIndex++); // Exibe o endereço base do array
                     if (strcmp(currentFunction, "global") == 0) {
                         globalVars[varGlobalCount] = r3; // Armazena o registrador da variável global
                         varGlobalCount++;
@@ -1052,21 +1071,12 @@ void generateAssembly(FILE* inputFile) {
                         varLocalCount++;
                     }
                     int rindex = getRegisterIndex(quad.arg1);
-                    fprintf(output, "%d - li $r%d %d # espaço na pilha para os valores de vet\n", lineIndex++, rindex, size);
+                    // fprintf(output, "%d - li $r%d %d # espaço na pilha para os valores de vet\n", lineIndex++, rindex, size);
                     stackOffset -= (size); //size já é o tamanho em bytes
                     
                     char loopLabel[32], endLoopLabel[32];
-                    sprintf(loopLabel, "init_array_%d", quad.line);
-                    sprintf(endLoopLabel, "end_init_array_%d", quad.line);
-                    
-                    fprintf(output, "%d - %s:\n", lineIndex++, loopLabel);
-                    fprintf(output, "%d - beq $r%d $r63 %s # se contador == 0, termina\n", lineIndex++, rindex, endLoopLabel);
-                    fprintf(output, "%d - subi $r1 $r1 4  # próximo elemento\n", lineIndex++);
-                    fprintf(output, "%d - sw $r63 0($r1)  # inicializa com 0\n", lineIndex++);
-                    fprintf(output, "%d - subi $r%d $r%d 4 # incrementa contador para comparar com 0\n", lineIndex++, rindex, rindex);
-                    fprintf(output, "%d - j %s\n", lineIndex++, loopLabel);
-                    fprintf(output, "%d - %s:\n", lineIndex++, endLoopLabel);
-                    reiniciarRg(rindex);
+                    fprintf(output, "%d - subi $r1 $r1 %d  # próximo elemento\n", lineIndex++, size);
+                    // fprintf(output, "%d - out $r1\n", lineIndex++);
                 } else {
                     // É uma variável simples, apenas reserva espaço na pilha
                     fprintf(output, "%d - subi $r1 $r1 4 # aloca espaço para variável '%s'\n", lineIndex++, quad.result);
