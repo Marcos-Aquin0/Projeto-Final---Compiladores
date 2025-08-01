@@ -520,6 +520,7 @@ void genExprCode(ASTNode* expr, char* target) {
             }
             break;
             
+
         default:
             // Outros tipos de expressão
             if (expr->left != NULL) {
@@ -544,8 +545,7 @@ void genAssignCode(ASTNode* assign) {
     // Verifica se o lado esquerdo da atribuição é um acesso a array
     if (assign->left->type == NODE_ARRAY_ACCESS || 
         (assign->left->type == NODE_VAR && assign->left->right != NULL)) {
-        // É um acesso a array (a[i] = ...)
-        genArrayAssignCode(assign);
+            genArrayAssignCode(assign);
     } else {
         // É uma variável simples (ou outro tipo de expressão)
         char* exprResult = newTemp();
@@ -1317,26 +1317,6 @@ void optimizeIRCode(void) {
         if (current->next) {
             Quadruple* next = current->next;
             
-            // Caso 1: CALL seguido de ASSIGN (nova otimização)
-            if (current->op == OP_CALL && next->op == OP_ASSIGN && 
-                current->result && next->arg1 && next->result && 
-                strcmp(current->result, next->arg1) == 0) {
-                
-                // Move o resultado diretamente para a variável de destino final
-                free(current->result);
-                current->result = strdup(next->result);
-                
-                // Desconecta a quadrupla de atribuição (redundante)
-                current->next = next->next;
-                
-                // Libera a quadrupla redundante
-                free(next->arg1);
-                if (next->arg2) free(next->arg2);
-                free(next->result);
-                free(next);
-                
-                continue;
-            }
             
             // Caso 2: ASSIGN seguido de PARAM com o mesmo resultado/argumento
             if (current->op == OP_ASSIGN && next->op == OP_ARGUMENT && 

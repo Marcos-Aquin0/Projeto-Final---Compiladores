@@ -546,6 +546,7 @@ void generateAssembly(FILE* inputFile) {
     int r1comp;
     int r2comp;
     int pularJump = 0;
+    int proximoReturn = 0;
 
     fprintf(output, "%d - nop 1\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
     int ehPrimeiraFuncao = 1;
@@ -820,8 +821,12 @@ void generateAssembly(FILE* inputFile) {
 
             case OP_RETURN:
                 // Carrega valor de retorno em v0 (r45)
-                if (r1 != 45) { // Evita move redundante se o valor já estiver em v0
-                    fprintf(output, "%d - move $r45 $r%d # move valor de retorno para v0\n", lineIndex++, r1);
+                if (r1 < 45 && proximoReturn==0) { // Evita move redundante se o valor já estiver em v0
+                    fprintf(output, "%d - lw $r45 0($r%d) # move valor de retorno para v0\n", lineIndex++, r1);
+                }
+                else{
+                    fprintf(output, "%d - move $r45 $r%d # move valor de retorno para v0\n", lineIndex++, r1);   
+                    proximoReturn=0;
                 }
                 
                 // Restaura o frame usando nossa nova função
@@ -972,11 +977,11 @@ void generateAssembly(FILE* inputFile) {
 
                     if(varLocalCount > 0){
                      //recarregar variaveis locais 
-                     fprintf(output, "%d - move $r1 $r2 # sp = fp\n", lineIndex++);
+                     fprintf(output, "%d - move $r62 $r2 # sp = fp\n", lineIndex++);
                      // Carrega os parâmetros da pilha para os registradores correspondentes
                         for (int i = 0; i < varLocalCount; i++) {
-                            fprintf(output, "%d - subi $r1 $r1 1 # desce na pilha\n", lineIndex++);
-                            fprintf(output, "%d - lw $r%d 0($r1) # recarrega variavel local\n", lineIndex++, localVars[i]);
+                            fprintf(output, "%d - subi $r62 $r62 1 # desce na pilha\n", lineIndex++);
+                            fprintf(output, "%d - move $r%d $r62 # recarrega variavel local\n", lineIndex++, localVars[i]);
                         }
                     }
                     
@@ -990,7 +995,12 @@ void generateAssembly(FILE* inputFile) {
                                         lineIndex++, r3, quad.result);
                         } 
                     }
+                    checkNextQuadruple(inputFile, &filePos, &nextQuad);
+                    if(strcmp(nextQuad.op,"RETURN")== 0){
+                        proximoReturn = 1;
+                    }
                 }
+                
                 break;
 
             case OP_ARRAY_LOAD:
