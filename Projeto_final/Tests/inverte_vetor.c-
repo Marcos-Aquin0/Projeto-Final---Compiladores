@@ -1,0 +1,29 @@
+int vet[5];
+
+void invertevetor(int tam) {
+    int esq;
+    int dir;
+    int temp;
+    esq = 0;
+    dir = tam - 1;
+
+    while (esq < dir) {
+        temp = vet[esq];
+        vet[esq] = vet[dir];
+        vet[dir] = temp;
+        esq = esq + 1;
+        dir = dir - 1;
+    }
+}
+
+void main(void) {
+    int i;
+    vet[0] = 10; vet[1] = 20; vet[2] = 30; vet[3] = 40; vet[4] = 50;
+    invertevetor(5);
+
+    i = 0;
+    while(i < 5) {
+        output(vet[i]); 
+        i = i + 1;
+    }
+}

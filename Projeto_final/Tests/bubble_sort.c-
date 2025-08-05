@@ -1,0 +1,40 @@
+int vet[7];
+
+/* Função auxiliar para trocar dois elementos do vetor */
+void troca(int i, int j) {
+    int temp;
+    temp = vet[i];
+    vet[i] = vet[j];
+    vet[j] = temp;
+}
+
+/* Ordena o vetor usando o algoritmo Bubble Sort */
+void bubblesort(int tam) {
+    int i;
+    int j;
+
+    i = 0;
+    while (i < tam - 1) {
+        j = 0;
+        while (j < tam - i - 1) {
+            if (vet[j] > vet[j+1]) {
+                troca(j, j + 1);
+            }
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+}
+
+void main(void) {
+    int i;
+    vet[0]=7; vet[1]=2; vet[2]=1; vet[3]=6; vet[4]=8; vet[5]=5; vet[6]=3;
+
+    bubblesort(7);
+
+    i = 0;
+    while(i < 7) {
+        output(vet[i]); 
+        i = i + 1;
+    }
+}

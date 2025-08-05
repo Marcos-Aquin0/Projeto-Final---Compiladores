@@ -96,16 +96,6 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 ---
 
 ## Próximas Etapas
-- rever assembly gcd e sort
-
-- integração com o processador MIPS (lab de AOC), modelagem sysml faltante e relatório
-- o pc é + 1 e a memória +4?
-- instrução de "enter" no processador para pegar um valor e esperar (era output2)
-- mostrar o sinal em um led ou mudar para lcd
-
-led para o indice da instrucao
-input e output com enter, ligar led
-
 - suporte para várias chamadas da mesma função no mesmo escopo
 - suporte para break em while
 - suporte para float

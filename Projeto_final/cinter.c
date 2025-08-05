@@ -1346,33 +1346,7 @@ void optimizeIRCode(void) {
                 continue;
             }
             
-            // Caso 3: ASSIGN seguido de RETURN com o mesmo resultado/argumento
-            if (current->op == OP_ASSIGN && next->op == OP_RETURN && 
-                current->result && next->arg1 && 
-                strcmp(current->result, next->arg1) == 0) {
-                
-                // Substitui o argumento do RETURN pelo argumento do ASSIGN
-                free(next->arg1);
-                next->arg1 = strdup(current->arg1);
-                
-                // Desconecta a quadrupla atual
-                if (current == irCode.head) {
-                    irCode.head = next;
-                } else {
-                    Quadruple* prev = irCode.head;
-                    while (prev->next != current) prev = prev->next;
-                    prev->next = next;
-                }
-                
-                // Libera a quadrupla redundante
-                free(current->arg1);
-                if (current->arg2) free(current->arg2);
-                free(current->result);
-                free(current);
-                
-                current = next;
-                continue;
-            }
+            
         }
         
         current = current->next;

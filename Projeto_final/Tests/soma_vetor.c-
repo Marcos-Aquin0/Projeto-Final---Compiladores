@@ -1,0 +1,26 @@
+/* Soma todos os elementos de um vetor de inteiros */
+
+int vet[5];
+
+int somavetor(int tam) {
+    int i;
+    int soma;
+
+    soma = 0;
+    i = 0;
+    while (i < tam) {
+        soma = soma + vet[i];
+        i = i + 1;
+    }
+    return soma;
+}
+
+void main(void) {
+    vet[0] = 10;
+    vet[1] = 20;
+    vet[2] = 5;
+    vet[3] = 2;
+    vet[4] = 3;
+
+    output(somavetor(5)); 
+}

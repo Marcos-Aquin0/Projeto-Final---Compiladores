@@ -1,0 +1,14 @@
+/* Calcula base elevado ao expoente */
+int potencia(int base, int exp) {
+    int resultado;
+    resultado = 1;
+    while (exp > 0) {
+        resultado = resultado * base;
+        exp = exp - 1;
+    }
+    return resultado;
+}
+
+void main(void) {
+    output(potencia(2, 10));   
+}

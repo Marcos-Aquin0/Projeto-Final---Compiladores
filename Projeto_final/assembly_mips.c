@@ -704,6 +704,10 @@ void generateAssembly(FILE* inputFile) {
                 checkNextQuadruple(inputFile, &filePos, &nextQuad);
                 reiniciarRg(r1);
                 fprintf(output, "%d - li $r%d %s\n", lineIndex++, r3, quad.arg1);
+                checkNextQuadruple(inputFile, &filePos, &nextQuad);
+                if(strcmp(nextQuad.op,"RETURN")== 0){
+                    proximoReturn = 1;
+                }
                 
                 continue;
             }
@@ -715,15 +719,20 @@ void generateAssembly(FILE* inputFile) {
                 if (r1 != r3) {
                     if (((r1 > 3 && r1 < 31) || (r1 > 31 && r1 < 45)) && (quad.result[0] == 't' && isdigit(quad.result[1]))){
                         fprintf(output, "%d - lw $r%d 0($r%d) # movendo %s para %s\n", lineIndex++, r3, r1, quad.arg1, quad.result); 
-                        // fprintf(output, "%d - out $r%d # movendo %s para %s\n", lineIndex++, r3, quad.arg1, quad.result);
+                        checkNextQuadruple(inputFile, &filePos, &nextQuad);
+                        if(strcmp(nextQuad.op,"RETURN")== 0){
+                            proximoReturn = 1;
+                        }
                     }
                     else if (((r3 > 3 && r3 < 31) || (r3 > 31 && r3 < 45)) && (quad.arg1[0] == 't' && isdigit(quad.arg1[1]))) {
                         fprintf(output, "%d - sw $r%d 0($r%d) # movendo %s para %s\n", lineIndex++, r1, r3, quad.arg1, quad.result);
                     }
                     else {
                         fprintf(output, "%d - move $r%d $r%d # movendo %s para %s\n", lineIndex++, r3, r1, quad.arg1, quad.result);
-                        // fprintf(output, "%d - out $r%d # movendo %s para %s\n", lineIndex++, r3, quad.arg1, quad.result);
-                   
+                        checkNextQuadruple(inputFile, &filePos, &nextQuad);
+                        if(strcmp(nextQuad.op,"RETURN")== 0){
+                            proximoReturn = 1;
+                        }
                     }
                     if(quad.arg1[0] == 't' && isdigit(quad.arg1[1])){
                         reiniciarRg(r1);
