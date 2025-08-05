@@ -748,7 +748,10 @@ void generateAssembly(FILE* inputFile) {
                 fprintf(output, "%d - add $r%d $r%d $r%d # salva em %s (r%d) \n", lineIndex++, r3, r1, r2, quad.result, r3);
                 reiniciarRg(r1);
                 reiniciarRg(r2);
-                            
+                checkNextQuadruple(inputFile, &filePos, &nextQuad);
+                if(strcmp(nextQuad.op,"RETURN")== 0){
+                    proximoReturn = 1;
+                }            
                 break;
 
             case OP_SUB:

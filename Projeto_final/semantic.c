@@ -198,140 +198,76 @@ static void checkAssignment(ASTNode* node) {
 static void checkFunctionCallParameters(ASTNode* node) {
     if (!node || !node->left || !node->left->value) return;
 
+    ASTNode* funcCallNode = node; // O nó NODE_ACTIVATION
+    BucketList funcDecl = st_lookup_in_scope(funcCallNode->left->value, "global");
+    ParamInfo declParam = funcDecl->params; // Lista de parâmetros da declaração
+    ASTNode* argListNode = funcCallNode->right; // Aponta para o nó 'Args'
     char* funcName = node->left->value;
+    char* currentScope = current_scope();
+    BucketList funcCall = st_lookup_in_scope(funcName, currentScope);
+    ParamInfo callParam = funcCall->params;
+    int argNum = 1;
+    // Dentro de uma função como checkFunctionCallParameters
     if (strcmp(funcName, "output") == 0 || strcmp(funcName, "input") == 0) {
         return;  // Não verifica parâmetros para funções de entrada/saída
     }
-    // Busca a declaração global da função
-    BucketList funcDecl = st_lookup_in_scope(funcName, "global");
-    if (!funcDecl) return;  // Função não encontrada, não verifica parâmetros
-    
-    // Busca a chamada da função no escopo atual
-    char* currentScope = current_scope();
-    BucketList funcCall = st_lookup_in_scope(funcName, currentScope);
-    
-    // Se não encontrou no escopo atual e não estamos no escopo global,
-    // procura no escopo global (para chamadas diretas na global)
-    if (!funcCall && strcmp(currentScope, "global") != 0) {
-        funcCall = st_lookup_in_scope(funcName, "global");
+
+
+    if (argListNode) {
+        argListNode = argListNode->left; // Agora aponta para 'ArgList'
     }
     
-    if (!funcCall) return;  // Não conseguiu encontrar a chamada, pula verificação
-    
-    // Compara o número de parâmetros entre declaração e chamada
-    if (funcDecl->paramCount != funcCall->paramCount) {
-        printError("Erro semântico: Função '%s' chamada com %d argumentos, mas foi declarada com %d parâmetros (linha %d)",
-                  funcName, funcCall->paramCount, funcDecl->paramCount, node->lineno);
-        semanticErrorCount++;
-        return;
-    }
-    
-    // Obtém os parâmetros da declaração e da chamada
-    ParamInfo declParam = funcDecl->params;
-    ParamInfo callParam = funcCall->params;
-    
-    // Compara cada parâmetro
-    int paramNum = 1;
-    while (declParam != NULL && callParam != NULL) {
-        // Verifica compatibilidade de tipos
-        int typesCompatible = checkTypeCompatibility(callParam->paramType, declParam->paramType);
+
+    // Percorre a lista de argumentos na AST e a lista de parâmetros na tabela de símbolos
+    while (argListNode != NULL && declParam != NULL) {
+        ASTNode* currentArg = argListNode->right; // O nó do argumento atual (ex: NODE_VAR, NODE_FACTOR)
         
-        // Verifica se ambos são arrays ou nenhum é array
-        int arrayMatchError = (callParam->isArray != declParam->isArray);
-        
-        if (!typesCompatible || arrayMatchError) {
-            if (arrayMatchError && typesCompatible) {
-                printError("Erro semântico: Incompatibilidade de array no argumento %d da chamada da função '%s'. Esperado '%s%s', recebido '%s%s' (linha %d)",
-                         paramNum, funcName, declParam->paramType, declParam->isArray ? "[]" : "", 
+        // getExpressionType já foi chamado recursivamente pela semanticAnalysis,
+        // então o tipo do argumento deve estar disponível.
+        char* argType = getExpressionType(currentArg);
+
+        // Compara argType com declParam->paramType
+        if (!checkTypeCompatibility(callParam->paramType, declParam->paramType)) {
+            printError("Erro semântico: Incompatibilidade de tipos no argumento %d da chamada da função '%s'. Esperado '%s%s', recebido '%s%s' (linha %d)",
+                         argNum, funcName, declParam->paramType, declParam->isArray ? "[]" : "", 
                          callParam->paramType, callParam->isArray ? "[]" : "", node->lineno);
-            } else {
-                printError("Erro semântico: Incompatibilidade de tipos no argumento %d da chamada da função '%s'. Esperado '%s%s', recebido '%s%s' (linha %d)",
-                         paramNum, funcName, declParam->paramType, declParam->isArray ? "[]" : "", 
-                         callParam->paramType, callParam->isArray ? "[]" : "", node->lineno);
-            }
             semanticErrorCount++;
         }
         
+        // Avança para o próximo
+        argListNode = argListNode->left;
         declParam = declParam->next;
-        callParam = callParam->next;
-        paramNum++;
+        argNum++;
     }
 }
 
 static void checkFunctionCall(ASTNode* node) {
     if (!node->left || !node->left->value) return;
 
+    // Busca a função na tabela de símbolos (escopo global é suficiente para declarações)
     BucketList l = st_lookup_in_scope(node->left->value, "global");
+    
+    // Verifica se a função foi declarada
     if (!l) {
         if (!errorAlreadyReported(node->left->value, node->lineno)) {
             printError("Erro semântico: Função '%s' não declarada (linha %d)",
-                    node->left->value, node->lineno);
+                       node->left->value, node->lineno);
             semanticErrorCount++;
         }
-        return;
+        return; // Não podemos continuar se a função não existe
     }
 
+    // Verifica se o identificador é realmente uma função
     if (strcmp(l->idType, "func") != 0) {
         if (!errorAlreadyReported(node->left->value, node->lineno)) {
             printError("Erro semântico: '%s' não é uma função (linha %d)",
-                    node->left->value, node->lineno);
+                       node->left->value, node->lineno);
             semanticErrorCount++;
         }
         return;
     }
 
-    // Verificar a lista de parâmetros
-    checkFunctionCallParameters(node);
-
-    // Verificar os argumentos da chamada de função
-    ASTNode* args = node->right;
-    while (args != NULL) {
-        // Para cada argumento, verificar se está declarado
-        if (args->type == NODE_VAR || args->type == NODE_EXPR) {
-            // Obter o nome da variável do argumento
-            char* argName = NULL;
-            if (args->type == NODE_VAR) {
-                argName = args->value;
-            } else if (args->left && args->left->type == NODE_VAR) {
-                argName = args->left->value;
-            }
-
-            // Dentro de checkFunctionCall, onde verifica os argumentos:
-        if (argName != NULL) {
-            // Verificar se a variável está declarada
-            char* currentScope = current_scope();
-            BucketList argVar = st_lookup_in_scope(argName, currentScope);
-            
-            // Se não encontrou no escopo atual, tenta no escopo global
-            if (!argVar && strcmp(currentScope, "global") != 0) {
-                argVar = st_lookup_in_scope(argName, "global");
-            }
-            
-            if (!argVar && !errorAlreadyReported(argName, node->lineno)) {
-                printError("Erro semântico: Argumento '%s' usado na chamada da função '%s' não foi declarado (linha %d)",
-                        argName, node->left->value, node->lineno);
-                semanticErrorCount++;
-            }
-        }
-        }
-        // Se for uma expressão mais complexa, devemos validar recursivamente
-        // que todos os componentes estão declarados
-        else if (args->type == NODE_ARRAY_ACCESS) {
-            // Verificar acesso ao array
-            checkArrayAccess(args);
-        }
-        else if (args->type == NODE_ACTIVATION) {
-            // Verificar chamada de função aninhada
-            checkFunctionCall(args);
-        }
-        else if (args->left != NULL) {
-            // Validar variáveis em expressões mais complexas
-            validateExpressionVariables(args);
-        }
-
-        // Avançar para o próximo argumento
-        args = args->left;
-    }
+   checkFunctionCallParameters(node);
 }
 
 static void checkMainFunction(void) {
