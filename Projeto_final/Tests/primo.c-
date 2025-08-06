@@ -19,5 +19,7 @@ int ehprimo(int n) {
 }
 
 void main(void) {
-    output(ehprimo(13)); 
+    int x;
+    x = input();
+    output(ehprimo(x)); 
 }
