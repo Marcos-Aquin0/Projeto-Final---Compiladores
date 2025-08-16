@@ -82,6 +82,13 @@ int getRegisterIndex(char* name) {
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Nome NULL, retornando reg 0\n");
         return 0;
     }
+
+    if(strcmp(name, "processoAtual")==0){
+        return 59;
+    }
+    if(strcmp(name, "processosCarregados")==0){
+        return 60;
+    }
     
     // Verifica se é um valor constante
     if (isdigit(name[0]) || (name[0] == '-' && isdigit(name[1]))) {
@@ -174,6 +181,7 @@ int getRegisterIndex(char* name) {
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Símbolo '%s' não encontrado na tabela de símbolos\n", name);
     }
     
+
  
     if (name[0] == 't' && isdigit(name[1])) {
         // Procurar se já mapeamos essa variável
@@ -292,18 +300,12 @@ void analyzeRegisterUsage(const char* assemblyFilePath) {
             strcpy(regUsage[i].regName, "sp");
         else if (i == 2)
             strcpy(regUsage[i].regName, "fp");
-        else if (i == 31)
-            strcpy(regUsage[i].regName, "ra");
-        else if (i == 63)
-            strcpy(regUsage[i].regName, "zero");
-        else if (i == 62)
-            strcpy(regUsage[i].regName, "off");
-        else if (i == 61)
-            strcpy(regUsage[i].regName, "one");
         else if (i == 3)
             strcpy(regUsage[i].regName, "in");
         else if (i >= 4 && i <= 30)
             sprintf(regUsage[i].regName, "tl%d", i - 4);
+        else if (i == 31)
+            strcpy(regUsage[i].regName, "ra");
         else if (i >= 32 && i <= 44)
             sprintf(regUsage[i].regName, "tg%d", i - 32);
         else if (i == 45)
@@ -312,8 +314,12 @@ void analyzeRegisterUsage(const char* assemblyFilePath) {
             sprintf(regUsage[i].regName, "a%d", i - 46);
         else if (i >= 52 && i <= 57)
             sprintf(regUsage[i].regName, "p%d", i - 52);
-        else if (i >= 58 && i <= 60)
+        else if (i >= 58 && i <= 61)
             sprintf(regUsage[i].regName, "k%d", i - 58);
+        else if (i == 62)
+            strcpy(regUsage[i].regName, "off");
+        else if (i == 63)
+            strcpy(regUsage[i].regName, "zero");
     }
     
     char buffer[256];
@@ -359,17 +365,19 @@ void analyzeRegisterUsage(const char* assemblyFilePath) {
                             if (i == 0) strcpy(regUsage[i].purpose, "output");
                             else if (i == 1) strcpy(regUsage[i].purpose, "stack pointer");
                             else if (i == 2) strcpy(regUsage[i].purpose, "frame pointer");
-                            else if (i == 31) strcpy(regUsage[i].purpose, "return address");
-                            else if (i == 63) strcpy(regUsage[i].purpose, "zero constant");
-                            else if (i == 61) strcpy(regUsage[i].purpose, "one constant");
-                            else if (i == 62) strcpy(regUsage[i].purpose, "stack pointer offset");
                             else if (i == 3) strcpy(regUsage[i].purpose, "input");
                             else if (i >= 4 && i <= 30) strcpy(regUsage[i].purpose, "temporary local");
+                            else if (i == 31) strcpy(regUsage[i].purpose, "return address");
                             else if (i >= 32 && i <= 44) strcpy(regUsage[i].purpose, "temporary global");
                             else if (i == 45) strcpy(regUsage[i].purpose, "return value");
                             else if (i >= 46 && i <= 51) strcpy(regUsage[i].purpose, "argument");
                             else if (i >= 52 && i <= 57) strcpy(regUsage[i].purpose, "param");
-                            else if (i >= 58 && i <= 60) strcpy(regUsage[i].purpose, "kernel register");
+                            else if (i == 58) strcpy(regUsage[i].purpose, "so_ra");
+                            else if (i == 59) strcpy(regUsage[i].purpose, "so_ap");
+                            else if (i >= 60) strcpy(regUsage[i].purpose, "so_tp");
+                            else if (i >= 61) strcpy(regUsage[i].purpose, "so_sp");
+                            else if (i == 62) strcpy(regUsage[i].purpose, "stack pointer offset");
+                            else if (i == 63) strcpy(regUsage[i].purpose, "zero constant");
                         }
                         
                         regUsage[i].lastUsedAt = lineNum;
@@ -918,7 +926,7 @@ void generateAssembly(FILE* inputFile) {
                                     lineIndex++, argumentNum, quad.arg1, destReg);
                         }
                     }
-                    if(strcmp(nextQuad.arg1,"output") !=0){
+                    if(strcmp(nextQuad.arg1,"output") !=0 && strcmp(nextQuad.arg1,"halt") !=0 && strcmp(nextQuad.arg1,"uOrK") !=0 && strcmp(nextQuad.arg1,"saltoUser") !=0 && strcmp(nextQuad.arg1,"msgLcd") !=0){
                         fprintf(output, "%d - sw $r%d %d($r1)  # salva argument %d na pilha\n", 
                                 lineIndex++, destReg, argumentNum, argumentNum);
                     }
@@ -952,7 +960,16 @@ void generateAssembly(FILE* inputFile) {
                     fprintf(output, "%d - move $r0 $r46\n", lineIndex++); // out r0 (registrador reservado para output)
                     fprintf(output, "%d - out $r0\n", lineIndex++); // out r0 (registrador reservado para output)
                     // fprintf(output, "%d - addi $r1 $r1 1 # desaloca espaço na pilha\n", lineIndex++);
-                } else {
+                } else if (strcmp(quad.arg1, "msgLcd") == 0){
+                    fprintf(output, "%d - msgLcd $r%d\n", 
+                            lineIndex++, 46); //
+                } else if (strcmp(quad.arg1, "halt") == 0){
+                    fprintf(output, "%d - halt # termina a execução\n", lineIndex++);
+                } else if (strcmp(quad.arg1, "saltoUser") == 0){
+                    fprintf(output, "%d - saltoUser $r58 $r%d\n", 
+                            lineIndex++, 46); //r referente ao salto
+                }
+                else {
                     // Aloca espaço para os argumentos na pilha antes da chamada
                     int argCount = atoi(quad.arg2);
                     if (argCount > 0) {
@@ -1108,8 +1125,8 @@ void generateAssembly(FILE* inputFile) {
         }
     }
 
-    // Finaliza com HALT
-    fprintf(output, "%d - halt\n", lineIndex);
+    // Finaliza com syscall, 1
+    fprintf(output, "%d - syscall $r58 1\n", lineIndex);
     fclose(output);
     analyzeRegisterUsage("Output/assembly.asm");
 }

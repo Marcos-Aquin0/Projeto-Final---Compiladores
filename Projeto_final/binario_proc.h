@@ -19,6 +19,8 @@ typedef enum {
     TYPE_R,
     TYPE_I,
     TYPE_J,
+    TYPE_MK, //KERNEL
+    TYPE_MU, //USER
     TYPE_INVALID
 } InstructionType;
 

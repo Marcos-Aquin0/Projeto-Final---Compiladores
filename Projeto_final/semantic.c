@@ -208,7 +208,7 @@ static void checkFunctionCallParameters(ASTNode* node) {
     ParamInfo callParam = funcCall->params;
     int argNum = 1;
     // Dentro de uma função como checkFunctionCallParameters
-    if (strcmp(funcName, "output") == 0 || strcmp(funcName, "input") == 0) {
+    if (strcmp(funcName, "output") == 0 || strcmp(funcName, "input") == 0 || strcmp(funcName, "msgLcd") == 0 || strcmp(funcName, "userOrKernel") == 0 || strcmp(funcName, "saltoUser") == 0 || strcmp(funcName, "halt") == 0) {
         return;  // Não verifica parâmetros para funções de entrada/saída
     }
 

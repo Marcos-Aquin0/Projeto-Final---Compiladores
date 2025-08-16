@@ -649,7 +649,11 @@ void buildSymtab(ASTNode *syntaxTree) {
     // Adiciona funções predefinidas ao ambiente global
     st_insert("input", 0, location++, "global", "func", "int", 0, 0);
     st_insert("output", 0, location++, "global", "func", "void", 0, 0);
-
+    
+    //SO
+    st_insert("msgLcd", 0, location++, "global", "func", "int", 0, 0);
+    st_insert("saltoUser", 0, location++, "global", "func", "int", 0, 0);
+    st_insert("halt", 0, location++, "global", "func", "int", 0, 0);
     traverse(syntaxTree, insertNode, nullProc); //percorre a árvore sintática
     pop_scope();
 

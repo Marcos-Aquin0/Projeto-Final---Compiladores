@@ -1,0 +1,41 @@
+
+int processos [ 10 ];
+int processoAtual;
+
+void mapearProcesso(int p[]){
+    p[0] = 1001;
+    p[1] = 1201;
+    p[2] = 1401;
+    p[3] = 1601;
+    p[4] = 1801;
+    p[5] = 2001;
+    p[6] = 2201;
+    p[7] = 2401;
+    p[8] = 2601;
+    p[9] = 2801;
+}
+
+int buscarPosicao(int p[], int pAtual){
+    return p[pAtual];
+}
+
+void main(void){
+    int processosCarregados;
+    int salto;
+    processosCarregados = 10;
+    processoAtual = 0;
+    msgLcd(0);
+    mapearProcesso(processos);
+    
+    while(processoAtual < processosCarregados){
+        msgLcd(12);
+        salto = buscarPosicao(processoAtual);
+        msgLcd(processoAtual+1); 
+        saltoUser(salto);
+        msgLcd(16);
+        processoAtual = processoAtual + 1;
+
+    }
+    msgLcd(14); 
+    halt(); 
+}

@@ -107,8 +107,12 @@ InstructionInfo instructionTable[] = {
     
     {"j", TYPE_J, 19, 0},      // 010011 ...
     {"jal", TYPE_J, 20, 0},    // 010100 ...
-    {"halt", TYPE_J, 21, 0},   // 010101 ...
     {"nop", TYPE_J, 22, 0},    // 010110 ...
+    
+    {"halt", TYPE_MK, 21, 0},   // 010101 desligar SO
+    {"msgLcd",        TYPE_MK, 26, 0}, // opcode 011010
+    {"saltoUser",  TYPE_MU, 27, 0}, // opcode 011011
+    {"syscall",        TYPE_MU, 28, 0}, // opcode 011100
     
     {"", TYPE_INVALID, 0, 0}
 };
@@ -135,7 +139,7 @@ void generateBinary(const char* instruction, char* binaryOutput, int index_atual
     
     char* mnemonic = strtok(instr_copy, " \t\n\r");
     if (!mnemonic) {
-        strcpy(binaryOutput, "01010100000000000000000000000000"); // Default é o halt
+        strcpy(binaryOutput, "01011000000000000000000000000000"); // Default é o nop
         return;
     }
     
@@ -306,14 +310,43 @@ void generateBinary(const char* instruction, char* binaryOutput, int index_atual
                 // Build binary: opcode(6) target(26)
                 binary = (info->opcode << 26) | (targetAddr & 0x3FFFFFF); // 26-bit target
             }
-            else if (strcmp(mnemonic, "halt") == 0) {
-                // halt or nop - no arguments
-                binary = (info->opcode << 26); // Just the opcode
-            } else if (strcmp(mnemonic, "nop") == 0){
+            else if (strcmp(mnemonic, "nop") == 0){
                 char* immStr = strtok(NULL, " ,\t\n\r");
                 immediate = atoi(immStr);
                 binary = (info->opcode << 26) | (immediate & 0x3FFF);
             }
+            break;
+        }
+
+        case TYPE_MK: { // Para userOrKernel e msgLcd
+            // Formato: opcode immediate
+            char* rsStr = strtok(NULL, " ,\t\n\r");
+            int rs = extractRegister(rsStr);
+            
+            if(strcmp(mnemonic, "halt")==0){
+                binary = (info->opcode << 26) | (0 & 0x3FFFFFF); // opcode(6) | immediate(26)
+            } else{
+                // opcode(6) | immediate(26)
+                binary = (info->opcode << 26) | (rs & 0x3FFFFFF); // 26-bit immediate
+            }
+            break;
+        }
+
+        case TYPE_MU: { // Para saltoUser e syscall
+            // Formato: opcode $rs, immediate
+            char* rsStr = strtok(NULL, " ,\t\n\r");
+            char* immStr = strtok(NULL, " ,\t\n\r");
+            
+            int rs = extractRegister(rsStr);
+            int immediate = atoi(immStr);
+
+            if (rs < 0) {
+                sprintf(binaryOutput, "// Registrador inválido: %s", instruction);
+                return;
+            }
+            
+            // opcode(6) | rs(6) | immediate(20)
+            binary = (info->opcode << 26) | (rs << 20) | (immediate & 0xFFFFF);
             break;
         }
         
