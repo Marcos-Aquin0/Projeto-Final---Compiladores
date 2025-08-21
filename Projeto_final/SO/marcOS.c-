@@ -1,6 +1,7 @@
 
-int processos [ 10 ];
-int processoAtual;
+int processos [ 10 ]; 
+int processoAtual; 
+int processosCarregados; 
 
 void mapearProcesso(int p[]){
     p[0] = 1001;
@@ -20,18 +21,20 @@ int buscarPosicao(int p[], int pAtual){
 }
 
 void main(void){
-    int processosCarregados;
     int salto;
     processosCarregados = 10;
     processoAtual = 0;
+    output(0);
     msgLcd(0);
     mapearProcesso(processos);
     
     while(processoAtual < processosCarregados){
+        output(12);
         msgLcd(12);
         salto = buscarPosicao(processoAtual);
         msgLcd(processoAtual+1); 
         saltoUser(salto);
+        output(16);
         msgLcd(16);
         processoAtual = processoAtual + 1;
 

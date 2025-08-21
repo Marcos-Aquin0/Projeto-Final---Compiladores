@@ -334,19 +334,31 @@ void generateBinary(const char* instruction, char* binaryOutput, int index_atual
 
         case TYPE_MU: { // Para saltoUser e syscall
             // Formato: opcode $rs, immediate
-            char* rsStr = strtok(NULL, " ,\t\n\r");
-            char* immStr = strtok(NULL, " ,\t\n\r");
-            
-            int rs = extractRegister(rsStr);
-            int immediate = atoi(immStr);
+            if(mnemonic == "syscall"){
+                // syscall $rs
+                char* rsStr = strtok(NULL, " ,\t\n\r");
+                int rs = extractRegister(rsStr);
+                
+                if (rs < 0) {
+                    sprintf(binaryOutput, "// Registrador inválido: %s", instruction);
+                    return;
+                }
+                
+                // opcode(6) | rs(26)
+                binary = (info->opcode << 26) | (rs & 0x3FFFFFF); // 26-bit immediate
+            } else {
+                char* immStr = strtok(NULL, " ,\t\n\r");
+                int immediate = atoi(immStr);
 
-            if (rs < 0) {
-                sprintf(binaryOutput, "// Registrador inválido: %s", instruction);
-                return;
+                if (immediate < 0) {
+                    sprintf(binaryOutput, "// Registrador inválido: %s", instruction);
+                    return;
+                }
+                
+                // opcode(6) | immediate(26)
+                binary = (info->opcode << 26) | (immediate & 0xFFFFF);
+                
             }
-            
-            // opcode(6) | rs(6) | immediate(20)
-            binary = (info->opcode << 26) | (rs << 20) | (immediate & 0xFFFFF);
             break;
         }
         
