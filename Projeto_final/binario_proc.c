@@ -322,12 +322,12 @@ void generateBinary(const char* instruction, char* binaryOutput, int index_atual
             // Formato: opcode immediate
             char* rsStr = strtok(NULL, " ,\t\n\r");
             int rs = extractRegister(rsStr);
-            
+
             if(strcmp(mnemonic, "halt")==0){
                 binary = (info->opcode << 26) | (0 & 0x3FFFFFF); // opcode(6) | immediate(26)
             } else{
                 // opcode(6) | immediate(26)
-                binary = (info->opcode << 26) | (rs & 0x3FFFFFF); // 26-bit immediate
+                binary = (info->opcode << 26) | (rs << 20) | (0 & 0x3FFF); // 26-bit immediate
             }
             break;
         }

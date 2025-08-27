@@ -715,9 +715,8 @@ void generateAssembly(FILE* inputFile) {
         // Se estamos carregando uma constante
         if (strcmp(quad.op, "ASSIGN") == 0){
             if(isdigit(quad.arg1[0])) {
-                checkNextQuadruple(inputFile, &filePos, &nextQuad);
-                reiniciarRg(r1);
                 fprintf(output, "%d - li $r%d %s\n", lineIndex++, r3, quad.arg1);
+                reiniciarRg(r1);
                 checkNextQuadruple(inputFile, &filePos, &nextQuad);
                 if(strcmp(nextQuad.op,"RETURN")== 0){
                     proximoReturn = 1;
@@ -731,14 +730,14 @@ void generateAssembly(FILE* inputFile) {
             case OP_ASSIGN:
                 // Verifica se é uma movimentação redundante (mesmo registrador fonte e destino)
                 if (r1 != r3) {
-                    if (((r1 > 3 && r1 < 31) || (r1 > 31 && r1 < 45)) && (quad.result[0] == 't' && isdigit(quad.result[1]))){
+                    if (((r1 > 3 && r1 < 31) || (r1 > 31 && r1 < 45)||(r1 >= 59 && r1 <= 60)) && (quad.result[0] == 't' && isdigit(quad.result[1]))){
                         fprintf(output, "%d - lw $r%d 0($r%d) # movendo %s para %s\n", lineIndex++, r3, r1, quad.arg1, quad.result); 
                         checkNextQuadruple(inputFile, &filePos, &nextQuad);
                         if(strcmp(nextQuad.op,"RETURN")== 0){
                             proximoReturn = 1;
                         }
                     }
-                    else if (((r3 > 3 && r3 < 31) || (r3 > 31 && r3 < 45)) && (quad.arg1[0] == 't' && isdigit(quad.arg1[1]))) {
+                    else if (((r3 > 3 && r3 < 31) || (r3 > 31 && r3 < 45) ||(r3 >= 59 && r3 <= 60)) && (quad.arg1[0] == 't' && isdigit(quad.arg1[1]))) {
                         fprintf(output, "%d - sw $r%d 0($r%d) # movendo %s para %s\n", lineIndex++, r1, r3, quad.arg1, quad.result);
                     }
                     else {
@@ -899,7 +898,7 @@ void generateAssembly(FILE* inputFile) {
                         long currentPos = ftell(inputFile);
                         int totalArgs = countArgumentsUntilCall(inputFile, currentPos);
                         
-                        if(strcmp(nextQuad.arg1,"output") !=0){
+                        if(strcmp(nextQuad.arg1,"output") !=0 && strcmp(nextQuad.arg1,"msgLcd")!=0){
                             // Aloca espaço para todos os argumentos de uma vez
                             fprintf(output, "%d - subi $r1 $r1 %d  # aloca espaço para %d argumentos\n", 
                                     lineIndex++, (totalArgs+1), totalArgs+1);
@@ -925,14 +924,20 @@ void generateAssembly(FILE* inputFile) {
                     
                     else{
                         if (destReg != r1) {
-                            fprintf(output, "%d - move $r%d $r%d # argument %d (%s)\n", 
-                                    lineIndex++, destReg, r1, argumentNum, quad.arg1);
+                            if((r1 > 31 && r1 < 45)||(r1 >= 59 && r1 <= 60)){
+                                fprintf(output, "%d - lw $r%d 0($r%d) # argument %d (%s)\n", 
+                                        lineIndex++, destReg, r1, argumentNum, quad.arg1);
+                            }
+                            else{
+                                fprintf(output, "%d - move $r%d $r%d # argument %d (%s)\n", 
+                                        lineIndex++, destReg, r1, argumentNum, quad.arg1);
+                            }
                         } else {
                             fprintf(output, "%d - # argument (%d) %s já está em $r%d\n", 
                                     lineIndex++, argumentNum, quad.arg1, destReg);
                         }
                     }
-                    if(strcmp(nextQuad.arg1,"output") !=0 && strcmp(nextQuad.arg1,"halt") !=0 && strcmp(nextQuad.arg1,"uOrK") !=0 && strcmp(nextQuad.arg1,"saltoUser") !=0 && strcmp(nextQuad.arg1,"msgLcd") !=0){
+                    if(strcmp(nextQuad.arg1,"output") !=0 && strcmp(nextQuad.arg1,"halt") !=0 && strcmp(nextQuad.arg1,"saltoUser") !=0 && strcmp(nextQuad.arg1,"msgLcd") !=0){
                         fprintf(output, "%d - sw $r%d %d($r1)  # salva argument %d na pilha\n", 
                                 lineIndex++, destReg, argumentNum, argumentNum);
                     }
@@ -968,7 +973,7 @@ void generateAssembly(FILE* inputFile) {
                     // fprintf(output, "%d - addi $r1 $r1 1 # desaloca espaço na pilha\n", lineIndex++);
                 } else if (strcmp(quad.arg1, "msgLcd") == 0){
                     fprintf(output, "%d - msgLcd $r%d\n", 
-                            lineIndex++, 46); //
+                            lineIndex++, 46); // talvez mudar para pegar do regs
                 } else if (strcmp(quad.arg1, "halt") == 0){
                     fprintf(output, "%d - halt # termina a execução\n", lineIndex++);
                 } else if (strcmp(quad.arg1, "saltoUser") == 0){
@@ -1081,6 +1086,7 @@ void generateAssembly(FILE* inputFile) {
                 // fprintf(output, "%d - addi $r%d $r%d 1 # índice + 1\n", lineIndex++, rindice, rindice);
                 // fprintf(output, "%d - mul $r%d $r%d $r62      # índice * 4 (tamanho do inteiro)\n", lineIndex++, rindice, rindice);
                 fprintf(output, "%d - sub $r%d $r%d $r%d    # endereço base + deslocamento\n", lineIndex++, rbase, rvet, rindice);
+                // fprintf(output, "%d - out $r%d\n", lineIndex++, rbase); // Exibe o endereço base do array
                 fprintf(output, "%d - sw $r%d 0($r%d)      # armazena %s em %s[%s]\n", lineIndex++, r1, rbase, quad.arg1, quad.result, quad.arg2);
                 reiniciarRg(rbase);
                 reiniciarRg(r1);
@@ -1110,7 +1116,7 @@ void generateAssembly(FILE* inputFile) {
                     stackOffset -= (size); //size já é o tamanho em bytes
                     
                     char loopLabel[32], endLoopLabel[32];
-                    fprintf(output, "%d - subi $r1 $r1 %d  # próximo elemento\n", lineIndex++, size/4);
+                    fprintf(output, "%d - subi $r1 $r1 %d  # próximo elemento\n", lineIndex++, size/4-1);
                     // fprintf(output, "%d - out $r1\n", lineIndex++);
                 } else {
                     // É uma variável simples, apenas reserva espaço na pilha
