@@ -20,6 +20,7 @@ void mapearProcesso(){
 
 void main(void){
     int salto;
+    msgLcd(0);
     output(1);
     mapearProcesso();
     output(4);
@@ -28,9 +29,12 @@ void main(void){
 
     output(processos[processoAtual]);
 
-    while(processoAtual<10){
+    while(processoAtual<processosCarregados){  
         output(processoAtual);
         output(processos[processoAtual]);
+        salto = processos[processoAtual]; 
+        msgLcd(12);
+        saltoUser();
         processoAtual = processoAtual + 1;
     }
 

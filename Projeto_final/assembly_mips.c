@@ -92,6 +92,9 @@ int getRegisterIndex(char* name) {
     if(strcmp(name, "processosCarregados")==0){
         return 60;
     }
+    if(strcmp(name, "salto")==0){
+        return 44;
+    }
     
     // Verifica se é um valor constante
     if (isdigit(name[0]) || (name[0] == '-' && isdigit(name[1]))) {
@@ -729,7 +732,15 @@ void generateAssembly(FILE* inputFile) {
         switch (opType) {
             case OP_ASSIGN:
                 // Verifica se é uma movimentação redundante (mesmo registrador fonte e destino)
-                if (r1 != r3) {
+                if (r3 == 44 || r3 == 59 || r3 == 60) {
+                    // Força o uso de 'move' para atribuir valor diretamente a esses registradores
+                    fprintf(output, "%d - move $r%d $r%d # movendo %s para registrador especial %s\n", lineIndex++, r3, r1, quad.arg1, quad.result);
+                } 
+                else if (r1 == 44 || r1 == 59 || r1 == 60) {
+                    // Força o uso de 'move' para atribuir valor diretamente a esses registradores
+                    fprintf(output, "%d - move $r%d $r%d # movendo %s para registrador especial %s\n", lineIndex++, r3, r1, quad.arg1, quad.result);
+                } 
+                else if (r1 != r3) {
                     if (((r1 > 3 && r1 < 31) || (r1 > 31 && r1 < 45)||(r1 >= 59 && r1 <= 60)) && (quad.result[0] == 't' && isdigit(quad.result[1]))){
                         fprintf(output, "%d - lw $r%d 0($r%d) # movendo %s para %s\n", lineIndex++, r3, r1, quad.arg1, quad.result); 
                         checkNextQuadruple(inputFile, &filePos, &nextQuad);
@@ -898,7 +909,7 @@ void generateAssembly(FILE* inputFile) {
                         long currentPos = ftell(inputFile);
                         int totalArgs = countArgumentsUntilCall(inputFile, currentPos);
                         
-                        if(strcmp(nextQuad.arg1,"output") !=0 && strcmp(nextQuad.arg1,"msgLcd")!=0){
+                        if(strcmp(nextQuad.arg1,"output") !=0 && strcmp(nextQuad.arg1,"msgLcd")!=0 && strcmp(nextQuad.arg1,"saltoUser")!=0){
                             // Aloca espaço para todos os argumentos de uma vez
                             fprintf(output, "%d - subi $r1 $r1 %d  # aloca espaço para %d argumentos\n", 
                                     lineIndex++, (totalArgs+1), totalArgs+1);
@@ -914,7 +925,7 @@ void generateAssembly(FILE* inputFile) {
                         fprintf(output, "%d - li $r%d %s # argument %d (%s)\n", lineIndex++, destReg, quad.arg1, argumentNum, quad.arg1);
                     }
                     // Se o argumento é uma variável local, precisamos carregar seu valor da memória
-                    else if (symbol != NULL && strcmp(symbol->idType, "var") == 0) {
+                    else if (symbol != NULL && strcmp(symbol->idType, "var") == 0 && strcmp(nextQuad.arg1,"saltoUser") !=0) {  
                         // Primeiro carrega o valor da memória 
                         // Carrega o endereço da variável (que já está em r1) para o registrador de argumento
                         fprintf(output, "%d - lw $r%d 0($r%d)    # carrega valor da variável local '%s' para argument %d\n", 
@@ -924,13 +935,15 @@ void generateAssembly(FILE* inputFile) {
                     
                     else{
                         if (destReg != r1) {
-                            if((r1 > 31 && r1 < 45)||(r1 >= 59 && r1 <= 60)){
+                            if((r1 > 31 && r1 < 43)){
                                 fprintf(output, "%d - lw $r%d 0($r%d) # argument %d (%s)\n", 
                                         lineIndex++, destReg, r1, argumentNum, quad.arg1);
                             }
                             else{
-                                fprintf(output, "%d - move $r%d $r%d # argument %d (%s)\n", 
-                                        lineIndex++, destReg, r1, argumentNum, quad.arg1);
+                                if(strcmp(nextQuad.arg1,"saltoUser") !=0){
+                                    fprintf(output, "%d - move $r%d $r%d # argument %d (%s)\n", 
+                                            lineIndex++, destReg, r1, argumentNum, quad.arg1);
+                                }
                             }
                         } else {
                             fprintf(output, "%d - # argument (%d) %s já está em $r%d\n", 
@@ -977,12 +990,9 @@ void generateAssembly(FILE* inputFile) {
                 } else if (strcmp(quad.arg1, "halt") == 0){
                     fprintf(output, "%d - halt # termina a execução\n", lineIndex++);
                 } else if (strcmp(quad.arg1, "saltoUser") == 0){
-                    fprintf(output, "%d - move $r43 $r1", lineIndex++);
-                    fprintf(output, "%d - move $r1 $r44", lineIndex++);
-                    fprintf(output, "%d - saltoUser $r58 $r%d\n", 
-                            lineIndex++, 46); //r referente ao salto
-                    fprintf(output, "%d - move $r1 $r43 # restaura o valor de r1\n", lineIndex++);
-                }
+                    fprintf(output, "%d - saltoUser $r%d # usar o dado1 para o salto_rom\n", 
+                            lineIndex++, 44); //r referente ao salto
+                } 
                 else {
                     // Aloca espaço para os argumentos na pilha antes da chamada
                     int argCount = atoi(quad.arg2);
@@ -1119,22 +1129,25 @@ void generateAssembly(FILE* inputFile) {
                     fprintf(output, "%d - subi $r1 $r1 %d  # próximo elemento\n", lineIndex++, size/4-1);
                     // fprintf(output, "%d - out $r1\n", lineIndex++);
                 } else {
-                    // É uma variável simples, apenas reserva espaço na pilha
-                    fprintf(output, "%d - subi $r1 $r1 1 # aloca espaço para variável '%s'\n", lineIndex++, quad.result);
-                    fprintf(output, "%d - sw $r63 0($r1)  # inicializa com 0\n", lineIndex++);
-                    stackOffset -= 4;
-                    
-                    // Guarda o endereço da variável no registrador de resultado
-                    fprintf(output, "%d - move $r%d $r1   # endereço da variável '%s'\n", lineIndex++, r3, quad.result);
-                    
-                    //se escopo == global
-                    if (strcmp(currentFunction, "global") == 0) {
-                        globalVars[varGlobalCount] = r3; // Armazena o registrador da variável global
-                        varGlobalCount++;
-                    } else {
-                        // printf("currentLabel.labelName %s\n", currentLabel.labelName);
-                        localVars[varLocalCount] = r3; // Armazena o registrador da variável local
-                        varLocalCount++;
+                    if (strcmp(quad.result, "processosCarregados")!=0 && strcmp(quad.result, "processoAtual")!=0 && strcmp(quad.result, "salto")!=0){
+
+                        // É uma variável simples, apenas reserva espaço na pilha
+                        fprintf(output, "%d - subi $r1 $r1 1 # aloca espaço para variável '%s'\n", lineIndex++, quad.result);
+                        fprintf(output, "%d - sw $r63 0($r1)  # inicializa com 0\n", lineIndex++);
+                        stackOffset -= 4;
+                        
+                        // Guarda o endereço da variável no registrador de resultado
+                        fprintf(output, "%d - move $r%d $r1   # endereço da variável '%s'\n", lineIndex++, r3, quad.result);
+                        
+                        //se escopo == global
+                        if (strcmp(currentFunction, "global") == 0) {
+                            globalVars[varGlobalCount] = r3; // Armazena o registrador da variável global
+                            varGlobalCount++;
+                        } else {
+                            // printf("currentLabel.labelName %s\n", currentLabel.labelName);
+                            localVars[varLocalCount] = r3; // Armazena o registrador da variável local
+                            varLocalCount++;
+                        }
                     }
                 }
                 break;

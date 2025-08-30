@@ -111,7 +111,7 @@ InstructionInfo instructionTable[] = {
     
     {"halt", TYPE_MK, 21, 0},   // 010101 desligar SO
     {"msgLcd",        TYPE_MK, 26, 0}, // opcode 011010
-    {"saltoUser",  TYPE_MU, 27, 0}, // opcode 011011
+    {"saltoUser",  TYPE_MK, 27, 0}, // opcode 011011
     {"syscall",        TYPE_MU, 28, 0}, // opcode 011100
     
     {"", TYPE_INVALID, 0, 0}
@@ -318,7 +318,7 @@ void generateBinary(const char* instruction, char* binaryOutput, int index_atual
             break;
         }
 
-        case TYPE_MK: { // Para userOrKernel e msgLcd
+        case TYPE_MK: { //salto user e msgLcd halt 
             // Formato: opcode immediate
             char* rsStr = strtok(NULL, " ,\t\n\r");
             int rs = extractRegister(rsStr);
@@ -332,33 +332,17 @@ void generateBinary(const char* instruction, char* binaryOutput, int index_atual
             break;
         }
 
-        case TYPE_MU: { // Para saltoUser e syscall
-            // Formato: opcode $rs, immediate
-            if(mnemonic == "syscall"){
+        case TYPE_MU: { // syscall
                 // syscall $rs
-                char* rsStr = strtok(NULL, " ,\t\n\r");
-                int rs = extractRegister(rsStr);
+                char* rtStr = strtok(NULL, " ,\t\n\r");
                 
-                if (rs < 0) {
-                    sprintf(binaryOutput, "// Registrador inválido: %s", instruction);
-                    return;
-                }
+                int rt = extractRegister(rtStr);
                 
-                // opcode(6) | rs(26)
-                binary = (info->opcode << 26) | (rs & 0x3FFFFFF); // 26-bit immediate
-            } else {
-                char* immStr = strtok(NULL, " ,\t\n\r");
-                int immediate = atoi(immStr);
-
-                if (immediate < 0) {
-                    sprintf(binaryOutput, "// Registrador inválido: %s", instruction);
-                    return;
-                }
+                int rs = 0;
+                int rd = 0;
                 
-                // opcode(6) | immediate(26)
-                binary = (info->opcode << 26) | (immediate & 0xFFFFF);
-                
-            }
+                binary = (info->opcode << 26) | (rs << 20) | (rt << 14) | (rd << 8) | (0 << 4) | info->funct;
+            
             break;
         }
         
