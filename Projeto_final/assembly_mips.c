@@ -564,8 +564,9 @@ void generateAssembly(FILE* inputFile) {
     int r2comp;
     int pularJump = 0;
     int proximoReturn = 0;
+    int labelCount = 0;
 
-    fprintf(output, "%d - nop 1\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
+    // fprintf(output, "%d - nop 1\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
     int ehPrimeiraFuncao = 1;
 
     // Lê as quádruplas do arquivo e gera o código assembly
@@ -799,6 +800,7 @@ void generateAssembly(FILE* inputFile) {
                 break;
 
             case OP_LABEL:
+                labelCount  = labelCount + 1;
                 checkNextQuadruple(inputFile, &filePos, &nextQuad);
                    
                     fprintf(output, "%d - %s: #Nova Label %s\n", lineIndex++, quad.result, quad.result);
@@ -811,6 +813,7 @@ void generateAssembly(FILE* inputFile) {
 
             case OP_JUMP:
                 if(pularJump == 0){
+                    fprintf(output, "%d - addil $r43 $r44 %s\n", lineIndex++, quad.result);
                     fprintf(output, "%d - j %s\n", lineIndex++, quad.result);
                 }
                 else {
@@ -835,8 +838,10 @@ void generateAssembly(FILE* inputFile) {
                 break;
 
             case OP_FUNCTION:
+                labelCount  = labelCount + 1;
                 reinitRegisterMappings(); // Reinicia os mapeamentos de registradores
                 if(ehPrimeiraFuncao){
+                    fprintf(output, "%d - addil $r43 $r44 main\n", lineIndex++);
                     fprintf(output, "%d - j main\n", lineIndex++); //começa na main
                     ehPrimeiraFuncao = 0; // marca que já processou a primeira função
                 }
@@ -867,7 +872,9 @@ void generateAssembly(FILE* inputFile) {
                 
                 // Restaura o frame usando nossa nova função
                 restoreFrame(output, &lineIndex, &stackOffset);
-                
+                fprintf(output, "%d - out $r2         # retorna\n", lineIndex++);
+                fprintf(output, "%d - move $r0 $r0\n", lineIndex++);
+                fprintf(output, "%d - out $r31         # retorna\n", lineIndex++);
                 fprintf(output, "%d - jr $r31         # retorna\n", lineIndex++);
                 checkNextQuadruple(inputFile, &filePos, &nextQuad);
                 if(strcmp(nextQuad.op,"JUMP")== 0){
@@ -881,6 +888,9 @@ void generateAssembly(FILE* inputFile) {
                     int isVoidFunction = (funcSymbol && strcmp(funcSymbol->dataType, "void") == 0);
                     if (isVoidFunction) {
                         restoreFrame(output, &lineIndex, &stackOffset);
+                        fprintf(output, "%d - out $r2         # retorna\n", lineIndex++);
+                        fprintf(output, "%d - move $r0 $r0\n", lineIndex++);
+                        fprintf(output, "%d - out $r31         # retorna\n", lineIndex++);
                         fprintf(output, "%d - jr $r31         # retorna (void function end)\n", lineIndex++);
                     }
                 }
@@ -990,8 +1000,12 @@ void generateAssembly(FILE* inputFile) {
                 } else if (strcmp(quad.arg1, "halt") == 0){
                     fprintf(output, "%d - halt # termina a execução\n", lineIndex++);
                 } else if (strcmp(quad.arg1, "saltoUser") == 0){
+                    fprintf(output, "%d - move $r42 $r1 # salva a posição de memoria\n", lineIndex++); //r referente ao destino do salto  
+                    fprintf(output, "%d - li $r1 12000 # carrega o destino do salto\n", lineIndex++); //r referente ao salto
                     fprintf(output, "%d - saltoUser $r%d # usar o dado1 para o salto_rom\n", 
                             lineIndex++, 44); //r referente ao salto
+                    fprintf(output, "%d - move $r1 $r42 # salva a posição de memoria\n", lineIndex++); //r referente ao destino do salto  
+                    
                 } 
                 else {
                     // Aloca espaço para os argumentos na pilha antes da chamada
@@ -1005,6 +1019,7 @@ void generateAssembly(FILE* inputFile) {
                     // saveCallerSavedRegs(output, &lineIndex, &stackOffset);
                     
                     // Chamada normal de função
+                    fprintf(output, "%d - addil $r43 $r44 %s\n", lineIndex++, quad.arg1);
                     fprintf(output, "%d - jal %s\n", lineIndex++, quad.arg1);
                     // Libera espaço dos argumentos após chamada
                     

@@ -113,7 +113,7 @@ InstructionInfo instructionTable[] = {
     {"msgLcd",        TYPE_MK, 26, 0}, // opcode 011010
     {"saltoUser",  TYPE_MK, 27, 0}, // opcode 011011
     {"syscall",        TYPE_MU, 28, 0}, // opcode 011100
-    
+    {"addil", TYPE_I, 25, 0}, // opcode 011001
     {"", TYPE_INVALID, 0, 0}
 };
 
@@ -265,6 +265,26 @@ void generateBinary(const char* instruction, char* binaryOutput, int index_atual
                 char* rsStr2 = strtok(NULL, " ,\t\n\r");
                 rs = extractRegister(rsStr2);
                 immediate = 0;
+            } else if (strcmp(mnemonic, "addil") == 0) {
+                rt = extractRegister(rsStr);
+                char* rsStr2 = strtok(NULL, " ,\t\n\r");
+                rs = extractRegister(rsStr2);
+                char* targetStr = strtok(NULL, " \t\n\r");
+                int targetAddr = -1;
+                
+                // Check if target is a label
+                for (int i = 0; i < labelCount; i++) {
+                    if (strcmp(mappingLabel[i].label, targetStr) == 0) {
+                        targetAddr = mappingLabel[i].index;
+                        break;
+                    }
+                }
+                
+                if (targetAddr == -1) {
+                    // Try to convert direct address
+                    targetAddr = atoi(targetStr);
+                }
+                immediate = targetAddr;
             }
             else {
                 // addi, subi, andi, ori - format: op $rt, $rs, immediate

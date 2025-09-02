@@ -4,7 +4,7 @@ int processoAtual;
 int processosCarregados; 
 
 void mapearProcesso(){
-    output(2);
+    output(15);
     processos[0] = 1001;
     processos[1] = 1201;
     processos[2] = 1401;
@@ -15,28 +15,24 @@ void mapearProcesso(){
     processos[7] = 2401;
     processos[8] = 2601;
     processos[9] = 2801;
-    output(3);
 }
 
 void main(void){
     int salto;
     msgLcd(0);
-    output(1);
     mapearProcesso();
-    output(4);
     processoAtual = 0;
     processosCarregados = 10;
 
-    output(processos[processoAtual]);
-
     while(processoAtual<processosCarregados){  
+        output(19);
+        msgLcd(12);
         output(processoAtual);
         output(processos[processoAtual]);
-        salto = processos[processoAtual]; 
-        msgLcd(12);
+        salto = processos[processoAtual];
+        msgLcd(processoAtual+1); 
         saltoUser();
         processoAtual = processoAtual + 1;
     }
-
     halt();
 }
