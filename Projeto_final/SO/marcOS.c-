@@ -3,36 +3,32 @@ int processos[ 10 ];
 int processoAtual; 
 int processosCarregados; 
 
-void mapearProcesso(){
-    output(15);
-    processos[0] = 1001;
-    processos[1] = 1201;
-    processos[2] = 1401;
-    processos[3] = 1601;
-    processos[4] = 1801;
-    processos[5] = 2001;
-    processos[6] = 2201;
-    processos[7] = 2401;
-    processos[8] = 2601;
-    processos[9] = 2801;
+void mapearProcesso(int proc[]){
+    int i;
+    int desvio;
+    desvio = 1001;
+    while(i<10){
+        proc[i] = desvio;
+        desvio = desvio + 200;
+        i = i+1;    
+    }
 }
 
 void main(void){
     int salto;
-    msgLcd(0);
-    mapearProcesso();
+    mapearProcesso(processos);
     processoAtual = 0;
     processosCarregados = 10;
 
     while(processoAtual<processosCarregados){  
-        output(19);
         msgLcd(12);
         output(processoAtual);
         output(processos[processoAtual]);
         salto = processos[processoAtual];
-        msgLcd(processoAtual+1); 
+        msgLcd(processoAtual+1);
         saltoUser();
         processoAtual = processoAtual + 1;
+        salto = 0;
     }
     halt();
 }

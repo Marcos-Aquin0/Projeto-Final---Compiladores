@@ -615,6 +615,8 @@ void generateAssembly(FILE* inputFile) {
             
             // Se a próxima op for um salto condicional, otimiza para um único jump
             if (nextOpType == OP_JUMPFALSE || nextOpType == OP_JUMPTRUE) {
+                fprintf(output, "%d - addil $r43 $r44 %s\n", lineIndex++, nextQuad.result);
+                    
                 switch (opType) {
                     case OP_EQ:
                         if (nextOpType == OP_JUMPFALSE) {
@@ -872,9 +874,6 @@ void generateAssembly(FILE* inputFile) {
                 
                 // Restaura o frame usando nossa nova função
                 restoreFrame(output, &lineIndex, &stackOffset);
-                fprintf(output, "%d - out $r2         # retorna\n", lineIndex++);
-                fprintf(output, "%d - move $r0 $r0\n", lineIndex++);
-                fprintf(output, "%d - out $r31         # retorna\n", lineIndex++);
                 fprintf(output, "%d - jr $r31         # retorna\n", lineIndex++);
                 checkNextQuadruple(inputFile, &filePos, &nextQuad);
                 if(strcmp(nextQuad.op,"JUMP")== 0){
@@ -888,9 +887,7 @@ void generateAssembly(FILE* inputFile) {
                     int isVoidFunction = (funcSymbol && strcmp(funcSymbol->dataType, "void") == 0);
                     if (isVoidFunction) {
                         restoreFrame(output, &lineIndex, &stackOffset);
-                        fprintf(output, "%d - out $r2         # retorna\n", lineIndex++);
                         fprintf(output, "%d - move $r0 $r0\n", lineIndex++);
-                        fprintf(output, "%d - out $r31         # retorna\n", lineIndex++);
                         fprintf(output, "%d - jr $r31         # retorna (void function end)\n", lineIndex++);
                     }
                 }
@@ -1002,6 +999,8 @@ void generateAssembly(FILE* inputFile) {
                 } else if (strcmp(quad.arg1, "saltoUser") == 0){
                     fprintf(output, "%d - move $r42 $r1 # salva a posição de memoria\n", lineIndex++); //r referente ao destino do salto  
                     fprintf(output, "%d - li $r1 12000 # carrega o destino do salto\n", lineIndex++); //r referente ao salto
+                    fprintf(output, "%d - addil $r43 $r44 0\n", lineIndex++); //r referente ao salto
+                    fprintf(output, "%d - li $r58 %d \n", lineIndex++, (lineIndex++)-labelCount+3); //r referente ao salto
                     fprintf(output, "%d - saltoUser $r%d # usar o dado1 para o salto_rom\n", 
                             lineIndex++, 44); //r referente ao salto
                     fprintf(output, "%d - move $r1 $r42 # salva a posição de memoria\n", lineIndex++); //r referente ao destino do salto  
@@ -1141,7 +1140,7 @@ void generateAssembly(FILE* inputFile) {
                     stackOffset -= (size); //size já é o tamanho em bytes
                     
                     char loopLabel[32], endLoopLabel[32];
-                    fprintf(output, "%d - subi $r1 $r1 %d  # próximo elemento\n", lineIndex++, size/4-1);
+                    fprintf(output, "%d - subi $r1 $r1 %d  # próximo elemento\n", lineIndex++, size/4);
                     // fprintf(output, "%d - out $r1\n", lineIndex++);
                 } else {
                     if (strcmp(quad.result, "processosCarregados")!=0 && strcmp(quad.result, "processoAtual")!=0 && strcmp(quad.result, "salto")!=0){

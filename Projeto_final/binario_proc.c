@@ -112,7 +112,7 @@ InstructionInfo instructionTable[] = {
     {"halt", TYPE_MK, 21, 0},   // 010101 desligar SO
     {"msgLcd",        TYPE_MK, 26, 0}, // opcode 011010
     {"saltoUser",  TYPE_MK, 27, 0}, // opcode 011011
-    {"syscall",        TYPE_MU, 28, 0}, // opcode 011100
+    {"syscall",        TYPE_MU, 28, 9}, // opcode 011100
     {"addil", TYPE_I, 25, 0}, // opcode 011001
     {"", TYPE_INVALID, 0, 0}
 };
