@@ -1,0 +1,16 @@
+void contadorFinito(int limite) {
+    int i; 
+    i = 0;
+
+    while (i < limite) {
+    
+        output(i);    
+        i = i + 1;
+    }
+}
+
+
+void main(void) {
+    contadorFinito(10);
+}
+
