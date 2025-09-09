@@ -1,0 +1,100 @@
+
+int processos[ 10 ]; //deslocamento
+int processoAtual; 
+int processosCarregados; 
+int qtdProcessosRodados; //ou marcar com um se já rodou
+int programas[ 10 ]; //nome do programa, utiliza programa[x] para msgLcd
+programas[0] = 0;
+programas[1] = 1;
+programas[2] = 2; ... //talvez ao contrario. quero executar o programa 99 programa[99] = 1;
+//precisa saber se o nome ja esta em uso, se for 0 nao esta em uso, ir de 1 a 99 apenas
+
+int halts [ 10 ];
+halt[0] = 0;
+halt[1] = 0;
+halt[2] = 0;
+halt[3] = 0; //atualiza qtdProcessosRodados, se igual a processosCarregados, acaba 
+//ver como estao os registradores
+
+void mapearProcesso(int proc[]){
+    int i;
+    int desvio;
+    desvio = 1001;
+    while(i<10){
+        proc[i] = desvio;
+        desvio = desvio + 200;
+        i = i+1;    
+    }
+}
+
+void dispatcher(){
+
+}
+
+void display(int r0){
+    output(r0); -> recebe do programa 13
+    input(r3); -> envia para o programa 11
+    retorna para o usuário da onde havia parado 
+    e precisa salvar a posicao dessa funcao
+    salto + pc + 1 do programa
+}
+
+int menu_shell(){
+    
+    msgLcd(menu);
+    //rodar sem preempcao e escolher quais
+    //rodar com preempcao e escolher quais
+    //renomear um programa
+    //deletar um programa (remover a referencia)
+    //criar um programa usando os switches (pensar em um exemplo pequeno e inserir de 6 em 6 bits - shamt em um registrador)
+    //desligar SO msgLcd 14
+
+    return opcao;
+}
+
+void main(void){
+    int salto;
+    int opcao;
+    mapearProcesso(processos);
+    processoAtual = 0;
+    processosCarregados = 10;
+    opcao = menu_shell();
+    while(opcao !=5){
+        if(opcao == 1){
+            //define quais processos e qtd
+            while(processoAtual<processosCarregados){  
+                salto = processos[processoAtual];
+                msgLcd(processoAtual+1);
+                saltoUser();
+                msgLcd(12);
+                processoAtual = processoAtual + 1;
+                salto = 0;
+            }
+            //fim ... mostra o menu novamente
+        }
+        else if (opcao == 2){
+            define quantum e interrupção
+        }
+        else if (opcao == 3){
+            manipula vetor com nome dos programas
+        }
+        else if (opcao == 4){
+            remove a referencia de um programa do vetor de programas possiveis
+            programas[] tem o numero do programa, inicia com o padrao
+        }
+        else if (opcao == 5){
+            cria programa
+        }
+        else{
+            halt();
+        }
+    opcao = menu_shell();
+    }
+
+}
+
+
+//verificar se termina no halt depois do 10 programa
+//fpga fisico
+//registradores//requisicao in e out, r0 e r3
+//atualizar miro
