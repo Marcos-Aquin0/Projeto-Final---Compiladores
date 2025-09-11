@@ -14,21 +14,53 @@ void mapearProcesso(int proc[]){
     }
 }
 
+int menuShell(){
+    int opcao;
+    msgLcd(16);
+    opcao = input();
+    return opcao;
+}
+
 void main(void){
     int salto;
+    int opcao;
+    int i;
     mapearProcesso(processos);
     processoAtual = 0;
     processosCarregados = 10;
 
-    while(processoAtual<processosCarregados){  
-        msgLcd(12);
-        output(processoAtual);
-        output(processos[processoAtual]);
-        salto = processos[processoAtual];
-        msgLcd(processoAtual+1);
-        saltoUser();
-        processoAtual = processoAtual + 1;
-        salto = 0;
+    opcao = menuShell();
+    output(opcao);
+    while(opcao != 6){
+        if(opcao == 1){
+            msgLcd(17);
+            processoAtual = input();
+            processoAtual = processoAtual - 1;
+            if(processoAtual > 10){
+                msgLcd(18);
+                output(404);
+            }
+            else{
+                msgLcd(12);
+                salto = processos[processoAtual];
+                msgLcd(processoAtual+1);
+                saltoUser();
+                msgLcd(12);
+                salto = 0;
+            }
+            nop();
+        }
+        else{
+            nop();
+        }
+        nop();
+        opcao = menuShell();
+        output(opcao);
     }
+    nop();
+    msgLcd(30);
+    nop();
+    nop();
+    nop();
     halt();
 }

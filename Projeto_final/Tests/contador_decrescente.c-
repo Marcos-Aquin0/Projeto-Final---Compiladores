@@ -1,17 +1,17 @@
 void contadorFinito(int limite) {
     int i; 
-    i = 0;
+    i = 10;
 
-    while (i < limite) {
+    while (i > limite) {
     
         output(i);    
-        i = i + 1;
+        i = i - 1;
     }
 }
 
 
 void main(void) {
-    contadorFinito(10);
-    output(10);
+    contadorFinito(1);
+    output(1);
 }
 

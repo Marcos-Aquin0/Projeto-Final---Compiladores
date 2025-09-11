@@ -93,8 +93,4 @@ void main(void){
 
 }
 
-
-//verificar se termina no halt depois do 10 programa
-//fpga fisico
-//registradores//requisicao in e out, r0 e r3
-//atualizar miro
+//requisicao in e out, r0 e r3

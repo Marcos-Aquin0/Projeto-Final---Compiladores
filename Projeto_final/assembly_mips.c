@@ -996,6 +996,8 @@ void generateAssembly(FILE* inputFile) {
                             lineIndex++, 46); // talvez mudar para pegar do regs
                 } else if (strcmp(quad.arg1, "halt") == 0){
                     fprintf(output, "%d - halt # termina a execução\n", lineIndex++);
+                } else if (strcmp(quad.arg1, "nop") == 0){
+                    fprintf(output, "%d - nop 0\n", lineIndex++);
                 } else if (strcmp(quad.arg1, "saltoUser") == 0){
                     fprintf(output, "%d - move $r42 $r1 # salva a posição de memoria\n", lineIndex++); //r referente ao destino do salto  
                     fprintf(output, "%d - li $r1 12000 # carrega o destino do salto\n", lineIndex++); //r referente ao salto
