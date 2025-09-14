@@ -941,9 +941,11 @@ void generateAssembly(FILE* inputFile) {
                     //precisa ver a variavel global varglobalcount $gp 62
                     
                     else{
+                        BucketList symbol = st_lookup_in_scope(quad.arg1, "global"); // Procura a variável na tabela de símbolos
+  
                         if (destReg != r1) {
-                            if((r1 > 31 && r1 < 43)){
-                                fprintf(output, "%d - lw $r%d 0($r%d) # argument %d (%s)\n", 
+                            if((r1 > 31 && r1 < 43) && (symbol != NULL && symbol->isArray != 1)){
+                                fprintf(output, "%d - lw $r%d 0($r%d) # argument %d - (%s)\n", 
                                         lineIndex++, destReg, r1, argumentNum, quad.arg1);
                             }
                             else{
