@@ -1048,11 +1048,13 @@ void generateAssembly(FILE* inputFile) {
 
                     if(varLocalCount > 0){
                      //recarregar variaveis locais 
-                     fprintf(output, "%d - move $r62 $r2 # sp = fp\n", lineIndex++);
+                    //  fprintf(output, "%d - move $r62 $r2 # sp = fp\n", lineIndex++);
                      // Carrega os parâmetros da pilha para os registradores correspondentes
                         for (int i = 0; i < varLocalCount; i++) {
-                            fprintf(output, "%d - subi $r62 $r62 1 # desce na pilha\n", lineIndex++);
-                            fprintf(output, "%d - move $r%d $r62 # recarrega variavel local\n", lineIndex++, localVars[i]);
+                            // fprintf(output, "%d - subi $r62 $r62 1 # desce na pilha\n", lineIndex++);
+                            // fprintf(output, "%d - move $r%d $r62 # recarrega variavel local\n", lineIndex++, localVars[i]);
+                            fprintf(output, "%d - lw $r%d -%d($r2)  # recarrega variavel local\n", lineIndex++, localVars[i], i+1);
+                        
                         }
                     }
                     
@@ -1088,7 +1090,7 @@ void generateAssembly(FILE* inputFile) {
                 tempLocalRegs[rbase-4].isUsed = 1;
                 // fprintf(output, "%d - addi $r%d $r%d 1 # índice + 1\n", lineIndex++, rindice, rindice);
                 // fprintf(output, "%d - mul $r%d $r%d $r62      # índice * 4 (tamanho do inteiro)\n", lineIndex++, rindice, rindice);
-                fprintf(output, "%d - sub $r%d $r%d $r%d    # endereço base + deslocamento\n", lineIndex++, rbase, rvet, rindice);
+                fprintf(output, "%d - sub $r%d $r%d $r%d    # endereço base - deslocamento\n", lineIndex++, rbase, rvet, rindice);
                 fprintf(output, "%d - lw $r%d 0($r%d)      # carrega %s[%s] em %s\n", lineIndex++, r3, rbase, quad.arg1, quad.arg2, quad.result);
                 reiniciarRg(rbase);
 
@@ -1113,7 +1115,7 @@ void generateAssembly(FILE* inputFile) {
                 tempLocalRegs[rbase-4].isUsed = 1;
                 // fprintf(output, "%d - addi $r%d $r%d 1 # índice + 1\n", lineIndex++, rindice, rindice);
                 // fprintf(output, "%d - mul $r%d $r%d $r62      # índice * 4 (tamanho do inteiro)\n", lineIndex++, rindice, rindice);
-                fprintf(output, "%d - sub $r%d $r%d $r%d    # endereço base + deslocamento\n", lineIndex++, rbase, rvet, rindice);
+                fprintf(output, "%d - sub $r%d $r%d $r%d    # endereço base - deslocamento\n", lineIndex++, rbase, rvet, rindice);
                 // fprintf(output, "%d - out $r%d\n", lineIndex++, rbase); // Exibe o endereço base do array
                 fprintf(output, "%d - sw $r%d 0($r%d)      # armazena %s em %s[%s]\n", lineIndex++, r1, rbase, quad.arg1, quad.result, quad.arg2);
                 reiniciarRg(rbase);

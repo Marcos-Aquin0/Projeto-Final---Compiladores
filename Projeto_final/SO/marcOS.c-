@@ -3,6 +3,14 @@ int processos[ 10 ];
 int processoAtual; 
 int processosCarregados; 
 int programas [ 10 ];
+int halts [ 10 ];
+int qtdProcessosRodados;
+int processosExecucao [ 10 ];
+int aux;
+int podeRodar;
+int opcao;
+int teste;
+int salto;
 
 void mapearProcesso(int proc[]){
     int i;
@@ -27,73 +35,159 @@ void mapearProgramas(int prog[]){
     nop();
 }
 
-int menuShell(){
-    int opcao;
-    msgLcd(16);
-    opcao = input();
-    return opcao;
+void iniciarHalts(int halts[]){
+    int i;
+    i = 0;
+    while(i<10){
+        halts[i] = 0;
+        i = i+1;    
+    }
+    i = 0;
+    nop();
 }
 
-void main(void){
-    int salto;
-    int opcao;
+int menuShell(){
+    int opcaoaux;
+    msgLcd(16);
+    opcaoaux = input();
+    return opcaoaux;
+}
+
+void naoPreemptivo(){
     int i;
-    int teste;
-    int podeRodar;
 
-    mapearProcesso(processos);
-    mapearProgramas(programas);
-    processoAtual = 0;
-    processosCarregados = 10;
-
-    opcao = menuShell();
+    podeRodar = 0;
+    msgLcd(17);
+    processoAtual = input();
+    processoAtual = processoAtual - 1;
+    i = 0;
+    podeRodar = 0;
     nop();
-    while(opcao != 6){
-        if(opcao == 1){
-            msgLcd(17);
-            processoAtual = input();
-            processoAtual = processoAtual - 1;
-            i = 0;
-            podeRodar = 0;
-            nop();
-            nop();
-            while(i<10){
-                teste = programas[i];
-                if(processoAtual == teste){
-                    podeRodar = 1;
-                    processoAtual = i;
-                }
-                else{
-                    nop();
-                }
-                i = i + 1;
-                nop();
-            }
-            nop();
-            if(podeRodar == 0){
-                nop();
-                msgLcd(18);
-                nop();
-                nop();
-                nop();
-            }
-            else{
-                nop();
-                msgLcd(12);
-                salto = processos[processoAtual];
-                msgLcd(processoAtual+1);
-                saltoUser();
-                msgLcd(12);
-                salto = 0;
-                nop();
-            }
-            nop();
+    nop();
+    while(i<10){
+        teste = programas[i];
+        if(processoAtual == teste){
+            podeRodar = 1;
+            processoAtual = i;
         }
         else{
             nop();
         }
+        i = i + 1;
         nop();
+    }
+    nop();
+    if(podeRodar == 0){
+        nop();
+        msgLcd(18);
+        nop();
+        nop();
+        nop();
+    }
+    else{
+        nop();
+        msgLcd(12);
+        salto = processos[processoAtual];
+        msgLcd(processoAtual+1);
+        saltoUser();
+        msgLcd(12);
+        nop();
+        salto = 0;
+        nop();
+    }
+    nop();
+}
+
+void Preemptivo(){
+    int i;
+    int aux;
+    int salto;
+    int qtdprocessosc;
+    nop();
+    msgLcd(19);
+    nop();
+    nop();
+    qtdprocessosc = input();
+    nop();
+    processosCarregados = qtdprocessosc;
+    nop();
+    msgLcd(20);
+    nop();
+    i = 0;
+    nop();
+    nop();
+    nop();
+    while(i<qtdprocessosc-1){
+        nop();
+        nop();
+        aux = input();
+        nop();
+        processosExecucao[i] = aux-1;
+        nop();
+        i = i + 1;
+        nop();
+        nop();
+    }
+    nop();
+    processoAtual = processosExecucao[0];
+    nop();
+    msgLcd(12);
+    salto = processos[processoAtual];
+    msgLcd(processoAtual+1);
+    nop();
+    saltoUser();
+    nop();
+    msgLcd(12);
+    nop();
+    salto = 0;
+    nop();
+}
+
+void main(void){
+    salto = 0;
+    mapearProcesso(processos);
+    mapearProgramas(programas);
+    iniciarHalts(halts);
+
+    opcao = menuShell();
+    nop();
+    while(opcao != 6){
+        salto = 0;
+        nop();
+        if(opcao == 1){
+            naoPreemptivo();
+            salto = 0;
+            nop();
+        }
+        else {
+            nop();
+            if(opcao == 2){
+                Preemptivo();
+                salto = 0;
+                nop();
+            }
+            else{
+                nop();
+                if(opcao == 6){
+                msgLcd(30);
+                nop();
+                nop();
+                nop();
+                halt();
+                }
+                else{
+                    nop();
+                }
+            }
+            nop();
+        }
+        nop();
+        nop();
+        nop();
+        salto = 0;
         opcao = menuShell();
+        nop();
+        nop();
         nop();
     }
     nop();
