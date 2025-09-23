@@ -95,6 +95,12 @@ int getRegisterIndex(char* name) {
     if(strcmp(name, "salto")==0){
         return 44;
     }
+    if(strcmp(name, "memdados")==0){
+        return 62;
+    }
+    if(strcmp(name, "opcao")==0){
+        return 41;
+    }
     
     // Verifica se é um valor constante
     if (isdigit(name[0]) || (name[0] == '-' && isdigit(name[1]))) {
@@ -735,23 +741,23 @@ void generateAssembly(FILE* inputFile) {
         switch (opType) {
             case OP_ASSIGN:
                 // Verifica se é uma movimentação redundante (mesmo registrador fonte e destino)
-                if (r3 == 44 || r3 == 59 || r3 == 60) {
+                if (r3 == 44 || r3 == 59 || r3 == 60 || r3 == 58 || r3 == 62 || r3 == 41 || r3 == 42 || r3 == 43) {
                     // Força o uso de 'move' para atribuir valor diretamente a esses registradores
                     fprintf(output, "%d - move $r%d $r%d # movendo %s para registrador especial %s\n", lineIndex++, r3, r1, quad.arg1, quad.result);
                 } 
-                else if (r1 == 44 || r1 == 59 || r1 == 60) {
+                else if (r1 == 44 || r1 == 59 || r1 == 60 || r1 == 58 || r1 == 62 || r1 == 41 || r1 == 42 || r1 == 43) {
                     // Força o uso de 'move' para atribuir valor diretamente a esses registradores
                     fprintf(output, "%d - move $r%d $r%d # movendo %s para registrador especial %s\n", lineIndex++, r3, r1, quad.arg1, quad.result);
                 } 
                 else if (r1 != r3) {
-                    if (((r1 > 3 && r1 < 31) || (r1 > 31 && r1 < 45)||(r1 >= 59 && r1 <= 60)) && (quad.result[0] == 't' && isdigit(quad.result[1]))){
+                    if (((r1 > 3 && r1 < 31) || (r1 > 31 && r1 < 41)||(r1 >= 58 && r1 <= 62)) && (quad.result[0] == 't' && isdigit(quad.result[1]))){
                         fprintf(output, "%d - lw $r%d 0($r%d) # movendo %s para %s\n", lineIndex++, r3, r1, quad.arg1, quad.result); 
                         checkNextQuadruple(inputFile, &filePos, &nextQuad);
                         if(strcmp(nextQuad.op,"RETURN")== 0){
                             proximoReturn = 1;
                         }
                     }
-                    else if (((r3 > 3 && r3 < 31) || (r3 > 31 && r3 < 45) ||(r3 >= 59 && r3 <= 60)) && (quad.arg1[0] == 't' && isdigit(quad.arg1[1]))) {
+                    else if (((r3 > 3 && r3 < 31) || (r3 > 31 && r3 < 41) ||(r3 >= 59 && r3 <= 62)) && (quad.arg1[0] == 't' && isdigit(quad.arg1[1]))) {
                         fprintf(output, "%d - sw $r%d 0($r%d) # movendo %s para %s\n", lineIndex++, r1, r3, quad.arg1, quad.result);
                     }
                     else {
@@ -806,7 +812,7 @@ void generateAssembly(FILE* inputFile) {
                 checkNextQuadruple(inputFile, &filePos, &nextQuad);
                    
                     fprintf(output, "%d - %s: #Nova Label %s\n", lineIndex++, quad.result, quad.result);
-                    reiniciarRg(r1comp);
+                    // reiniciarRg(r1comp);
                     if(r2comp != 63){
                         reiniciarRg(r2comp);
                     }
@@ -944,7 +950,7 @@ void generateAssembly(FILE* inputFile) {
                         BucketList symbol = st_lookup_in_scope(quad.arg1, "global"); // Procura a variável na tabela de símbolos
   
                         if (destReg != r1) {
-                            if((r1 > 31 && r1 < 43) && (symbol != NULL && symbol->isArray != 1)){
+                            if((r1 > 31 && r1 < 40) && (symbol != NULL && symbol->isArray != 1)){
                                 fprintf(output, "%d - lw $r%d 0($r%d) # argument %d - (%s)\n", 
                                         lineIndex++, destReg, r1, argumentNum, quad.arg1);
                             }
@@ -1002,9 +1008,9 @@ void generateAssembly(FILE* inputFile) {
                     fprintf(output, "%d - nop 0\n", lineIndex++);
                 } else if (strcmp(quad.arg1, "saltoUser") == 0){
                     fprintf(output, "%d - move $r42 $r1 # salva a posição de memoria\n", lineIndex++); //r referente ao destino do salto  
-                    fprintf(output, "%d - li $r1 12000 # carrega o destino do salto\n", lineIndex++); //r referente ao salto
+                    fprintf(output, "%d - move $r1 $r62 # carrega o destino do salto\n", lineIndex++); //r referente ao salto
                     fprintf(output, "%d - addil $r43 $r44 0\n", lineIndex++); //r referente ao salto
-                    fprintf(output, "%d - li $r58 %d \n", lineIndex++, (lineIndex++)-labelCount+3); //r referente ao salto
+                    fprintf(output, "%d - li $r58 %d \n", lineIndex++, (lineIndex)-labelCount+2); //r referente ao salto
                     fprintf(output, "%d - saltoUser $r%d # usar o dado1 para o salto_rom\n", 
                             lineIndex++, 44); //r referente ao salto
                     fprintf(output, "%d - move $r1 $r42 # salva a posição de memoria\n", lineIndex++); //r referente ao destino do salto  
@@ -1149,7 +1155,7 @@ void generateAssembly(FILE* inputFile) {
                     fprintf(output, "%d - subi $r1 $r1 %d  # próximo elemento\n", lineIndex++, size/4);
                     // fprintf(output, "%d - out $r1\n", lineIndex++);
                 } else {
-                    if (strcmp(quad.result, "processosCarregados")!=0 && strcmp(quad.result, "processoAtual")!=0 && strcmp(quad.result, "salto")!=0){
+                    if (strcmp(quad.result, "processosCarregados")!=0 && strcmp(quad.result, "processoAtual")!=0 && strcmp(quad.result, "salto")!=0  && strcmp(quad.result, "memdados")!=0  && strcmp(quad.result, "opcao")!=0){
 
                         // É uma variável simples, apenas reserva espaço na pilha
                         fprintf(output, "%d - subi $r1 $r1 1 # aloca espaço para variável '%s'\n", lineIndex++, quad.result);

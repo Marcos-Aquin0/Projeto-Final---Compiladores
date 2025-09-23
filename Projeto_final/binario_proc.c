@@ -9,6 +9,7 @@ void addLabelMapping(const char* label, int index) {
     if (labelCount < MAX_LABELS && label[0] != '\0') {
         mappingLabel[labelCount].label = strdup(label);
         mappingLabel[labelCount].index = index-labelCount;
+        printf("Mapeamento: %s -> %d %d %d\n", mappingLabel[labelCount].label, index, index-labelCount, labelCount);
         labelCount++;
     }
 }
@@ -409,12 +410,7 @@ int read_assembly_file(FILE* input_file) {
         }
     }
     
-    // Exibir os mapeamentos encontrados
-    printf("Mapeamentos de rótulos encontrados:\n");
-    for (int i = 0; i < labelCount; i++) {
-        printf("%s -> %d\n", mappingLabel[i].label, mappingLabel[i].index);
-    }
-    
+
     // Voltar ao início do arquivo para a segunda passagem
     rewind(input_file);
     int index_atual = 0;

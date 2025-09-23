@@ -1,24 +1,23 @@
 
-int processos[ 10 ]; //deslocamento
+int processos[ 10 ]; 
 int processoAtual; 
 int processosCarregados; 
-int qtdProcessosRodados; //ou marcar com um se já rodou
-int programas[ 10 ]; //nome do programa, utiliza programa[x] para msgLcd
-programas[0] = 0;
-programas[1] = 1;
-programas[2] = 2; ... //talvez ao contrario. quero executar o programa 99 programa[99] = 1;
-//precisa saber se o nome ja esta em uso, se for 0 nao esta em uso, ir de 1 a 99 apenas
-
+int programas [ 10 ];
 int halts [ 10 ];
-halt[0] = 0;
-halt[1] = 0;
-halt[2] = 0;
-halt[3] = 0; //atualiza qtdProcessosRodados, se igual a processosCarregados, acaba 
-//ver como estao os registradores
+int qtdProcessosRodados;
+int processosExecucao [ 10 ];
+int podeRodar;
+int opcao;
+int teste;
+int salto;
+int memdados;
+int desviodados;
+int dados [ 10 ];
 
 void mapearProcesso(int proc[]){
     int i;
     int desvio;
+    i = 0;
     desvio = 1001;
     while(i<10){
         proc[i] = desvio;
@@ -27,70 +26,262 @@ void mapearProcesso(int proc[]){
     }
 }
 
-void dispatcher(){
-
+void mapearProgramas(int prog[]){
+    int i;
+    i = 0;
+    while(i<10){
+        prog[i] = i;
+        i = i+1;    
+    }
+    i = 0;
+    nop();
 }
 
-void display(int r0){
-    output(r0); -> recebe do programa 13
-    input(r3); -> envia para o programa 11
-    retorna para o usuário da onde havia parado 
-    e precisa salvar a posicao dessa funcao
-    salto + pc + 1 do programa
+void iniciarHalts(int halts[]){
+    int i;
+    i = 0;
+    while(i<10){
+        halts[i] = 0;
+        i = i+1;    
+    }
+    i = 0;
+    nop();
 }
 
-int menu_shell(){
-    
-    msgLcd(menu);
-    //rodar sem preempcao e escolher quais
-    //rodar com preempcao e escolher quais
-    //renomear um programa
-    //deletar um programa (remover a referencia)
-    //criar um programa usando os switches (pensar em um exemplo pequeno e inserir de 6 em 6 bits - shamt em um registrador)
-    //desligar SO msgLcd 14
-
-    return opcao;
+void mapearDados(int prod[]){
+    int idados;
+    idados = 0;
+    desviodados = 12000; 
+    while(idados <= 9){
+        prod[idados] = desviodados;
+        desviodados = desviodados - 500;
+        idados = idados+1;    
+    }
 }
 
-void main(void){
-    int salto;
-    int opcao;
-    mapearProcesso(processos);
-    processoAtual = 0;
-    processosCarregados = 10;
-    opcao = menu_shell();
-    while(opcao !=5){
-        if(opcao == 1){
-            //define quais processos e qtd
-            while(processoAtual<processosCarregados){  
-                salto = processos[processoAtual];
-                msgLcd(processoAtual+1);
-                saltoUser();
-                msgLcd(12);
-                processoAtual = processoAtual + 1;
-                salto = 0;
-            }
-            //fim ... mostra o menu novamente
-        }
-        else if (opcao == 2){
-            define quantum e interrupção
-        }
-        else if (opcao == 3){
-            manipula vetor com nome dos programas
-        }
-        else if (opcao == 4){
-            remove a referencia de um programa do vetor de programas possiveis
-            programas[] tem o numero do programa, inicia com o padrao
-        }
-        else if (opcao == 5){
-            cria programa
+int menuShell(){
+    int opcaoaux;
+    msgLcd(16);
+    opcaoaux = input();
+    return opcaoaux;
+}
+
+void naoPreemptivo(){
+    int i;
+    podeRodar = 0;
+    msgLcd(17);
+    processoAtual = input();
+    processoAtual = processoAtual - 1;
+    i = 0;
+    podeRodar = 0;
+    nop();
+    nop();
+    while(i<10){
+        teste = programas[i];
+        if(processoAtual == teste){
+            podeRodar = 1;
+            processoAtual = i;
         }
         else{
-            halt();
+            nop();
         }
-    opcao = menu_shell();
+        i = i + 1;
+        nop();
+    }
+    nop();
+    if(podeRodar == 0){
+        nop();
+        msgLcd(18);
+        nop();
+        nop();
+        nop();
+    }
+    else{
+        nop();
+        msgLcd(12);
+        salto = processos[processoAtual];
+        memdados = dados[processoAtual];
+        msgLcd(processoAtual+1);
+        saltoUser();
+        msgLcd(12);
+        nop();
+        salto = 0;
+        nop();
+    }
+    nop();
+}
+
+int roundrobin(int help){
+    int i;
+    i = 0;
+    output(14);
+    nop();
+    while(i<help){
+        nop();
+        output(15);
+        processoAtual = processosExecucao[i];
+        nop();
+        msgLcd(12);
+        salto = processos[processoAtual];
+        memdados = dados[processoAtual];
+        msgLcd(processoAtual+1);
+        nop();
+        saltoUser();
+        salto = 0;
+        msgLcd(12);
+        nop();
+        nop();
+        halts[processoAtual] = 1;
+        qtdProcessosRodados = qtdProcessosRodados + 1;
+        nop();
+        i = i + 1;
+        output(16);
+        nop();
+    }
+    nop();
+    
+    if(qtdProcessosRodados == help){
+        return 0;
+    }
+    else{
+        return 1;
     }
 
 }
 
+void Preemptivo(){
+    int i;
+    int aux;
+    int escalonar;
+    int help;
+    escalonar = 1;
+    nop();
+    msgLcd(19);
+    nop();
+    nop();
+    processosCarregados = input();
+    nop();
+    nop();
+    msgLcd(20);
+    nop();
+    i = 0;
+    nop();
+    nop();
+    nop();
+    help = processosCarregados;
+    output(help);
+    nop();
+    output(i);
+    while(i<help){
+        nop();
+        nop();
+        aux = input();
+        nop();
+        processosExecucao[i] = aux-1;
+        nop();
+        i = i + 1;
+        nop();
+        nop();
+    }
+    nop();
+    qtdProcessosRodados = 0;
+    nop();
+    output(11);
+    nop();
+    while(escalonar == 1){
+        output(12);
+        escalonar = roundrobin(help);
+        output(13);
+        nop();
+    }
+    nop();
+}
+
+void main(void){
+    salto = 0;
+    mapearProcesso(processos);
+    mapearProgramas(programas);
+    iniciarHalts(halts);
+    mapearDados(dados);
+    nop();
+    opcao = menuShell();
+    nop();
+    while(opcao != 6){
+        salto = 0;
+        nop();
+        if(opcao == 1){
+            naoPreemptivo();
+            salto = 0;
+            nop();
+        }
+        else {
+            nop();
+            if(opcao == 2){
+                Preemptivo();
+                salto = 0;
+                nop();
+            }
+            else{
+                nop();
+                if(opcao == 6){
+                msgLcd(30);
+                nop();
+                nop();
+                nop();
+                halt();
+                }
+                else{
+                    nop();
+                }
+            }
+            nop();
+        }
+        nop();
+        nop();
+        nop();
+        salto = 0;
+        opcao = menuShell();
+        nop();
+        nop();
+        nop();
+    }
+    nop();
+    msgLcd(30);
+    nop();
+    nop();
+    nop();
+    halt();
+}
+
+
+
+
+
+
+
+
+
+
 //requisicao in e out, r0 e r3
+
+
+//fazer separação da porção de memória igual a instrução
+//carregar de um pedço especifico todos os registradores ou salvar
+
+(67 de controle) tamanho e qtd executado + registradores
+uma posicao para salvar o pc
+mudar os codigos para o lw e poder usar o r62
+verificacao do quantum
+quantum == 15?
+quantum recebe 0
+assume mem_rom com as instrucoes, com o jump para o dispatcher
+salva o pc atual, o total e o tamanho
+salva os 64 registradores
+le os registradores do so e faz o syscall 58
+processo acabou? tamanho == qtd
+marca halt
+se nao, ve o halt do proximo na fila
+salva os registradores do so, pega o desvio e as info do proximo processo, faz um syscall de retorno para o pc do processo
+se a instrucao é input ou output, executa primeiro, e automaticamente coloca quantum em 15
+se todos sao halts, termina, volta para o menu
+enquanto a variavel de todosHalts = 0, continua rodando a fila, if i == 3, i = 0

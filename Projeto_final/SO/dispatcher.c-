@@ -1,2 +1,1 @@
-//fazer separação da porção de memória igual a instrução
-//carregar de um pedço especifico todos os registradores ou salvar
+carregar e descarregar registradores
