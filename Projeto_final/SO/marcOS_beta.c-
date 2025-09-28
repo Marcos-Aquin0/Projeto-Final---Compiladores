@@ -264,19 +264,15 @@ void main(void){
 
 //requisicao in e out, r0 e r3
 
-
-//fazer separação da porção de memória igual a instrução
-//carregar de um pedço especifico todos os registradores ou salvar
-
 (67 de controle) tamanho e qtd executado + registradores
 uma posicao para salvar o pc
-mudar os codigos para o lw e poder usar o r62
+total já rodado e tamanho do programas
+
 verificacao do quantum
 quantum == 15?
 quantum recebe 0
 assume mem_rom com as instrucoes, com o jump para o dispatcher
-salva o pc atual, o total e o tamanho
-salva os 64 registradores
+
 le os registradores do so e faz o syscall 58
 processo acabou? tamanho == qtd
 marca halt

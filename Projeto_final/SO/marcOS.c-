@@ -52,7 +52,9 @@ void naoPreemptivo(){
     salto = processos[processoAtual];
     memdados = dados[processoAtual];
     msgLcd(processoAtual+1);
-    saltoUser();
+    
+    output(1000);
+
     msgLcd(12);
     nop();
     salto = 0;
@@ -62,6 +64,8 @@ void naoPreemptivo(){
 void Preemptivo(){
     int i;
     int aux;
+    int escalonar;
+    escalonar = 1;
     nop();
     msgLcd(19);
     nop();
@@ -80,26 +84,42 @@ void Preemptivo(){
         nop();
         aux = input();
         nop();
-        processosExecucao[i] = aux-1;
+        processosExecucao[i+1] = aux-1;
         nop();
         i = i + 1;
         nop();
         nop();
     }
     nop();
+    qtdProcessosRodados = 0;
+    nop();
     i = 0;
-    processoAtual = processosExecucao[0];
-    nop();
-    msgLcd(12);
-    salto = processos[processoAtual];
-    memdados = dados[processoAtual];
-    msgLcd(processoAtual+1);
-    nop();
-    saltoUser();
-    nop();
-    msgLcd(12);
-    nop();
-    salto = 0;
+    while(escalonar == 1){
+        nop();
+        processoAtual = processosExecucao[i+1];
+        msgLcd(12);
+        salto = processos[processoAtual];
+        memdados = dados[processoAtual];
+        msgLcd(processoAtual+1);
+        nop();
+        
+        output(1000);
+        
+        salto = 0;
+        msgLcd(12);
+        nop();
+        halts[processoAtual] = 1;
+        qtdProcessosRodados = qtdProcessosRodados + 1;
+        i = i + 1;
+        nop();
+        escalonar = 1;
+        if (i == processosCarregados){
+            escalonar = 0;
+        }
+        else{
+            nop();
+        }
+    }
     nop();
 }
 
@@ -108,7 +128,6 @@ void main(void){
     nop();
     salto = 0;
     menuShell();
-    output(opcao);
     nop();
     while(opcao != 6){
         salto = 0;
@@ -121,20 +140,13 @@ void main(void){
             Preemptivo();
             nop();
         }
-        else if(opcao == 6){
-            msgLcd(30);
-            nop();
-            nop();
-            nop();
-            halt();
-        }
+    
         else{
             nop();
         }
         nop();
         salto = 0;
         menuShell();
-        output(opcao);
     }
     nop();
     msgLcd(30);

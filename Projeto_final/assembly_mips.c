@@ -572,7 +572,8 @@ void generateAssembly(FILE* inputFile) {
     int proximoReturn = 0;
     int labelCount = 0;
 
-    // fprintf(output, "%d - nop 1\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
+    fprintf(output, "%d - move $r32 $r1 # endereço bcp\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
+    fprintf(output, "%d - subi $r1 $r1 70 # endereço bcp\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
     int ehPrimeiraFuncao = 1;
 
     // Lê as quádruplas do arquivo e gera o código assembly
