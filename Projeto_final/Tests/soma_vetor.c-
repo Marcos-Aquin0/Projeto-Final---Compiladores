@@ -22,5 +22,6 @@ void main(void) {
     vet[3] = 2;
     vet[4] = 3;
 
-    output(somavetor(5)); 
+    output(somavetor(5));
+    saltoSO(); 
 }

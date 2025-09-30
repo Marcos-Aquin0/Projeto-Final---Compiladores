@@ -1,0 +1,9 @@
+void dispatchersavenpremp(){ 
+    salvareg();
+    msgLcd(processoAtual+1);
+    saltoUser(); 
+}
+
+void main (void){
+    dispatchersavenpremp();
+}

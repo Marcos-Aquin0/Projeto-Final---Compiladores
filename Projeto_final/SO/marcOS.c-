@@ -51,11 +51,9 @@ void naoPreemptivo(){
     msgLcd(12);
     salto = processos[processoAtual];
     memdados = dados[processoAtual];
-    msgLcd(processoAtual+1);
+    dispatchersavenp(); 
+    dispatcherloadnp(); 
     
-    output(1000);
-
-    msgLcd(12);
     nop();
     salto = 0;
     nop();
@@ -104,7 +102,7 @@ void Preemptivo(){
         nop();
         
         output(1000);
-        
+
         salto = 0;
         msgLcd(12);
         nop();

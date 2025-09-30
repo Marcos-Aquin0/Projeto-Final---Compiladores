@@ -13,5 +13,6 @@ void contadorFinito(int limite) {
 void main(void) {
     contadorFinito(1);
     output(1);
+    saltoSO();
 }
 

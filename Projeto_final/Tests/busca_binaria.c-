@@ -27,5 +27,6 @@ void main(void) {
     vet[0] = 10; vet[1] = 20; vet[2] = 30; vet[3] = 40;
     vet[4] = 50; vet[5] = 60; vet[6] = 70; vet[7] = 80;
 
-    output(buscabinaria(70, 8));  
+    output(buscabinaria(70, 8)); 
+    saltoSO(); 
 }

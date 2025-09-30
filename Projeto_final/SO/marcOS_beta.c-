@@ -1,261 +1,63 @@
-
-int processos[ 10 ]; 
-int processoAtual; 
-int processosCarregados; 
-int programas [ 10 ];
-int halts [ 10 ];
-int qtdProcessosRodados;
-int processosExecucao [ 10 ];
-int podeRodar;
-int opcao;
-int teste;
-int salto;
-int memdados;
-int desviodados;
-int dados [ 10 ];
-
-void mapearProcesso(int proc[]){
-    int i;
-    int desvio;
-    i = 0;
-    desvio = 1001;
-    while(i<10){
-        proc[i] = desvio;
-        desvio = desvio + 200;
-        i = i+1;    
-    }
-}
-
-void mapearProgramas(int prog[]){
-    int i;
-    i = 0;
-    while(i<10){
-        prog[i] = i;
-        i = i+1;    
-    }
-    i = 0;
-    nop();
-}
-
-void iniciarHalts(int halts[]){
-    int i;
-    i = 0;
-    while(i<10){
-        halts[i] = 0;
-        i = i+1;    
-    }
-    i = 0;
-    nop();
-}
-
-void mapearDados(int prod[]){
-    int idados;
-    idados = 0;
-    desviodados = 12000; 
-    while(idados <= 9){
-        prod[idados] = desviodados;
-        desviodados = desviodados - 500;
-        idados = idados+1;    
-    }
-}
-
-int menuShell(){
-    int opcaoaux;
-    msgLcd(16);
-    opcaoaux = input();
-    return opcaoaux;
-}
-
-void naoPreemptivo(){
-    int i;
-    podeRodar = 0;
-    msgLcd(17);
-    processoAtual = input();
-    processoAtual = processoAtual - 1;
-    i = 0;
-    podeRodar = 0;
-    nop();
-    nop();
-    while(i<10){
-        teste = programas[i];
-        if(processoAtual == teste){
-            podeRodar = 1;
-            processoAtual = i;
-        }
-        else{
-            nop();
-        }
-        i = i + 1;
-        nop();
-    }
-    nop();
-    if(podeRodar == 0){
-        nop();
-        msgLcd(18);
-        nop();
-        nop();
-        nop();
-    }
-    else{
-        nop();
-        msgLcd(12);
-        salto = processos[processoAtual];
-        memdados = dados[processoAtual];
-        msgLcd(processoAtual+1);
-        saltoUser();
-        msgLcd(12);
-        nop();
-        salto = 0;
-        nop();
-    }
-    nop();
-}
-
-int roundrobin(int help){
-    int i;
-    i = 0;
-    output(14);
-    nop();
-    while(i<help){
-        nop();
-        output(15);
-        processoAtual = processosExecucao[i];
-        nop();
-        msgLcd(12);
-        salto = processos[processoAtual];
-        memdados = dados[processoAtual];
-        msgLcd(processoAtual+1);
-        nop();
-        saltoUser();
-        salto = 0;
-        msgLcd(12);
-        nop();
-        nop();
-        halts[processoAtual] = 1;
-        qtdProcessosRodados = qtdProcessosRodados + 1;
-        nop();
-        i = i + 1;
-        output(16);
-        nop();
-    }
-    nop();
-    
-    if(qtdProcessosRodados == help){
-        return 0;
-    }
-    else{
-        return 1;
-    }
-
-}
-
-void Preemptivo(){
+void dispatcher_save(){
+    aqui nao precisa salvar r31 e r2, vai direto, sem main
     int i;
     int aux;
-    int escalonar;
-    int help;
-    escalonar = 1;
-    nop();
-    msgLcd(19);
-    nop();
-    nop();
-    processosCarregados = input();
-    nop();
-    nop();
-    msgLcd(20);
-    nop();
-    i = 0;
-    nop();
-    nop();
-    nop();
-    help = processosCarregados;
-    output(help);
-    nop();
-    output(i);
-    while(i<help){
-        nop();
-        nop();
-        aux = input();
-        nop();
-        processosExecucao[i] = aux-1;
-        nop();
-        i = i + 1;
-        nop();
-        nop();
+    aux = 0;
+    i = 63;
+
+    se for salvar o so
+        faço li $r1 15000
+        -2 para o dispatcher
+        -64 registradores com o while
+        pc esta em r58
+        - 4 de segurança do bcp, totalizando 70
+        passo para o dispatcher load a partir do programa em r62
+            move $r1 $r62
+            -2 para o dispatcher
+            -64 registradores com o while
+            -1 carrega o pc instrução r40 e salta para ele + r44
+            move r62 carregado para r1 
+
+    se for salvar o programa
+            
+            se foi por quantum, salva quantum em r39
+            -2 para o dispatcher
+            - 64 registradores com o while
+            -1 pc = r40 + r39 
+                se quantum parou normalmente, vai somar 15
+                separou em input e output, vai somar algum valor <= 15
+            se foi por syscall, nao precisa salvar, basta seguir para o so e incrementar o halt lá
+
+            passa para o dispatcher load para carregar o so
+            -2 para o dispathcer
+            -64 para os registradores com o while
+            pula para r58 (instrucao) e carrega r1 e r2 do so
+
+
+    while(aux < 64){
+        position = position-aux; //r62
+        salvar_reg(i,position);
+        i = i - 1;
+        aux = aux + 1;
     }
-    nop();
-    qtdProcessosRodados = 0;
-    nop();
-    output(11);
-    nop();
-    while(escalonar == 1){
-        output(12);
-        escalonar = roundrobin(help);
-        output(13);
-        nop();
-    }
-    nop();
+    position = position - 1;
+    sw(position, lw(position) + quantum);
+    if syscall 58, halt = 1;
 }
 
-void main(void){
-    salto = 0;
-    mapearProcesso(processos);
-    mapearProgramas(programas);
-    iniciarHalts(halts);
-    mapearDados(dados);
-    nop();
-    opcao = menuShell();
-    nop();
-    while(opcao != 6){
-        salto = 0;
-        nop();
-        if(opcao == 1){
-            naoPreemptivo();
-            salto = 0;
-            nop();
-        }
-        else {
-            nop();
-            if(opcao == 2){
-                Preemptivo();
-                salto = 0;
-                nop();
-            }
-            else{
-                nop();
-                if(opcao == 6){
-                msgLcd(30);
-                nop();
-                nop();
-                nop();
-                halt();
-                }
-                else{
-                    nop();
-                }
-            }
-            nop();
-        }
-        nop();
-        nop();
-        nop();
-        salto = 0;
-        opcao = menuShell();
-        nop();
-        nop();
-        nop();
+void dispatcher_load(int position){
+    int i;
+    i = 63;
+    while(i >= 0){
+        position = position-(63-i);
+        carregar_reg(i,position);
     }
-    nop();
-    msgLcd(30);
-    nop();
-    nop();
-    nop();
-    halt();
+    
 }
 
-
-
-
+criar sinal do quantum para interrupcao padrao
+para interrupcao input e output
+para interrupcao halt do syscall
 
 
 
@@ -263,10 +65,6 @@ void main(void){
 
 
 //requisicao in e out, r0 e r3
-
-(67 de controle) tamanho e qtd executado + registradores
-uma posicao para salvar o pc
-total já rodado e tamanho do programas
 
 verificacao do quantum
 quantum == 15?
@@ -281,3 +79,50 @@ salva os registradores do so, pega o desvio e as info do proximo processo, faz u
 se a instrucao é input ou output, executa primeiro, e automaticamente coloca quantum em 15
 se todos sao halts, termina, volta para o menu
 enquanto a variavel de todosHalts = 0, continua rodando a fila, if i == 3, i = 0
+
+
+fprintf(output, "%d - subi $r1 $r1 2 #variaveis dispatcher\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
+    fprintf(output, "%d - move $r32 $r1 # endereço bcp\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
+    fprintf(output, "%d - subi $r1 $r1 63 # endereço bcp\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
+    fprintf(output, "%d - sw $r63 0($r1) # salva 0 na quantidade executada\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
+    fprintf(output, "%d - subi $r1 $r1 7 # bcp default offset\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1)
+    
+instrucao de quantum
+
+dispatcher_load(1); //carrega referente ao r44 (instrucao)e r62 (memoria)
+
+
+void dispatcher_load(int position){
+    int i;
+    i = 63;
+    if so or if program
+    while(i >= 0){
+        position = position-(63-i);
+        carregar_reg(i,position);
+    }
+    saltoUser();
+}
+
+
+
+
+int position;
+
+void dispatcher_save_np(){ 
+    aqucontadord nao precisa salvar r31 e r2, vacontadord direto, sem main
+    no codigo main.c ignorar a analise da funcao void main void, no mips ignora esse sw inicial
+
+    int contadord;
+    int aux_disp1;
+    int aux_disp2; 
+    contadord = 63;
+    aux_disp1 = 0;
+
+    while(aux_disp1 < 64){
+        position = position-aux_disp1; 
+        salvar_reg();
+        contadord = contadord - 1;
+        aux_disp1 = aux_disp1 + 1;
+    }
+    dispatcher_loadnp(); 
+}

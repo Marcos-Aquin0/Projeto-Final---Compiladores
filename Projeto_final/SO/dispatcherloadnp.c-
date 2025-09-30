@@ -1,0 +1,9 @@
+void dispatcherloadnpremp(){ 
+    msgLcd(12);
+    loadreg();
+    saltoSO();
+}
+
+void main (void){
+    dispatcherloadnpremp();
+}

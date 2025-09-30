@@ -26,4 +26,5 @@ void main(void) {
         output(vet[i]); 
         i = i + 1;
     }
+    saltoSO();
 }
