@@ -4,12 +4,13 @@ int processoAtual;
 int processosCarregados; 
 int programas [ 10 ];
 int halts [ 10 ];
-int qtdProcessosRodados;
+int qtdHalt;
 int processosExecucao [ 10 ];
 int salto;
 int memdados;
 int dados [ 10 ];
 int opcao;
+int sinalsyscall;
 
 void mapeamento(){
     int i;
@@ -59,11 +60,53 @@ void naoPreemptivo(){
     nop();
 }
 
+void analisesyscall(){
+    if(sinalsyscall == 1){
+        sinalsyscall = 0;
+        halts[processoAtual+1] = 1;
+        qtdHalt = qtdHalt + 1;
+    }
+    else{
+        nop();
+    }
+}
+
+void roundrobin(){
+    int i;
+    i = 0;
+    while(qtdHalt != processosCarregados){
+        processoAtual = processosExecucao[i+1];
+
+        if(halts[processoAtual+1] == 0){
+            msgLcd(12);
+            salto = processos[processoAtual];
+            memdados = dados[processoAtual];
+            msgLcd(processoAtual+1);
+            nop();
+            output(1000);
+            salto = 0;
+            msgLcd(12);
+            nop();
+            sinalsyscall = 1; //isso vai para o dispatchersys
+            analisesyscall();
+        }
+        else {
+            nop();
+        }
+        
+        i = i + 1;
+        if (i == processosCarregados){
+            i = 0;
+        }
+        else{
+            nop();
+        }
+    }
+}
+
 void Preemptivo(){
     int i;
     int aux;
-    int escalonar;
-    escalonar = 1;
     nop();
     msgLcd(19);
     nop();
@@ -89,35 +132,9 @@ void Preemptivo(){
         nop();
     }
     nop();
-    qtdProcessosRodados = 0;
+    qtdHalt = 0;
     nop();
-    i = 0;
-    while(escalonar == 1){
-        nop();
-        processoAtual = processosExecucao[i+1];
-        msgLcd(12);
-        salto = processos[processoAtual];
-        memdados = dados[processoAtual];
-        msgLcd(processoAtual+1);
-        nop();
-        
-        output(1000);
-
-        salto = 0;
-        msgLcd(12);
-        nop();
-        halts[processoAtual] = 1;
-        qtdProcessosRodados = qtdProcessosRodados + 1;
-        i = i + 1;
-        nop();
-        escalonar = 1;
-        if (i == processosCarregados){
-            escalonar = 0;
-        }
-        else{
-            nop();
-        }
-    }
+    roundrobin();
     nop();
 }
 

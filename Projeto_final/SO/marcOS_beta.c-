@@ -81,48 +81,10 @@ se todos sao halts, termina, volta para o menu
 enquanto a variavel de todosHalts = 0, continua rodando a fila, if i == 3, i = 0
 
 
-fprintf(output, "%d - subi $r1 $r1 2 #variaveis dispatcher\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
-    fprintf(output, "%d - move $r32 $r1 # endereço bcp\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
-    fprintf(output, "%d - subi $r1 $r1 63 # endereço bcp\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
-    fprintf(output, "%d - sw $r63 0($r1) # salva 0 na quantidade executada\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1
-    fprintf(output, "%d - subi $r1 $r1 7 # bcp default offset\n", lineIndex++); //nop limpa os sinais e pula para a instrução 1)
-    
 instrucao de quantum
 
 dispatcher_load(1); //carrega referente ao r44 (instrucao)e r62 (memoria)
 
-
-void dispatcher_load(int position){
-    int i;
-    i = 63;
-    if so or if program
-    while(i >= 0){
-        position = position-(63-i);
-        carregar_reg(i,position);
-    }
-    saltoUser();
-}
-
-
-
-
-int position;
-
-void dispatcher_save_np(){ 
-    aqucontadord nao precisa salvar r31 e r2, vacontadord direto, sem main
-    no codigo main.c ignorar a analise da funcao void main void, no mips ignora esse sw inicial
-
-    int contadord;
-    int aux_disp1;
-    int aux_disp2; 
-    contadord = 63;
-    aux_disp1 = 0;
-
-    while(aux_disp1 < 64){
-        position = position-aux_disp1; 
-        salvar_reg();
-        contadord = contadord - 1;
-        aux_disp1 = aux_disp1 + 1;
-    }
-    dispatcher_loadnp(); 
-}
+syscall envia um sinal paa o banco reg que seta o reg para 1
+usar os registradores do processo
+fazer o deslocamento dos pocesso para poder caber as funcoes da troca de contexto

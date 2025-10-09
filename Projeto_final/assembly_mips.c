@@ -101,22 +101,16 @@ int getRegisterIndex(char* name) {
     if(strcmp(name, "opcao")==0){
         return 41;
     }
-    if(strcmp(name, "position")==0){
-        return 1;
-    }
-    if(strcmp(name, "contadord")==0){
+    if(strcmp(name, "sinalsyscall")==0){
         return 51;
     }
-    if(strcmp(name, "aux_disp1")==0){
-        return 56;
-    }
-    if(strcmp(name, "aux_disp2")==0){
+    if(strcmp(name, "pc_processo")==0){
         return 57;
     }
     
     // Verifica se é um valor constante
     if (isdigit(name[0]) || (name[0] == '-' && isdigit(name[1]))) {
-        for (int i = 0; i < 27; i++) {
+        for (int i = 0; i < 26; i++) {
             if (tempLocalRegs[i].isUsed && strcmp(tempLocalRegs[i].varName, name) == 0) {
                 DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Constante '%s' já mapeado para a%d (r%d)\n", 
                        name, i, 4 + i);
@@ -124,7 +118,7 @@ int getRegisterIndex(char* name) {
             }
         }
         // Usa um registrador temporário para constantes
-        int tempIdx = getNextFreeReg(tempLocalRegs, 27);
+        int tempIdx = getNextFreeReg(tempLocalRegs, 26);
         sprintf(tempLocalRegs[tempIdx].varName, "%s", name);
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Constante '%s' mapeada para reg temporário t%d (r%d)\n", 
                name, tempIdx, 4 + tempIdx);
@@ -152,7 +146,7 @@ int getRegisterIndex(char* name) {
         // É um parâmetro?
         if (strcmp(symbol->idType, "param") == 0) {
             // Procurar se já mapeamos esse parâmetro
-            for (int i = 0; i < 6; i++) {
+            for (int i = 0; i < 5; i++) {
                 if (paramRegs[i].isUsed && strcmp(paramRegs[i].varName, name) == 0) {
                     DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Parâmetro '%s' já mapeado para a%d (r%d)\n", 
                            name, i, 52 + i);
@@ -161,7 +155,7 @@ int getRegisterIndex(char* name) {
             }
             
             // Novo parâmetro, mapeia para o próximo registrador livre
-            int paramIdx = getNextFreeReg(paramRegs, 6);
+            int paramIdx = getNextFreeReg(paramRegs, 5);
             sprintf(paramRegs[paramIdx].varName, "%s", name);
             DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Novo parâmetro '%s' mapeado para a%d (r%d)\n", 
                    name, paramIdx, 52 + paramIdx);
@@ -170,7 +164,7 @@ int getRegisterIndex(char* name) {
         // É uma variável local?
         else if (strcmp(symbol->idType, "var") == 0 && strcmp(symbol->scope, currentFunction) == 0) {
             // Procurar se já mapeamos essa variável
-            for (int i = 0; i < 27; i++) {
+            for (int i = 0; i < 26; i++) {
                 if (tempLocalRegs[i].isUsed && strcmp(tempLocalRegs[i].varName, name) == 0) {
                     DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Variável local '%s' já mapeada para t%d (r%d)\n", 
                            name, i, 4 + i);
@@ -179,7 +173,7 @@ int getRegisterIndex(char* name) {
             }
             
             // Nova variável local, mapeia para o próximo registrador livre
-            int tempIdx = getNextFreeReg(tempLocalRegs, 27);
+            int tempIdx = getNextFreeReg(tempLocalRegs, 26);
             sprintf(tempLocalRegs[tempIdx].varName, "%s", name);
             DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Nova variável local '%s' mapeada para t%d (r%d)\n", 
                    name, tempIdx, 4 + tempIdx);
@@ -209,7 +203,7 @@ int getRegisterIndex(char* name) {
  
     if (name[0] == 't' && isdigit(name[1])) {
         // Procurar se já mapeamos essa variável
-        for (int i = 0; i < 27; i++) {
+        for (int i = 0; i < 26; i++) {
             if (tempLocalRegs[i].isUsed && strcmp(tempLocalRegs[i].varName, name) == 0) {
                 DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Variável local '%s' já mapeada para t%d (r%d)\n", 
                        name, i, 4 + i);
@@ -218,7 +212,7 @@ int getRegisterIndex(char* name) {
         }
         
         // Nova variável local, mapeia para o próximo registrador livre
-        int tempIdx = getNextFreeReg(tempLocalRegs, 27);
+        int tempIdx = getNextFreeReg(tempLocalRegs, 26);
         sprintf(tempLocalRegs[tempIdx].varName, "%s", name);
         DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Nova variável local '%s' mapeada para t%d (r%d)\n", 
                name, tempIdx, 4 + tempIdx);
@@ -756,11 +750,11 @@ void generateAssembly(FILE* inputFile) {
         switch (opType) {
             case OP_ASSIGN:
                 // Verifica se é uma movimentação redundante (mesmo registrador fonte e destino)
-                if (r3 == 44 || r3 == 59 || r3 == 60 || r3 == 58 || r3 == 62 || r3 == 41 || r3 == 42 || r3 == 43) {
+                if (r3 == 44 || r3 == 59 || r3 == 60 || r3 == 58 || r3 == 62 || r3 == 41 || r3 == 42 || r3 == 43 || r3 == 51 || r3 == 57 || r3 == 30) {
                     // Força o uso de 'move' para atribuir valor diretamente a esses registradores
                     fprintf(output, "%d - move $r%d $r%d # movendo %s para registrador especial %s\n", lineIndex++, r3, r1, quad.arg1, quad.result);
                 } 
-                else if (r1 == 44 || r1 == 59 || r1 == 60 || r1 == 58 || r1 == 62 || r1 == 41 || r1 == 42 || r1 == 43) {
+                else if (r1 == 44 || r1 == 59 || r1 == 60 || r1 == 58 || r1 == 62 || r1 == 41 || r1 == 42 || r1 == 43 || r1 == 51 || r1 == 57 || r1 == 30) {
                     // Força o uso de 'move' para atribuir valor diretamente a esses registradores
                     fprintf(output, "%d - move $r%d $r%d # movendo %s para registrador especial %s\n", lineIndex++, r3, r1, quad.arg1, quad.result);
                 } 
@@ -1229,7 +1223,7 @@ void generateAssembly(FILE* inputFile) {
                     fprintf(output, "%d - subi $r1 $r1 %d  # próximo elemento\n", lineIndex++, size/4);
                     // fprintf(output, "%d - out $r1\n", lineIndex++);
                 } else {
-                    if (strcmp(quad.result, "processosCarregados")!=0 && strcmp(quad.result, "processoAtual")!=0 && strcmp(quad.result, "salto")!=0  && strcmp(quad.result, "memdados")!=0  && strcmp(quad.result, "opcao")!=0 && strcmp(quad.result, "position")!=0 && strcmp(quad.result, "contadord")!=0 && strcmp(quad.result, "aux_disp1")!=0 && strcmp(quad.result, "aux_disp2")!=0){
+                    if (strcmp(quad.result, "processosCarregados")!=0 && strcmp(quad.result, "processoAtual")!=0 && strcmp(quad.result, "salto")!=0  && strcmp(quad.result, "memdados")!=0  && strcmp(quad.result, "opcao")!=0 && strcmp(quad.result, "sinalsyscall")!=0 && strcmp(quad.result, "pc_processo")!=0){
 
                         // É uma variável simples, apenas reserva espaço na pilha
                         fprintf(output, "%d - subi $r1 $r1 1 # aloca espaço para variável '%s'\n", lineIndex++, quad.result);
