@@ -181,7 +181,7 @@ int getRegisterIndex(char* name) {
         }
         else if (strcmp(symbol->idType, "var") == 0 && strcmp(symbol->scope, "global") == 0){
             // se a variavel for global
-            for (int i = 0; i < 13; i++) {
+            for (int i = 0; i < 7; i++) {
                 if (tempGlobalRegs[i].isUsed && strcmp(tempGlobalRegs[i].varName, name) == 0) {
                     DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Variável global '%s' já mapeada para t%d (r%d)\n", 
                            name, i, 33 + i);
@@ -189,7 +189,7 @@ int getRegisterIndex(char* name) {
                 }
             }
             // Nova variável global, mapeia para o próximo registrador livre
-            int tempIdx = getNextFreeReg(tempGlobalRegs, 13);
+            int tempIdx = getNextFreeReg(tempGlobalRegs, 7);
             sprintf(tempGlobalRegs[tempIdx].varName, "%s", name);
             DEBUG_ASSEMBLY("DEBUG - getRegisterIndex: Nova variável local '%s' mapeada para t%d (r%d)\n", 
                    name, tempIdx, 33 + tempIdx);
@@ -577,7 +577,7 @@ void generateAssembly(FILE* inputFile) {
     int pularJump = 0;
     int proximoReturn = 0;
     int labelCount = 0;
-
+ 
     fprintf(output, "%d - move $r32 $r1 # endereço bcp\n", lineIndex++);
     fprintf(output, "%d - subi $r1 $r1 70 # endereço bcp\n", lineIndex++);
                 
@@ -1039,18 +1039,19 @@ void generateAssembly(FILE* inputFile) {
                             lineIndex++, 44); //r referente ao salto
                 
                 }  else if (strcmp(quad.arg1, "saltoSO") == 0){
+                    fprintf(output, "%d - li $r51 1\n", lineIndex++);
                     fprintf(output, "%d - syscall $r58\n", lineIndex++); 
                 }  
                 else if (strcmp(quad.arg1, "dispatchersavenp") == 0){
                     fprintf(output, "%d - move $r42 $r1 # salva a posição de memoria\n", lineIndex++); //r referente ao destino do salto  
-                    fprintf(output, "%d - li $r1 15000\n", lineIndex++); //r referente ao salto
-                    fprintf(output, "%d - li $r58 %d \n", lineIndex++, (lineIndex)-labelCount+4); //r referente ao salto
+                    fprintf(output, "%d - move $r1 $r40\n", lineIndex++); //r referente ao salto
+                    fprintf(output, "%d - li $r58 %d \n", lineIndex++, (lineIndex)-labelCount+3); //r referente ao salto
                     fprintf(output, "%d - li $r43 601\n", lineIndex++);
                     fprintf(output, "%d - j 601\n", lineIndex++);
                 }
                 else if (strcmp(quad.arg1, "dispatcherloadnp") == 0){
-                    fprintf(output, "%d - li $r1 15000 # carrega o valor salvo\n", lineIndex++); //r referente ao salto
-                    fprintf(output, "%d - li $r58 %d \n", lineIndex++, (lineIndex)-labelCount+4); //r referente ao salto
+                    fprintf(output, "%d - move $r1 $r40 # carrega o valor salvo\n", lineIndex++); //r referente ao salto
+                    fprintf(output, "%d - li $r58 %d \n", lineIndex++, (lineIndex)-labelCount+3); //r referente ao salto
                     fprintf(output, "%d - li $r43 801\n", lineIndex++);
                     fprintf(output, "%d - j 801\n", lineIndex++);
                     fprintf(output, "%d - move $r1 $r42 # carrega a posição de memoria\n", lineIndex++); //r referente ao destino do salto  
@@ -1058,7 +1059,7 @@ void generateAssembly(FILE* inputFile) {
 
                 else if (strcmp(quad.arg1, "salvareg") == 0){
                     for (int j=63; j>=0; j--){
-                        if(j!=58 && j!=42){
+                        if(j!=1 && j!=58 && j!=42 && j!=44 && j!=40 && j!= 59 && j!= 60 && j!= 58 && j!= 62 && j!= 41 && j!= 42 && j!= 43 && j!= 51 && j!= 57 && j!= 30){
                             fprintf(output, "%d - subi $r1 $r1 1 # salva o reg\n", lineIndex++); 
                             fprintf(output, "%d - sw $r%d 0($r1) # salva o reg\n", lineIndex++, j); 
                         }
@@ -1066,7 +1067,7 @@ void generateAssembly(FILE* inputFile) {
                 }
                 else if (strcmp(quad.arg1, "loadreg") == 0){
                     for (int j=63; j>=0; j--){
-                        if(j!=58 && j!=42){
+                        if(j!=1 && j!=58 && j!=42 && j!=44 && j!=40 && j!= 59 && j!= 60 && j!= 58 && j!= 62 && j!= 41 && j!= 42 && j!= 43 && j!= 51 && j!= 57 && j!= 30){
                             fprintf(output, "%d - subi $r1 $r1 1 # salva o reg\n", lineIndex++); 
                             fprintf(output, "%d - lw $r%d 0($r1) # salva o reg\n", lineIndex++, j); 
                         }

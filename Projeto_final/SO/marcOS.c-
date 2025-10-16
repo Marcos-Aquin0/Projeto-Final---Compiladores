@@ -18,7 +18,7 @@ void mapeamento(){
     int desviodados;
     
     i = 0;
-    desviodados = 7000;
+    desviodados = 11000;
     desvio = 1001;
     while(i <= 9){
         nop();
@@ -27,7 +27,7 @@ void mapeamento(){
         programas[i] = i;
         processos[i] = desvio;
         desvio = desvio + 200;
-        desviodados = desviodados - 500;
+        desviodados = desviodados - 1000;
         i = i+1;    
         nop();
     }
@@ -76,18 +76,20 @@ void roundrobin(){
     i = 0;
     while(qtdHalt != processosCarregados){
         processoAtual = processosExecucao[i+1];
-
+        nop();
+        nop();
         if(halts[processoAtual+1] == 0){
             msgLcd(12);
             salto = processos[processoAtual];
             memdados = dados[processoAtual];
-            msgLcd(processoAtual+1);
+            
+            dispatchersavenp(); 
+            dispatcherloadnp(); 
+
             nop();
-            output(1000);
             salto = 0;
-            msgLcd(12);
             nop();
-            sinalsyscall = 1; //isso vai para o dispatchersys
+            
             analisesyscall();
         }
         else {
