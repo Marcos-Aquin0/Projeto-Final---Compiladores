@@ -1,0 +1,11 @@
+void dispatchersavepprog(){ 
+    salvar r1 e pc nos registradores reservados
+    mover o topo da memoria (bcp) para r1
+    salvareg();
+    msgLcd(12 - quantum);
+    saltoSO(); 
+}
+
+void main (void){
+    dispatchersavepprog();
+}

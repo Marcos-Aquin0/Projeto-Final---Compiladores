@@ -19,7 +19,7 @@ void mapeamento(){
     
     i = 0;
     desviodados = 11000;
-    desvio = 1001;
+    desvio = 1401;
     while(i <= 9){
         nop();
         dados[i] = desviodados;
