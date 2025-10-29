@@ -69,7 +69,25 @@ int main(int argc, char *argv[]) {
                 printError("Erro ao abrir o arquivo.\n");
                 return 1;
             }
-            generateAssembly(out_qd);  
+            
+            
+            // Verifica se o argumento --dispatcher foi passado na linha de comando
+            int isDispatcherFile = 0;
+            for (int i = 1; i < argc; i++) {
+                if (strcmp(argv[i], "--dispatcher") == 0) {
+                    isDispatcherFile = 1;
+                    break;
+                }
+            }
+        
+            if (isDispatcherFile) {
+                generateAssembly(out_qd, 0);  // Modo dispatcher (sem inicialização BCP)
+                printf("Modo dispatcher ativado - código gerado sem inicialização BCP\n");
+            } else {
+                generateAssembly(out_qd, 1);  // Modo normal (com inicialização BCP)
+                printf("Modo normal - código gerado com inicialização BCP\n");
+            }
+            
             fclose(out_qd);
             printSuccess("Código assembly gerado e salvo na pasta Output\n");
 

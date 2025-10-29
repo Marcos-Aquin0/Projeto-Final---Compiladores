@@ -45,7 +45,7 @@ int getRegisterIndexFromName(const char* name);
 void updateCurrentFunction(const char* funcName);
 void checkNextQuadruple(FILE* inputFile, long* filePos, QuadrupleInfo* nextQuad);
 void collectFunctionInfo(void);
-void generateAssembly(FILE* inputFile);
+void generateAssembly(FILE* inputFile, int mode);
 
 // Funções para manipulação de pilha
 void pushRegister(FILE* output, int reg, int* stackOffset, int* lineIndex);

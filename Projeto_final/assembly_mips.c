@@ -537,7 +537,7 @@ void reiniciarRg(int r1){
 }
 
 // Função principal para gerar o código assembly a partir do arquivo de entrada
-void generateAssembly(FILE* inputFile) {
+void generateAssembly(FILE* inputFile, int mode) {
     FILE* output = fopen("Output/assembly.asm", "w");
     // Inicializa os mapeamentos de registradores
     initRegisterMappings();
@@ -578,8 +578,10 @@ void generateAssembly(FILE* inputFile) {
     int proximoReturn = 0;
     int labelCount = 0;
  
-    fprintf(output, "%d - move $r32 $r1 # endereço bcp\n", lineIndex++);
-    fprintf(output, "%d - subi $r1 $r1 70 # endereço bcp\n", lineIndex++);
+    if(mode == 1){
+        fprintf(output, "%d - move $r32 $r1 # endereço bcp\n", lineIndex++);
+        fprintf(output, "%d - subi $r1 $r1 70 # endereço bcp\n", lineIndex++);
+    }
                 
     int ehPrimeiraFuncao = 1;
 
