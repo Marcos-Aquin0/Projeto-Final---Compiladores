@@ -11,6 +11,7 @@ int memdados;
 int dados [ 10 ];
 int opcao;
 int sinalsyscall;
+int rodouumavez [ 10 ];
 
 void mapeamento(){
     int i;
@@ -19,11 +20,12 @@ void mapeamento(){
     
     i = 0;
     desviodados = 11000;
-    desvio = 1401;
+    desvio = 1501;
     while(i <= 9){
         nop();
         dados[i] = desviodados;
         halts[i] = 0;
+        rodouumavez[i] = 0;
         programas[i] = i;
         processos[i] = desvio;
         desvio = desvio + 200;
@@ -60,6 +62,27 @@ void naoPreemptivo(){
     nop();
 }
 
+void analisefirst(){
+    nop();
+    if(rodouumavez[processoAtual] == 0){
+        salto = processos[processoAtual];
+        memdados = dados[processoAtual];
+        dispatchersavenp();
+        dispatcherloadnp(); 
+        rodouumavez[processoAtual] = 1;
+        salto = 0;
+    }
+    else{
+        nop();
+        salto = processos[processoAtual];
+        memdados = dados[processoAtual];
+        nop(); 
+        dispatchersavep();
+        dispatcherloadnp(); 
+        salto = 0;
+    }
+}
+
 void analisesyscall(){
     if(sinalsyscall == 1){
         sinalsyscall = 0;
@@ -80,12 +103,9 @@ void roundrobin(){
         nop();
         if(halts[processoAtual+1] == 0){
             msgLcd(12);
-            salto = processos[processoAtual];
-            memdados = dados[processoAtual];
-            
-            dispatchersavenp(); 
-            dispatcherloadnp(); 
-
+            nop();
+            nop();
+            analisefirst();
             nop();
             salto = 0;
             nop();

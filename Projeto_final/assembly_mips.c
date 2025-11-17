@@ -752,11 +752,11 @@ void generateAssembly(FILE* inputFile, int mode) {
         switch (opType) {
             case OP_ASSIGN:
                 // Verifica se é uma movimentação redundante (mesmo registrador fonte e destino)
-                if (r3 == 44 || r3 == 59 || r3 == 60 || r3 == 58 || r3 == 62 || r3 == 41 || r3 == 42 || r3 == 43 || r3 == 51 || r3 == 57 || r3 == 30) {
+                if (r3 == 44 || r3 == 59 || r3 == 60 || r3 == 58 || r3 == 62 || r3 == 41 || r3 == 42 || r3 == 43 || r3 == 51 || r3 == 57 || r3 == 30 || r3 == 39) {
                     // Força o uso de 'move' para atribuir valor diretamente a esses registradores
                     fprintf(output, "%d - move $r%d $r%d # movendo %s para registrador especial %s\n", lineIndex++, r3, r1, quad.arg1, quad.result);
                 } 
-                else if (r1 == 44 || r1 == 59 || r1 == 60 || r1 == 58 || r1 == 62 || r1 == 41 || r1 == 42 || r1 == 43 || r1 == 51 || r1 == 57 || r1 == 30) {
+                else if (r1 == 44 || r1 == 59 || r1 == 60 || r1 == 58 || r1 == 62 || r1 == 41 || r1 == 42 || r1 == 43 || r1 == 51 || r1 == 57 || r1 == 30 || r1 == 39) {
                     // Força o uso de 'move' para atribuir valor diretamente a esses registradores
                     fprintf(output, "%d - move $r%d $r%d # movendo %s para registrador especial %s\n", lineIndex++, r3, r1, quad.arg1, quad.result);
                 } 
@@ -861,20 +861,28 @@ void generateAssembly(FILE* inputFile, int mode) {
                 reinitRegisterMappings(); // Reinicia os mapeamentos de registradores
                 
                 if(ehPrimeiraFuncao){
-                    if(strcmp(quad.arg1,"dispatcherloadnpremp")!=0 && strcmp(quad.arg1,"dispatchersavenpremp")!=0){
+                    if(strcmp(quad.arg1,"dispatcherloadnpremp")!=0 && strcmp(quad.arg1,"dispatchersavenpremp")!=0 && strcmp(quad.arg1,"dispatchersavepprog")!=0 && strcmp(quad.arg1,"dispatchersavepremp")!=0){
                         fprintf(output, "%d - addil $r43 $r44 main\n", lineIndex++);
                         fprintf(output, "%d - j main\n", lineIndex++); //começa na main
                         ehPrimeiraFuncao = 0; // marca que já processou a primeira função
                     }
                     else{
                         if(strcmp(quad.arg1,"dispatchersavenpremp")==0){
-                            fprintf(output, "%d - li $r57 601\n", lineIndex++);    
+                            fprintf(output, "%d - li $r39 601\n", lineIndex++);    
                         }
-                        else{
-                            fprintf(output, "%d - li $r57 801\n", lineIndex++);                                
+                        else if(strcmp(quad.arg1,"dispatcherloadnpremp")==0){
+                            fprintf(output, "%d - li $r39 801\n", lineIndex++);                                
                         }
-                        fprintf(output, "%d - addil $r43 $r57 main\n", lineIndex++);
-                        fprintf(output, "%d - j main\n", lineIndex++); //começa na main
+                        else if(strcmp(quad.arg1,"dispatchersavepprog")==0){
+                            fprintf(output, "%d - li $r39 1001\n", lineIndex++);                                
+                        }
+                        else if(strcmp(quad.arg1,"dispatchersavepremp")==0){
+                            fprintf(output, "%d - li $r39 1201\n", lineIndex++);                                
+                        }
+                        
+                        fprintf(output, "%d - addil $r43 $r39 main\n", lineIndex++, quad.arg1);
+                        fprintf(output, "%d - j main\n", lineIndex++, quad.arg1);
+                    
                         ehPrimeiraFuncao = 0; // marca que já processou a primeira função
                     }
 
@@ -882,7 +890,7 @@ void generateAssembly(FILE* inputFile, int mode) {
                 fprintf(output, "%d - %s: # nova função %s\n", lineIndex++, quad.arg1, quad.arg1);
                 // fprintf(output, "%d - out $r1 # define o início da função\n", lineIndex++);
                 // Configura o frame da função usando nossa nova função
-                if(strcmp(currentFunction, "main") != 0 && strcmp(quad.arg1,"dispatcherloadnpremp")!=0 && strcmp(quad.arg1,"dispatchersavenpremp")!=0){
+                if(strcmp(currentFunction, "main") != 0 && strcmp(quad.arg1,"dispatcherloadnpremp")!=0 && strcmp(quad.arg1,"dispatchersavenpremp")!=0 && strcmp(quad.arg1,"dispatchersavepprog")!=0 && strcmp(quad.arg1,"dispatchersavepremp")!=0){
                     setupFrame(output, &lineIndex, &stackOffset);
                     
                     checkNextQuadruple(inputFile, &filePos, &nextQuad);
@@ -916,7 +924,7 @@ void generateAssembly(FILE* inputFile, int mode) {
                 break;
 
             case OP_END:
-                if (strcmp(currentFunction, "main") != 0 && strcmp(quad.arg1,"dispatcherloadnpremp")!=0 && strcmp(quad.arg1,"dispatchersavenpremp")!=0) {
+                if (strcmp(currentFunction, "main") != 0 && strcmp(quad.arg1,"dispatcherloadnpremp")!=0 && strcmp(quad.arg1,"dispatchersavenpremp")!=0 && strcmp(quad.arg1,"dispatchersavepprog")!=0 && strcmp(quad.arg1,"dispatchersavepremp")!=0) {
                     BucketList funcSymbol = st_lookup_in_scope(currentFunction, "global");
                     int isVoidFunction = (funcSymbol && strcmp(funcSymbol->dataType, "void") == 0);
                     if (isVoidFunction) {
@@ -1044,6 +1052,9 @@ void generateAssembly(FILE* inputFile, int mode) {
                     fprintf(output, "%d - li $r51 1\n", lineIndex++);
                     fprintf(output, "%d - syscall $r58\n", lineIndex++); 
                 }  
+                else if (strcmp(quad.arg1, "retornoSO") == 0){
+                    fprintf(output, "%d - syscall $r58\n", lineIndex++); 
+                }  
                 else if (strcmp(quad.arg1, "dispatchersavenp") == 0){
                     fprintf(output, "%d - move $r42 $r1 # salva a posição de memoria\n", lineIndex++); //r referente ao destino do salto  
                     fprintf(output, "%d - move $r1 $r40\n", lineIndex++); //r referente ao salto
@@ -1058,22 +1069,65 @@ void generateAssembly(FILE* inputFile, int mode) {
                     fprintf(output, "%d - j 801\n", lineIndex++);
                     fprintf(output, "%d - move $r1 $r42 # carrega a posição de memoria\n", lineIndex++); //r referente ao destino do salto  
                 }
-
-                else if (strcmp(quad.arg1, "salvareg") == 0){
+                else if (strcmp(quad.arg1, "dispatchersavep") == 0){
+                    fprintf(output, "%d - move $r42 $r1 # salva a posição de memoria\n", lineIndex++); //r referente ao destino do salto  
+                    fprintf(output, "%d - move $r1 $r40\n", lineIndex++); //r referente ao salto
+                    fprintf(output, "%d - li $r58 %d \n", lineIndex++, (lineIndex)-labelCount+3); //r referente ao salto
+                    fprintf(output, "%d - li $r43 1201\n", lineIndex++);
+                    fprintf(output, "%d - j 1201\n", lineIndex++);
+                }
+                else if (strcmp(quad.arg1, "salvaregSO") == 0){
                     for (int j=63; j>=0; j--){
-                        if(j!=1 && j!=58 && j!=42 && j!=44 && j!=40 && j!= 59 && j!= 60 && j!= 58 && j!= 62 && j!= 41 && j!= 42 && j!= 43 && j!= 51 && j!= 57 && j!= 30){
+                        if(j!=1 && j!=58 && j!=42 && j!=44 && j!=40 && j!= 59 && j!= 60 && j!= 58 && j!= 62 && j!= 41 && j!= 42 && j!= 43 && j!= 51 && j!= 57 && j!= 30 && j!= 39){
                             fprintf(output, "%d - subi $r1 $r1 1 # salva o reg\n", lineIndex++); 
                             fprintf(output, "%d - sw $r%d 0($r1) # salva o reg\n", lineIndex++, j); 
                         }
                     }
                 }
-                else if (strcmp(quad.arg1, "loadreg") == 0){
+                else if (strcmp(quad.arg1, "loadregSO") == 0){
                     for (int j=63; j>=0; j--){
-                        if(j!=1 && j!=58 && j!=42 && j!=44 && j!=40 && j!= 59 && j!= 60 && j!= 58 && j!= 62 && j!= 41 && j!= 42 && j!= 43 && j!= 51 && j!= 57 && j!= 30){
+                        if(j!=1 && j!=58 && j!=42 && j!=44 && j!=40 && j!= 59 && j!= 60 && j!= 58 && j!= 62 && j!= 41 && j!= 42 && j!= 43 && j!= 51 && j!= 57 && j!= 30 && j!= 39){
                             fprintf(output, "%d - subi $r1 $r1 1 # salva o reg\n", lineIndex++); 
                             fprintf(output, "%d - lw $r%d 0($r1) # salva o reg\n", lineIndex++, j); 
                         }
                     }
+                }
+                else if (strcmp(quad.arg1, "salvaregprog") == 0){
+                    fprintf(output, "%d - move $r30 $r1 # salva posição memoria \n", lineIndex++); 
+                    fprintf(output, "%d - move $r1 $r62 # bcp do programa\n", lineIndex++);      
+                    fprintf(output, "%d - move $r57 $r31 # pc do prog\n", lineIndex++);      
+                    fprintf(output, "%d - out $r57 # pc do prog\n", lineIndex++);      
+                    
+                    fprintf(output, "%d - subi $r1 $r1 1 # salva o reg\n", lineIndex++); 
+                    fprintf(output, "%d - sw $r57 0($r1) # pc do processo\n", lineIndex++); 
+                    fprintf(output, "%d - subi $r1 $r1 1 # salva o reg\n", lineIndex++); 
+                    fprintf(output, "%d - sw $r30 0($r1) # memdados do processo\n", lineIndex++);     
+                    
+                    for (int j=63; j>=0; j--){
+                        if(j!=1 && j!=58 && j!=42 && j!=40 && j!= 59 && j!= 60 && j!= 58 && j!= 62 && j!= 41 && j!= 42 && j!= 51 && j!= 57 && j!= 30 && j!= 39){
+                            fprintf(output, "%d - subi $r1 $r1 1 # salva o reg\n", lineIndex++); 
+                            fprintf(output, "%d - sw $r%d 0($r1) # salva o reg\n", lineIndex++, j); 
+                        }
+                    }
+                }
+                else if (strcmp(quad.arg1, "loadregprog") == 0){
+                    fprintf(output, "%d - move $r1 $r62 # bcp do programa\n", lineIndex++);      
+                    
+                    fprintf(output, "%d - subi $r1 $r1 1 # carrega o reg\n", lineIndex++); 
+                    fprintf(output, "%d - lw $r57 0($r1) # carrega o pc\n", lineIndex++); 
+                    fprintf(output, "%d - subi $r1 $r1 1 # carrega o reg\n", lineIndex++); 
+                    fprintf(output, "%d - lw $r30 0($r1) # carrega o reg\n", lineIndex++);     
+                    
+                    for (int j=63; j>=0; j--){
+                        if(j!=1 && j!=58 && j!=42 && j!=40 && j!= 59 && j!= 60 && j!= 58 && j!= 62 && j!= 41 && j!= 42 && j!= 51 && j!= 57 && j!= 30 && j!= 39){
+                            fprintf(output, "%d - subi $r1 $r1 1 # carrega o reg\n", lineIndex++); 
+                            fprintf(output, "%d - lw $r%d 0($r1) # carrega o reg\n", lineIndex++, j); 
+                        }
+                    }
+                    fprintf(output, "%d - move $r1 $r30 # restaura posição memoria \n", lineIndex++);
+                    fprintf(output, "%d - addil $r43 $r57 0\n", lineIndex++); //r referente ao salto
+                    fprintf(output, "%d - saltoUser $r%d # usar o dado1 para o salto_rom\n", 
+                            lineIndex++, 57); //r referente ao salto    
                 }
                 else {
                     // Aloca espaço para os argumentos na pilha antes da chamada
@@ -1082,24 +1136,27 @@ void generateAssembly(FILE* inputFile, int mode) {
                         allocateArgumentSpace(output, argCount, &lineIndex, &stackOffset);
                     }
                     
-
-                    // Salva registradores que podem ser modificados pela chamada de função
-                    // saveCallerSavedRegs(output, &lineIndex, &stackOffset);
-                    
                     // Chamada normal de função
-                    if(strcmp(quad.arg1,"dispatcherloadnpremp")!=0 && strcmp(quad.arg1,"dispatchersavenpremp")!=0){
+                    if(strcmp(quad.arg1,"dispatcherloadnpremp")!=0 && strcmp(quad.arg1,"dispatchersavenpremp")!=0 && strcmp(quad.arg1,"dispatchersavepprog")!=0  && strcmp(quad.arg1,"dispatchersavepremp")!=0){
                         fprintf(output, "%d - addil $r43 $r44 %s\n", lineIndex++, quad.arg1);
                         fprintf(output, "%d - jal %s\n", lineIndex++, quad.arg1);
                         // Libera espaço dos argumentos após chamada
                     }
                     else{
                         if(strcmp(quad.arg1,"dispatchersavenpremp")==0){
-                            fprintf(output, "%d - li $r57 601\n", lineIndex++);    
+                            fprintf(output, "%d - li $r39 601\n", lineIndex++);    
                         }
-                        else{
-                            fprintf(output, "%d - li $r57 801\n", lineIndex++);                                
+                        else if(strcmp(quad.arg1,"dispatcherloadnpremp")==0){
+                            fprintf(output, "%d - li $r39 801\n", lineIndex++);                                
                         }
-                        fprintf(output, "%d - addil $r43 $r57 %s\n", lineIndex++, quad.arg1);
+                        else if(strcmp(quad.arg1,"dispatchersavepprog")==0){
+                            fprintf(output, "%d - li $r39 1001\n", lineIndex++);                                
+                        }
+                        else if(strcmp(quad.arg1,"dispatchersavepremp")==0){
+                            fprintf(output, "%d - li $r39 1201\n", lineIndex++);                                
+                        }
+                        
+                        fprintf(output, "%d - addil $r43 $r39 %s\n", lineIndex++, quad.arg1);
                         fprintf(output, "%d - j %s\n", lineIndex++, quad.arg1);
                     }
                     

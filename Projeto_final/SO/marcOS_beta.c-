@@ -1,3 +1,29 @@
+
+salto = desvio;
+        memdados = desviodados; 
+        inicializarbcp();
+
+////////////////////////////////
+savenp
+void dispatchersavenpremp(){ 
+    salvareg();
+    msgLcd(processoAtual+1);
+    loadregprog(); 
+}
+
+void main (void){
+    dispatchersavenpremp();
+}
+
+
+
+
+
+
+
+
+
+
 void dispatcher_save(){
     aqui nao precisa salvar r31 e r2, vai direto, sem main
     int i;

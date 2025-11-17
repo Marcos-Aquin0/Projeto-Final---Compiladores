@@ -1,7 +1,7 @@
 void dispatcherloadnpremp(){ 
-    msgLcd(12);
-    loadreg();
-    saltoSO();
+    msgLcd(24);
+    loadregSO();
+    retornoSO();
 }
 
 void main (void){

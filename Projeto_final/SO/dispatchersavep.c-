@@ -1,13 +1,13 @@
-void dispatchersavenpremp(){ 
-    msgLcd(22);
+void dispatchersavepremp(){ 
+    msgLcd(25);
     salvaregSO();
     msgLcd(processoAtual+1);
     nop();
     nop();
     nop();
-    saltoUser(); 
+    loadregprog(); 
 }
 
 void main (void){
-    dispatchersavenpremp();
+    dispatchersavepremp();
 }
