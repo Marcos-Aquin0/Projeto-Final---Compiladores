@@ -1095,8 +1095,13 @@ void generateAssembly(FILE* inputFile, int mode) {
                 else if (strcmp(quad.arg1, "salvaregprog") == 0){
                     fprintf(output, "%d - move $r30 $r1 # salva posição memoria \n", lineIndex++); 
                     fprintf(output, "%d - move $r1 $r62 # bcp do programa\n", lineIndex++);      
-                    fprintf(output, "%d - move $r57 $r31 # pc do prog\n", lineIndex++);      
-                    fprintf(output, "%d - out $r57 # pc do prog\n", lineIndex++);      
+                   
+                   
+                    fprintf(output, "%d - move $r63 $r57 # pc do prog\n", lineIndex++);      
+                    fprintf(output, "%d - subi $r57 $r63 1 # pc do prog\n", lineIndex++);      
+                    fprintf(output, "%d - li $r63 0 # pc do prog\n", lineIndex++);      
+                    // fprintf(output, "%d - subi $r57 $r57 1 # pc do prog\n", lineIndex++);      
+                    // fprintf(output, "%d - out $r57 # pc do prog\n", lineIndex++);      
                     
                     fprintf(output, "%d - subi $r1 $r1 1 # salva o reg\n", lineIndex++); 
                     fprintf(output, "%d - sw $r57 0($r1) # pc do processo\n", lineIndex++); 
@@ -1104,7 +1109,7 @@ void generateAssembly(FILE* inputFile, int mode) {
                     fprintf(output, "%d - sw $r30 0($r1) # memdados do processo\n", lineIndex++);     
                     
                     for (int j=63; j>=0; j--){
-                        if(j!=1 && j!=58 && j!=42 && j!=40 && j!= 59 && j!= 60 && j!= 58 && j!= 62 && j!= 41 && j!= 42 && j!= 51 && j!= 57 && j!= 30 && j!= 39){
+                        if(j!=1 && j!=58 && j!=42 && j!=44 && j!=40 && j!= 59 && j!= 60 && j!= 58 && j!= 62 && j!= 41 && j!= 42 && j!= 51 && j!= 57 && j!= 30 && j!= 39){
                             fprintf(output, "%d - subi $r1 $r1 1 # salva o reg\n", lineIndex++); 
                             fprintf(output, "%d - sw $r%d 0($r1) # salva o reg\n", lineIndex++, j); 
                         }
@@ -1115,17 +1120,19 @@ void generateAssembly(FILE* inputFile, int mode) {
                     
                     fprintf(output, "%d - subi $r1 $r1 1 # carrega o reg\n", lineIndex++); 
                     fprintf(output, "%d - lw $r57 0($r1) # carrega o pc\n", lineIndex++); 
+                    // fprintf(output, "%d - out $r57 # pc do prog\n", lineIndex++);      
                     fprintf(output, "%d - subi $r1 $r1 1 # carrega o reg\n", lineIndex++); 
                     fprintf(output, "%d - lw $r30 0($r1) # carrega o reg\n", lineIndex++);     
                     
                     for (int j=63; j>=0; j--){
-                        if(j!=1 && j!=58 && j!=42 && j!=40 && j!= 59 && j!= 60 && j!= 58 && j!= 62 && j!= 41 && j!= 42 && j!= 51 && j!= 57 && j!= 30 && j!= 39){
+                        if(j!=1 && j!=58 && j!=42 && j!=44 && j!=40 && j!= 59 && j!= 60 && j!= 58 && j!= 62 && j!= 41 && j!= 42 && j!= 51 && j!= 57 && j!= 30 && j!= 39){
                             fprintf(output, "%d - subi $r1 $r1 1 # carrega o reg\n", lineIndex++); 
                             fprintf(output, "%d - lw $r%d 0($r1) # carrega o reg\n", lineIndex++, j); 
                         }
                     }
                     fprintf(output, "%d - move $r1 $r30 # restaura posição memoria \n", lineIndex++);
-                    fprintf(output, "%d - addil $r43 $r57 0\n", lineIndex++); //r referente ao salto
+                    fprintf(output, "%d - move $r43 $r57\n", lineIndex++); //r referente ao salto
+                    // fprintf(output, "%d - out $r43 # pc do prog\n", lineIndex++);      
                     fprintf(output, "%d - saltoUser $r%d # usar o dado1 para o salto_rom\n", 
                             lineIndex++, 57); //r referente ao salto    
                 }
