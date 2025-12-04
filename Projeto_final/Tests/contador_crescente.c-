@@ -12,7 +12,9 @@ void contadorFinito(int limite) {
 
 void main(void) {
     contadorFinito(10);
+    nop();
     output(10);
+    nop();
     saltoSO();
 }
 

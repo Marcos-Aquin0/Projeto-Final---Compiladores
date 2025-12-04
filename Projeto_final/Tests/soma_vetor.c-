@@ -23,5 +23,7 @@ void main(void) {
     vet[4] = 3;
 
     output(somavetor(5));
+    nop();
+    nop();
     saltoSO(); 
 }

@@ -1,0 +1,23 @@
+int vet[5];
+
+void extremovetor(int tam) {
+    nop();
+    output(vet[0]);
+    nop();
+    output(vet[tam-1]);
+    nop();
+}
+
+void main(void) {
+    int i;
+    i = 0;
+    while(i < 5) {
+        vet[i] = input(); 
+        i = i + 1;
+    }
+    nop();
+    extremovetor(5);
+
+    nop();
+    saltoSO();
+}

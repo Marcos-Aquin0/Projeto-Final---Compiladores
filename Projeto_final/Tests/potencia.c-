@@ -11,5 +11,7 @@ int potencia(int base, int exp) {
 
 void main(void) {
     output(potencia(2, 10)); 
+    nop();
+    nop();
     saltoSO();  
 }

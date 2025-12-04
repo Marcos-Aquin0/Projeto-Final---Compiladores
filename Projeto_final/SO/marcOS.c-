@@ -35,20 +35,32 @@ void mapeamento(){
     }
 }
 
+void limpaVar(){
+    int i;
+    i = 0;
+    while(i <= 9){
+        nop();
+        halts[i] = 0;
+        rodouumavez[i] = 0;
+        processosExecucao[i] = 0;
+        i = i+1;    
+        nop();
+    }
+    qtdHalt = 0;
+    sinalsyscall = 0;
+    opcao = 0;
+    processosCarregados = 0;
+}
+
 void menuShell(){
     msgLcd(16);
     opcao = input();
 }
 
 void naoPreemptivo(){
-    int i;
-    int podeRodar;
-    podeRodar = 0;
     msgLcd(17);
     processoAtual = input();
     processoAtual = processoAtual - 1;
-    i = 0;
-    podeRodar = 0;
     nop();
     nop();
     msgLcd(12);
@@ -97,7 +109,7 @@ void analisesyscall(){
 void roundrobin(){
     int i;
     i = 0;
-    while(qtdHalt != processosCarregados){
+    while(qtdHalt < processosCarregados){
         processoAtual = processosExecucao[i+1];
         nop();
         nop();
@@ -124,6 +136,8 @@ void roundrobin(){
             nop();
         }
     }
+    limparVar();
+    nop();
 }
 
 void Preemptivo(){
