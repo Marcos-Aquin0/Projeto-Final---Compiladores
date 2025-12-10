@@ -21,7 +21,8 @@ void main(void) {
     vet[2] = 5;
     vet[3] = 2;
     vet[4] = 3;
-
+    nop();
+    nop();
     output(somavetor(5));
     nop();
     nop();
