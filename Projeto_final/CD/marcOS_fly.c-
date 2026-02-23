@@ -1,0 +1,208 @@
+
+int processos [ 10 ]; 
+int processoAtual; 
+int processosCarregados; 
+int programas [ 10 ];
+int halts [ 10 ];
+int qtdHalt;
+int processosExecucao [ 10 ];
+int salto;
+int memdados;
+int dados [ 10 ];
+int opcao;
+int sinalsyscall;
+int rodouumavez [ 10 ];
+
+void mapeamento(){
+    int i;
+    int desvio;
+    int desviodados;
+    
+    i = 0;
+    desviodados = 11000;
+    desvio = 1501;
+    while(i <= 9){
+        nop();
+        dados[i] = desviodados;
+        halts[i] = 0;
+        rodouumavez[i] = 0;
+        programas[i] = i;
+        processos[i] = desvio;
+        desvio = desvio + 200;
+        desviodados = desviodados - 1000;
+        i = i+1;    
+        nop();
+    }
+}
+
+void limpaVar(){
+    int i;
+    i = 0;
+    while(i <= 9){
+        nop();
+        halts[i] = 0;
+        rodouumavez[i] = 0;
+        processosExecucao[i] = 0;
+        i = i+1;    
+        nop();
+    }
+    qtdHalt = 0;
+    sinalsyscall = 0;
+    opcao = 0;
+    processosCarregados = 0;
+}
+
+void menuShell(){
+    msgLcd(16);
+    opcao = input();
+}
+
+void naoPreemptivo(){
+    msgLcd(17);
+    processoAtual = input();
+    processoAtual = processoAtual - 1;
+    nop();
+    nop();
+    msgLcd(12);
+    salto = processos[processoAtual];
+    memdados = dados[processoAtual];
+    dispatchersavenp(); 
+    dispatcherloadnp(); 
+    
+    nop();
+    salto = 0;
+    nop();
+}
+
+void analisefirst(){
+    nop();
+    if(rodouumavez[processoAtual] == 0){
+        salto = processos[processoAtual];
+        memdados = dados[processoAtual];
+        dispatchersavenp();
+        dispatcherloadnp(); 
+        rodouumavez[processoAtual] = 1;
+        salto = 0;
+    }
+    else{
+        nop();
+        salto = processos[processoAtual];
+        memdados = dados[processoAtual];
+        nop(); 
+        dispatchersavep();
+        dispatcherloadnp(); 
+        salto = 0;
+    }
+}
+
+void analisesyscall(){
+    if(sinalsyscall == 1){
+        sinalsyscall = 0;
+        halts[processoAtual+1] = 1;
+        qtdHalt = qtdHalt + 1;
+    }
+    else{
+        nop();
+    }
+}
+
+void roundrobin(){
+    int i;
+    i = 0;
+    while(qtdHalt < processosCarregados){
+        processoAtual = processosExecucao[i+1];
+        nop();
+        nop();
+        if(halts[processoAtual+1] == 0){
+            msgLcd(12);
+            nop();
+            nop();
+            analisefirst();
+            nop();
+            salto = 0;
+            nop();
+            
+            analisesyscall();
+        }
+        else {
+            nop();
+        }
+        
+        i = i + 1;
+        if (i == processosCarregados){
+            i = 0;
+        }
+        else{
+            nop();
+        }
+    }
+    limparVar();
+    nop();
+}
+
+void Preemptivo(){
+    int i;
+    int aux;
+    nop();
+    msgLcd(19);
+    nop();
+    nop();
+    processosCarregados = input();
+    nop();
+    nop();
+    msgLcd(20);
+    nop();
+    i = 0;
+    nop();
+    nop();
+    nop();
+    while(i<processosCarregados){
+        nop();
+        nop();
+        aux = input();
+        nop();
+        processosExecucao[i+1] = aux-1;
+        nop();
+        i = i + 1;
+        nop();
+        nop();
+    }
+    nop();
+    qtdHalt = 0;
+    nop();
+    roundrobin();
+    nop();
+}
+
+void main(void){
+    mapeamento();
+    nop();
+    salto = 0;
+    menuShell();
+    nop();
+    while(opcao != 6){
+        salto = 0;
+        nop();
+        if(opcao == 1){
+            naoPreemptivo();
+            nop();
+        }
+        else if(opcao == 2){
+            Preemptivo();
+            nop();
+        }
+    
+        else{
+            nop();
+        }
+        nop();
+        salto = 0;
+        menuShell();
+    }
+    nop();
+    msgLcd(30);
+    nop();
+    nop();
+    nop();
+    halt();
+}

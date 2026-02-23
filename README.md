@@ -1,8 +1,6 @@
-# Projeto Final - Compiladores
-
 ## Sobre o Projeto
 
-Este projeto é um **compilador** para a linguagem **C-**, desenvolvido por alunos da **Universidade Federal de São Paulo (UNIFESP)** como parte da disciplina de **Compiladores**. O compilador é capaz de realizar as seguintes etapas do processo de compilação:
+Este projeto é um **compilador** para a linguagem **C-**. O compilador é capaz de realizar as seguintes etapas do processo de compilação:
 
 - **Análise Léxica** (utilizando Flex);
 - **Análise Sintática** (utilizando Bison);
@@ -11,14 +9,6 @@ Este projeto é um **compilador** para a linguagem **C-**, desenvolvido por alun
 - **Geração de Código Intermediário**.
 
 A linguagem-alvo, **C-**, é uma versão simplificada da linguagem C, ideal para aprendizado e implementação de compiladores.
-
----
-
-## Tecnologias Utilizadas
-
-- **Linguagem de Programação**: C;
-- **Analisador Léxico**: Flex;
-- **Analisador Sintático**: Bison.
 
 ---
 
@@ -88,7 +78,7 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
    ./cminus_compiler --print-tree < Tests/sort.c-
    ```
 
-5. Apague os executáveis gerados após o uso (opcional):
+5. Apague os arquivos gerados após o uso (opcional):
    ```bash
    make clean
    ```
@@ -102,10 +92,12 @@ Traduz o código de entrada C- em código de três endereços, similar ao assemb
 - arrumar static void do semantic
 - otimização: r1, r2 e r3 apenas quando necessário.
 - semântico: variaveis criadas dentro de blocos (ver pela arvore,quando sai de um node de if, else ou while)
+- erros Sistema Operacional
+- HD simulado
 
 ## Contribuidores
 
-Este projeto foi inicialmente desenvolvido por Marcos Aquino e Matheus Esteves, alunos da UNIFESP para a disciplina de Compiladores e, posteriormente, aprimorado por Marcos Aquino para a disciplina de Laboratório de Sistemas Computacionais: Compiladores. Agradecimentos ao professor e colegas por todo o suporte e aprendizado ao longo do desenvolvimento.
+Este projeto foi inicialmente desenvolvido por Marcos Aquino e Matheus Esteves, alunos da UNIFESP para a disciplina de Compiladores e, posteriormente, aprimorado por Marcos Aquino para a disciplina de Laboratório de Sistemas Computacionais: Compiladores, Laboratório de Sistemas Computacionais: Sistemas Operacionais e Laboratório de Sistemas Computacionais: Comunicação Digital. Agradecimentos aos professores e colegas por todo o suporte e aprendizado ao longo do desenvolvimento.
 
 ---
 

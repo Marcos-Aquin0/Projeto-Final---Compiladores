@@ -1,0 +1,31 @@
+serao 3 codigos
+o SO, o codigo do fly by wire correto e outro quebrado
+na memoria serao carregados 3 corretos identicos e 3 quebrados
+serao executados 3 processos apenas
+
+ao iniciar o fpga, para simulação, será possivel escolher os 3 processos 
+(se serao
+º 3 corretos
+º 2 corretos 1 quebrado
+º 1 correto 2 quebrados
+º 3 quebrados)
+
+o SO vai receber o comando do arduino e salvar nas posiçoes
+de memoria para os 3 processos em questao
+
+cada processo vai basicamente ler essa memoria,
+verificar o comando, o valor e o checksum (a instrução completa)
+precisa comparar a posição atual e o novo valor para subir e descer
+precisa checar sistemas
+salvar em algum lugar especifico e enviar para votação
+
+o SO vai ler esses valores de cada processo e realizar a votação
+o resultado de maior redundancia vence
+
+passos:
+criar codigo arduino
+criar codigo SO e processos
+criar novas instrucoes (votacao e comunicação)
+testar arduino e fpga de forma independente
+implementar protocolo uart entre os dois
+
