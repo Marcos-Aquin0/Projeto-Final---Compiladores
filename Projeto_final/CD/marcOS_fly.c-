@@ -53,7 +53,7 @@ void limpaVar(){
 }
 
 void menuShell(){
-    msgLcd(16);
+    msgLcd(16); //mudar para menu fbw
     opcao = input();
 }
 
@@ -178,20 +178,36 @@ void main(void){
     mapeamento();
     nop();
     salto = 0;
+
+
+    funcao só para isso:
+    criar comunicação uart no gpio
+    receber os dados como uma instrução de 32bits
+    salvar em uma variavel como um valor inteiro
+    e depois em uma posição de memoria
+
+
     menuShell();
     nop();
     while(opcao != 6){
         salto = 0;
         nop();
         if(opcao == 1){
-            naoPreemptivo();
-            nop();
+            //3 corretos
+            
         }
         else if(opcao == 2){
-            Preemptivo();
+            //2 corretos 1 quebrado
             nop();
         }
-    
+        else if(opcao == 3){
+            //1 correto 2 quebrado
+            nop();
+        }
+        else if(opcao == 4){
+            //3 quebrados
+            nop();
+        }
         else{
             nop();
         }

@@ -21,6 +21,7 @@ typedef enum {
     TYPE_J,
     TYPE_MK, //KERNEL
     TYPE_MU, //USER
+    TYPE_COMM, 
     TYPE_INVALID
 } InstructionType;
 

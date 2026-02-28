@@ -1,0 +1,61 @@
+int pacote_uart_rx; // O SO salva o pacote de 32 bits aqui
+int status_pitch_atual = 0; // O ângulo atual do avião
+dois regs ou posicoes fixas
+
+// Áreas onde cada processo vai salvar o seu resultado final
+int saida_proc1;
+int saida_proc2;
+int saida_proc3;
+variavel global de execucao para definir a saida = processo atual
+
+void flybyw(){ 
+    msgLcd(xx);
+    //ler a instrução salva em uma posição ou variavel
+    //interpretar a instrução
+    
+    // 1. Lê a posição de memória que o SO preencheu
+    int pacote_32 = pacote_uart_rx; 
+    
+    // 2. EXTRAÇÃO DOS BYTES VIA DIVISÃO MATEMÁTICA
+    int header;
+    int comando;
+    int valor;
+    int checksum;
+    int resto;
+
+    // Extrai o Byte 4 (Header)
+    header = pacote_32 / 16777216; 
+    resto = pacote_32 - (header * 16777216); // Remove o header do pacote
+
+    // Extrai o Byte 3 (Comando)
+    comando = resto / 65536;
+    resto = resto - (comando * 65536); // Remove o comando
+
+    // Extrai o Byte 2 (Valor)
+    valor = resto / 256;
+
+    // O que sobra é o Byte 1 (Checksum)
+    checksum = resto - (valor * 256);
+
+    // 3. EXECUÇÃO DA LÓGICA (Interpretar a instrução)
+    int novo_pitch = status_pitch_atual; // Valor por defeito
+    
+    // Só processa se o cabeçalho for válido (40) e o pacote íntegro
+    // (Nota: em C- talvez precise fazer o XOR à mão ou usar uma função específica se não tiver o operador ^)
+    if (header == 40) { 
+        if (comando == 1) { // CMD_SUBIR
+            novo_pitch = status_pitch_atual + valor;
+        } 
+        else if (comando == 2) { // CMD_DESCER
+            novo_pitch = status_pitch_atual - valor;
+        }
+    }
+
+    // 4. SALVA EM POSIÇÃO ESPECÍFICA PARA A VOTAÇÃO
+    saida_proc1 = novo_pitch;
+}
+
+void main (void){
+    flybyw();
+    saltoSO();
+}

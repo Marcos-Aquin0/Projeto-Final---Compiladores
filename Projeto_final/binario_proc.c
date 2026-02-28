@@ -115,6 +115,11 @@ InstructionInfo instructionTable[] = {
     {"saltoUser",  TYPE_MK, 27, 0}, // opcode 011011
     {"syscall",        TYPE_MU, 28, 9}, // opcode 011100
     {"addil", TYPE_I, 25, 0}, // opcode 011001
+
+    {"fbw", TYPE_COMM, 30, 0}, // opcode 011110
+    {"rfbw", TYPE_COMM, 31, 0}, // opcode 011111
+    {"vote_hdw", TYPE_COMM, 32, 0}, // opcode 100000
+    
     {"", TYPE_INVALID, 0, 0}
 };
 

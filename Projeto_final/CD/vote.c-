@@ -1,0 +1,39 @@
+void votar(){ 
+    msgLcd(xx);
+}
+
+void main (void){
+    votar();
+    saltoSO();
+}
+
+// Memória compartilhada onde os processos deixaram as respostas
+int saida_proc1;
+int saida_proc2;
+int saida_proc3;
+int pitch_atual = 0;
+
+void processo_juiz_votador() {
+    while(1) {
+        // Verifica se os 3 processos do Round Robin já calcularam
+        if (processos_finalizados == 3) {
+            
+            // ======================================================
+            // O compilador vai traduzir a linha abaixo para a sua 
+            // instrução customizada: VOTE $rd, $rs, $rt
+            // ======================================================
+            int decisao_segura = instrucao_voto_hardware(saida_proc1, saida_proc2, saida_proc3);
+            
+            // Atualiza o avião com o valor que venceu a votação
+            pitch_atual = decisao_segura;
+            
+            // Envia o pacote de volta para o Arduino
+            enviar_pacote_uart(decisao_segura);
+            
+            // Prepara para o próximo ciclo
+            processos_finalizados = 0;
+        }
+        
+        yield(); // Devolve a CPU
+    }
+}
