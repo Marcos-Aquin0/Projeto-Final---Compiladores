@@ -1,20 +1,20 @@
-#include <SoftwareSerial.h>
+// #include <SoftwareSerial.h>
 
-SoftwareSerial SerialTorre(10, 11); // RX (10), TX (11)
+// SoftwareSerial Serialpiloto(10, 11); // RX (10), TX (11)
 
-#define OPCODE_E    0b011110    // TX (Torre -> Avião)
-#define OPCODE_R    0b011111    // RX (Avião -> Torre)
+#define OPCODE_E    0b011110    // TX (piloto -> Avião)
+#define OPCODE_R    0b011111    // RX (Avião -> piloto)
 
 void setup() {
-  SerialTorre.begin(9600);
+  Serialpiloto.begin(9600);
   Serial.begin(9600);
 }
 
 void loop() {
-  // Fica escutando a Torre
+  // Fica escutando a piloto
   if (Serial.available() >= 4) {
     
-    byte expected_header = (OPCODE_E << 2) | 0b00; // Cabeçalho que a torre envia
+    byte expected_header = (OPCODE_E << 2) | 0b00; // Cabeçalho que a piloto envia
     Serial.println(expected_header);
     
     if (Serial.read() == expected_header) {
@@ -29,7 +29,7 @@ void loop() {
         // Monta o cabeçalho de resposta da FPGA
         byte header_resposta = (OPCODE_R << 2) | 0b00;
         
-        // Ecoa os dados de volta para a torre validar
+        // Ecoa os dados de volta para a piloto validar
         Serial.write(header_resposta);
         Serial.write(cmd);
         Serial.write(val);

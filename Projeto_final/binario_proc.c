@@ -118,7 +118,7 @@ InstructionInfo instructionTable[] = {
 
     {"fbw", TYPE_COMM, 30, 0}, // opcode 011110
     {"rfbw", TYPE_COMM, 31, 0}, // opcode 011111
-    {"vote_hdw", TYPE_COMM, 32, 0}, // opcode 100000
+    {"voteHdw", TYPE_R, 32, 10}, // opcode 100000 ... 1010
     
     {"", TYPE_INVALID, 0, 0}
 };
@@ -372,6 +372,29 @@ void generateBinary(const char* instruction, char* binaryOutput, int index_atual
             break;
         }
         
+        case TYPE_COMM: { // fbw, rfbw
+            // Formato: opcode (6) flags (2) comando (8) value (8) checksum (8)
+            
+            char* flagsStr = strtok(NULL, " ,\t\n\r");
+            char* comandoStr = strtok(NULL, " ,\t\n\r");
+            char* valueStr = strtok(NULL, " ,\t\n\r");
+            char* checkStr = strtok(NULL, " ,\t\n\r");
+            
+            int flags = flagsStr ? atoi(flagsStr) : 0;
+            int comando = comandoStr ? atoi(comandoStr) : 0;
+            int value = valueStr ? atoi(valueStr) : 0;
+            int checksum = checkStr ? atoi(checkStr) : 0; // Checksum é o XOR de comando e valor, aqui só irá receber para avaliar será feito em hardware
+        
+            // Garantir que os valores estão dentro dos limites dos bits
+            flags &= 0x3;      // 2 bits (0-3)
+            comando &= 0xFF;   // 8 bits (0-255)
+            value &= 0xFF;     // 8 bits (0-255)
+            checksum &= 0xFF;  // 8 bits (0-255)
+        
+            binary = (info->opcode << 26) | (flags << 24) | (comando << 16) | (value << 8) | checksum;
+            break;
+        }
+
         case TYPE_INVALID:
             sprintf(binaryOutput, "// Invalid instruction type for: %s", mnemonic);
             return;
@@ -492,21 +515,17 @@ int read_assembly_file(FILE* input_file) {
             }
         }
             
-        // Now generate binary for the processed instruction
+        // gera o binário apenas para linhas que não são vazias e não são rótulos
         if (processed_line[0] != '\0' && processed_line[0] != '/') {
             char binaryInstruction[MAX_LINE_LENGTH];
             generateBinary(processed_line, binaryInstruction, index_atual);
             fprintf(output, "%s", binaryInstruction);
             index_atual++;
         } else if (processed_line[0] != '\0') {
-            // This is a comment line, pass it through
             // fprintf(output, "%s", processed_line);
         }
     }
     
     fclose(output);
     return 0;
-
 }
-
-// label vira comentario referente ao label, o salto é +1
