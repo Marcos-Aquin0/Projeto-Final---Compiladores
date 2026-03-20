@@ -3,7 +3,7 @@
 // // Cria uma porta serial virtual nos pinos 10 (RX) e 11 (TX)
 // SoftwareSerial Serial1(10, 11);
 
-// opcode (6) | flags(2) | comando(8) | valor (8) | checksum (8) 
+// opcode (6) | 00 | comando(8) | valor (8) | checksum (8) 
 #define CMD_SUBIR   0b00000001  
 #define CMD_DESCER  0b00000010  
 #define CMD_CHECAR  0b00000011  
@@ -36,9 +36,9 @@ void menu() {
 
 void menu2() {
   Serial.println("\nEscolha o sistema a ser checado:");
-  Serial.println("[1] - Status do Motor");
+  Serial.println("[1] - Temperatura do Motor");
   Serial.println("[2] - Nivel de Combustível");
-  Serial.println("[3] - Temperatura do Motor");
+  Serial.println("[3] - Altura atual");
   Serial.println("Digite o numero correspondente:");
 }
 
@@ -132,9 +132,15 @@ void exibirRespostaNoPC(byte comando, byte valor) {
     Serial.println(" graus.");
   }
   else if (comando == CMD_CHECAR) {
-    Serial.print("Check OK. Sistema ");
-    Serial.print(valor);
-    Serial.println(" operante.");
+    Serial.println("Check OK. Sistema operante ");
+    // verificar opcode de resposta 
+    // mostra altura atual, temperatura ou combustível dependendo do valor recebido
+    Serial.print("Altura atual: ");
+    Serial.println(valor);
+    Serial.print("Temperatura do motor atual: ");
+    Serial.println(valor);
+    Serial.print("Combustível atual: ");
+    Serial.println(valor);
   }
   else {
     Serial.println("!!! FALHA CRÍTICA !!!");

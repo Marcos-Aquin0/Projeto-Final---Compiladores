@@ -29,3 +29,30 @@ criar novas instrucoes (votacao e comunicação)
 testar arduino e fpga de forma independente
 implementar protocolo uart entre os dois
 
+alterar a memoria rom com os processos
+
+
+
+
+uart em hardware arquitetura
+module rx e tx
+pin planner gpio
+
+receber os dados como uma instrução de 32bits
+    salvar em uma variavel como um valor inteiro
+    e depois em uma posição de memoria
+
+
+    conferir checksums
+
+    
+alterar ula - caso 10 para somar 3 valores, talvez mude o mux
+ou fazer add 2 vezes quando aparecer o vote
+vote será aqui no c
+nao precisa de um codigo só para isso
+
+instrução para ativar o envio de pacotes
+
+os valores do pacote ficam em uma posição de memoria especifica
+reservar 3 registradores (1 para cada processo) e a 1 para a votação
+lidar com erros brutos

@@ -12,6 +12,7 @@ int dados [ 10 ];
 int opcao;
 int sinalsyscall;
 int rodouumavez [ 10 ];
+int primeiraVez;
 
 void mapeamento(){
     int i;
@@ -53,25 +54,8 @@ void limpaVar(){
 }
 
 void menuShell(){
-    msgLcd(16); //mudar para menu fbw
+    msgLcd(26); 
     opcao = input();
-}
-
-void naoPreemptivo(){
-    msgLcd(17);
-    processoAtual = input();
-    processoAtual = processoAtual - 1;
-    nop();
-    nop();
-    msgLcd(12);
-    salto = processos[processoAtual];
-    memdados = dados[processoAtual];
-    dispatchersavenp(); 
-    dispatcherloadnp(); 
-    
-    nop();
-    salto = 0;
-    nop();
 }
 
 void analisefirst(){
@@ -140,37 +124,46 @@ void roundrobin(){
     nop();
 }
 
-void Preemptivo(){
-    int i;
-    int aux;
-    nop();
-    msgLcd(19);
+void defineProcesso(){
+    msgLcd(27);
     nop();
     nop();
-    processosCarregados = input();
+    processosCarregados = 3;
     nop();
     nop();
-    msgLcd(20);
-    nop();
-    i = 0;
-    nop();
-    nop();
-    nop();
-    while(i<processosCarregados){
-        nop();
-        nop();
-        aux = input();
-        nop();
-        processosExecucao[i+1] = aux-1;
-        nop();
-        i = i + 1;
-        nop();
+
+    if(opcao==1){
+        processosExecucao[1] = 0
+        processosExecucao[2] = 1
+        processosExecucao[3] = 2
+    }
+    else if(opcao==2){
+        processosExecucao[1] = 0
+        processosExecucao[2] = 1
+        processosExecucao[3] = 3
+    }
+    else if(opcao==3){
+        processosExecucao[1] = 0
+        processosExecucao[2] = 3
+        processosExecucao[3] = 4
+    }
+    else if(opcao==4){
+        processosExecucao[1] = 3
+        processosExecucao[2] = 4
+        processosExecucao[3] = 5
+    }
+    else{
         nop();
     }
+}
+
+void initRR(){
     nop();
     qtdHalt = 0;
     nop();
     roundrobin();
+    nop();
+    msgLcd(29);
     nop();
 }
 
@@ -178,68 +171,49 @@ void main(void){
     mapeamento();
     nop();
     salto = 0;
-
-    novas instruções implementadas no binario >>>>
     
-    funcao só para isso:
-    criar comunicação uart no gpio
-    receber os dados como uma instrução de 32bits
-    salvar em uma variavel como um valor inteiro
-    e depois em uma posição de memoria
-
-
-
-novas mesgLCD para o FPGA
-rever codigo Arduino
-
-detalhes conexao GPIO uart
-checksums
-
-alterar ula - caso 10 para somar 3 valores, talvez mude o mux
-ou fazer add 2 vezes quando aparecer o vote
-vote será aqui no c
-nao precisa de um codigo só para isso
-
-instrução para ativar o envio de pacotes
-
-os valores do pacote ficam em uma posição de memoria especifica
-reservar 3 registradores (1 para cada processo) e a 1 para a votação
-
-
-
-
-
+    msgLcd(0);
+    nop();
     menuShell();
     nop();
+
+    salto = 0;
+    nop();
+    primeiraVez = 1;
+    
+    
     while(opcao != 6){
         salto = 0;
         nop();
-        if(opcao == 1){
-            //3 corretos
-            
-        }
-        else if(opcao == 2){
-            //2 corretos 1 quebrado
+        if(opcao==5){
+            salto = 0;
             nop();
-        }
-        else if(opcao == 3){
-            //1 correto 2 quebrado
-            nop();
-        }
-        else if(opcao == 4){
-            //3 quebrados
-            nop();
+            menuShell();
+            primeiraVez = 1; 
         }
         else{
             nop();
         }
+        if(primeiraVez == 1){
+            nop();
+            defineProcesso();
+            //iniciar UART
+            primeiraVez = 0;
+        }
+        else{
+            nop();
+        }
+        
+        //aguardando pacote...
+        //recebe pacote e salva
+        initRR();
+        vote();
+        
         nop();
         salto = 0;
-        menuShell();
     }
     nop();
-    msgLcd(30);
-    nop();
+    msgLcd(28);
     nop();
     nop();
     halt();

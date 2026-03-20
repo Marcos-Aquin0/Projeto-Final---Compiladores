@@ -116,9 +116,9 @@ InstructionInfo instructionTable[] = {
     {"syscall",        TYPE_MU, 28, 9}, // opcode 011100
     {"addil", TYPE_I, 25, 0}, // opcode 011001
 
-    {"fbw", TYPE_COMM, 30, 0}, // opcode 011110
-    {"rfbw", TYPE_COMM, 31, 0}, // opcode 011111
-    {"voteHdw", TYPE_R, 32, 10}, // opcode 100000 ... 1010
+    // {"fbw", TYPE_COMM, 30, 0}, // opcode 011110
+    // {"rfbw", TYPE_COMM, 31, 0}, // opcode 011111
+    // {"voteHdw", TYPE_R, 32, 10}, // opcode 100000 ... 1010
     
     {"", TYPE_INVALID, 0, 0}
 };
@@ -372,28 +372,28 @@ void generateBinary(const char* instruction, char* binaryOutput, int index_atual
             break;
         }
         
-        case TYPE_COMM: { // fbw, rfbw
-            // Formato: opcode (6) flags (2) comando (8) value (8) checksum (8)
+        // case TYPE_COMM: { // fbw, rfbw
+        //     // Formato: opcode (6) flags (2) comando (8) value (8) checksum (8)
             
-            char* flagsStr = strtok(NULL, " ,\t\n\r");
-            char* comandoStr = strtok(NULL, " ,\t\n\r");
-            char* valueStr = strtok(NULL, " ,\t\n\r");
-            char* checkStr = strtok(NULL, " ,\t\n\r");
+        //     char* flagsStr = strtok(NULL, " ,\t\n\r");
+        //     char* comandoStr = strtok(NULL, " ,\t\n\r");
+        //     char* valueStr = strtok(NULL, " ,\t\n\r");
+        //     char* checkStr = strtok(NULL, " ,\t\n\r");
             
-            int flags = flagsStr ? atoi(flagsStr) : 0;
-            int comando = comandoStr ? atoi(comandoStr) : 0;
-            int value = valueStr ? atoi(valueStr) : 0;
-            int checksum = checkStr ? atoi(checkStr) : 0; // Checksum é o XOR de comando e valor, aqui só irá receber para avaliar será feito em hardware
+        //     int flags = flagsStr ? atoi(flagsStr) : 0;
+        //     int comando = comandoStr ? atoi(comandoStr) : 0;
+        //     int value = valueStr ? atoi(valueStr) : 0;
+        //     int checksum = checkStr ? atoi(checkStr) : 0; // Checksum é o XOR de comando e valor, aqui só irá receber para avaliar será feito em hardware
         
-            // Garantir que os valores estão dentro dos limites dos bits
-            flags &= 0x3;      // 2 bits (0-3)
-            comando &= 0xFF;   // 8 bits (0-255)
-            value &= 0xFF;     // 8 bits (0-255)
-            checksum &= 0xFF;  // 8 bits (0-255)
+        //     // Garantir que os valores estão dentro dos limites dos bits
+        //     flags &= 0x3;      // 2 bits (0-3)
+        //     comando &= 0xFF;   // 8 bits (0-255)
+        //     value &= 0xFF;     // 8 bits (0-255)
+        //     checksum &= 0xFF;  // 8 bits (0-255)
         
-            binary = (info->opcode << 26) | (flags << 24) | (comando << 16) | (value << 8) | checksum;
-            break;
-        }
+        //     binary = (info->opcode << 26) | (flags << 24) | (comando << 16) | (value << 8) | checksum;
+        //     break;
+        // }
 
         case TYPE_INVALID:
             sprintf(binaryOutput, "// Invalid instruction type for: %s", mnemonic);
