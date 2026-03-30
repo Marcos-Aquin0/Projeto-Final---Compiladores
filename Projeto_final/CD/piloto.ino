@@ -1,8 +1,3 @@
-// #include <SoftwareSerial.h>
-
-// // Cria uma porta serial virtual nos pinos 10 (RX) e 11 (TX)
-// SoftwareSerial Serial1(10, 11);
-
 // opcode (6) | 00 | comando(8) | valor (8) | checksum (8) 
 #define CMD_SUBIR   0b00000001  
 #define CMD_DESCER  0b00000010  
@@ -12,11 +7,16 @@
 #define OPCODE_E    0b011110    // TX (piloto -> Avião)
 #define OPCODE_R    0b011111    // RX (Avião -> piloto)
 
+// Pinos seguros para UART no ESP32
+#define RX_PIN 16
+#define TX_PIN 17
+
 void setup() {
   // Comunicação com o PC (Monitor Serial) via USB
   Serial.begin(9600); 
-  // Comunicação com a FPGA (Pinos 18 TX1 / 19 RX1)
-  Serial1.begin(9600); 
+  
+  // Comunicação com a FPGA - ESP32
+  Serial1.begin(9600, SERIAL_8N1, RX_PIN, TX_PIN); 
   
   // Aguarda a porta do PC iniciar
   while (!Serial); 
@@ -44,7 +44,7 @@ void menu2() {
 
 void loop() {
   // ==========================================================
-  // PC -> ARDUINO -> FPGA (Enviando comandos para o avião)
+  // PC -> ESP32 -> FPGA (Enviando comandos para o avião)
   // ==========================================================
   
   menu(); // Exibe o menu de comandos para o usuário
@@ -83,7 +83,7 @@ void loop() {
   }
 
   // ==========================================================
-  // FPGA -> ARDUINO -> PC (Recebendo status do avião)
+  // FPGA -> ESP32 -> PC (Recebendo status do avião)
   // ==========================================================
   
   if (Serial1.available() >= 4) { // Verifica a Serial1 (FPGA)
