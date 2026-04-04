@@ -10,9 +10,9 @@
 #define TX_PIN 17
 
 void setup() {
-  // Serialpiloto.begin(9600);
-  Serial1.begin(9600, SERIAL_8N1, RX_PIN, TX_PIN);
-  Serial.begin(9600);
+  // Serialpiloto.begin(115200);
+  Serial1.begin(115200, SERIAL_8N1, RX_PIN, TX_PIN);
+  Serial.begin(115200);
 }
 
 void loop() {

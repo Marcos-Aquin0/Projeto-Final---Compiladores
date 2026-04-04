@@ -128,29 +128,26 @@ void defineProcesso(){
     msgLcd(27);
     nop();
     nop();
-    processosCarregados = 3;
-    nop();
-    nop();
 
     if(opcao==1){
-        processosExecucao[1] = 0
-        processosExecucao[2] = 1
-        processosExecucao[3] = 2
+        processosExecucao[1] = 0;
+        processosExecucao[2] = 1;
+        processosExecucao[3] = 2;
     }
     else if(opcao==2){
-        processosExecucao[1] = 0
-        processosExecucao[2] = 1
-        processosExecucao[3] = 3
+        processosExecucao[1] = 0;
+        processosExecucao[2] = 1;
+        processosExecucao[3] = 3;
     }
     else if(opcao==3){
-        processosExecucao[1] = 0
-        processosExecucao[2] = 3
-        processosExecucao[3] = 4
+        processosExecucao[1] = 0;
+        processosExecucao[2] = 3;
+        processosExecucao[3] = 4;
     }
     else if(opcao==4){
-        processosExecucao[1] = 3
-        processosExecucao[2] = 4
-        processosExecucao[3] = 5
+        processosExecucao[1] = 3;
+        processosExecucao[2] = 4;
+        processosExecucao[3] = 5;
     }
     else{
         nop();
@@ -167,11 +164,21 @@ void initRR(){
     nop();
 }
 
+void initDados(){
+    int temp;
+    int combustivel;
+    int altura;
+
+    initial(temp, 25);
+    initial(combustivel, 1000);
+    initial(altura, 0); //instrucao que salva o valor para a variavel x na posicao x
+}
+
 void main(void){
     mapeamento();
     nop();
     salto = 0;
-    
+    processosCarregados = 3;
     msgLcd(0);
     nop();
     menuShell();
@@ -180,7 +187,6 @@ void main(void){
     salto = 0;
     nop();
     primeiraVez = 1;
-    
     
     while(opcao != 6){
         salto = 0;
@@ -197,18 +203,18 @@ void main(void){
         if(primeiraVez == 1){
             nop();
             defineProcesso();
-            //iniciar UART
+            initDados();
+            // initUART();
             primeiraVez = 0;
         }
         else{
             nop();
         }
         
-        //aguardando pacote...
-        //recebe pacote e salva
+        // receiveUART();
         initRR();
-        vote();
-        
+        // vote_sw();
+        // sendUART();
         nop();
         salto = 0;
     }

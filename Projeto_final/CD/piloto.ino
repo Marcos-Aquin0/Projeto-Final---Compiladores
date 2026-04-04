@@ -13,10 +13,10 @@
 
 void setup() {
   // Comunicação com o PC (Monitor Serial) via USB
-  Serial.begin(9600); 
+  Serial.begin(115200); 
   
   // Comunicação com a FPGA - ESP32
-  Serial1.begin(9600, SERIAL_8N1, RX_PIN, TX_PIN); 
+  Serial1.begin(115200, SERIAL_8N1, RX_PIN, TX_PIN); 
   
   // Aguarda a porta do PC iniciar
   while (!Serial); 
