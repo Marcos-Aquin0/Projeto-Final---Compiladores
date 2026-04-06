@@ -1,3 +1,26 @@
+falta o vote
+o uart 
+init, receive/savepkt
+enviar pkt 
+
+integrar certinho no fpga 
+
+checksum
+
+
+
+testar infinitamente
+artigo
+video 
+
+
+pin planner gpio
+
+flags
+sanity check depois da votação 
+
+
+
 
 o SO vai receber o comando do arduino e salvar nas posiçoes
 de memoria para os 3 processos em questao
@@ -7,35 +30,10 @@ verificar o comando, o valor e o checksum (a instrução completa)
 precisa comparar a posição atual e o novo valor para subir e descer
 salvar em algum lugar especifico e enviar para votação
 
-o SO vai ler esses valores de cada processo e realizar a votação
-o resultado de maior redundancia vence
-
-
-
-passos:
-criar codigo arduino
-criar codigo SO e processos
-criar novas instrucoes (votacao e comunicação)
-testar arduino e fpga de forma independente
-implementar protocolo uart entre os dois
-
-3 regs 
-altura, temp e combustivel 
-conectar module rx e tx
-pin planner gpio
-
 receber os dados como uma instrução de 32bits
     salvar em uma variavel como um valor inteiro
     e depois em uma posição de memoria
-
-
-    conferir checksums
-
     
 alterar ula - fazer add 2 vezes quando aparecer o vote
 
-instrução para ativar o envio de pacotes
-
-os valores do pacote ficam em uma posição de memoria especifica
-reservar 3 registradores (1 para cada processo) e a 1 para a votação
-lidar com erros brutos
+instrução para ativar o envio de pacotes, flag

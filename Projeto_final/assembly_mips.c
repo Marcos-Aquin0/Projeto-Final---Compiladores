@@ -577,7 +577,12 @@ void generateAssembly(FILE* inputFile, int mode) {
     int pularJump = 0;
     int proximoReturn = 0;
     int labelCount = 0;
- 
+    int saveinitialCount = 0;
+    int loadinitialCount = 0;
+    int savepktCount = 0;
+    int loadpktCount = 0;
+    int savenewinfoCount = 0;
+
     if(mode == 1){
         fprintf(output, "%d - move $r32 $r1 # endereço bcp\n", lineIndex++);
         fprintf(output, "%d - subi $r1 $r1 70 # endereço bcp\n", lineIndex++);
@@ -1135,6 +1140,46 @@ void generateAssembly(FILE* inputFile, int mode) {
                     // fprintf(output, "%d - out $r43 # pc do prog\n", lineIndex++);      
                     fprintf(output, "%d - saltoUser $r%d # usar o dado1 para o salto_rom\n", 
                             lineIndex++, 57); //r referente ao salto    
+                }
+                else if(strcmp(quad.arg1,"saveinitial") == 0){
+                    fprintf(output, "%d - li $r63 %d\n", lineIndex++, 25000 + 4*saveinitialCount++); //r referente ao salto
+                    fprintf(output, "%d - sw $r46 0($r63)\n", lineIndex++);
+                    fprintf(output, "%d - li $63 0\n", lineIndex++); 
+                    if(saveinitialCount == 3){
+                        saveinitialCount = 0;
+                    }
+                }
+                else if(strcmp(quad.arg1,"loadinitial") == 0){
+                    fprintf(output, "%d - li $r63 %d\n", lineIndex++, 25000 + 4*loadinitialCount++); //r referente ao salto
+                    fprintf(output, "%d - lw $r%d 0($r63)\n", lineIndex++, r3);
+                    fprintf(output, "%d - li $63 0\n", lineIndex++); 
+                    if(loadinitialCount == 3){
+                        loadinitialCount = 0;
+                    }
+                }
+                else if(strcmp(quad.arg1,"savepkt") == 0){
+                    fprintf(output, "%d - li $r63 %d\n", lineIndex++, 25000 + 4*savepktCount++); //r referente ao salto
+                    fprintf(output, "%d - sw $r46 0($r63)\n", lineIndex++);
+                    fprintf(output, "%d - li $63 0\n", lineIndex++); 
+                    if(savepktCount == 5){
+                        savepktCount = 0;
+                    }
+                }
+                else if(strcmp(quad.arg1,"loadpkt") == 0){
+                    fprintf(output, "%d - li $r63 %d\n", lineIndex++, 30000 + 4*loadpktCount++); //r referente ao salto
+                    fprintf(output, "%d - lw $r%d 0($r63)\n", lineIndex++, r3);
+                    fprintf(output, "%d - li $63 0\n", lineIndex++);
+                    if(loadpktCount == 5){
+                        loadpktCount = 0;
+                    } 
+                }
+                else if(strcmp(quad.arg1,"savenewinfo") == 0){
+                    fprintf(output, "%d - addi $r63 $r46 %d\n", lineIndex++, 4*savenewinfoCount++); //r referente ao salto
+                    fprintf(output, "%d - sw $r47 0($r63)\n", lineIndex++, r3);
+                    fprintf(output, "%d - li $63 0\n", lineIndex++);
+                    if(savenewinfoCount == 3){
+                        savenewinfoCount = 0;
+                    } 
                 }
                 else {
                     // Aloca espaço para os argumentos na pilha antes da chamada

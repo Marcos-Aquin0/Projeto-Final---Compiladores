@@ -665,6 +665,11 @@ void buildSymtab(ASTNode *syntaxTree) {
     st_insert("saltoSO", 0, location++, "global", "func", "int", 0, 0);
     st_insert("retornoSO", 0, location++, "global", "func", "int", 0, 0);
     st_insert("limparVar", 0, location++, "global", "func", "int", 0, 0);
+    st_insert("saveinitial", 0, location++, "global", "func", "int", 0, 0);
+    st_insert("loadinitial", 0, location++, "global", "func", "int", 0, 0);
+    st_insert("savepkt", 0, location++, "global", "func", "int", 0, 0);
+    st_insert("loadpkt", 0, location++, "global", "func", "int", 0, 0);
+    st_insert("savenewinfo", 0, location++, "global", "func", "int", 0, 0);
     
     traverse(syntaxTree, insertNode, nullProc); //percorre a árvore sintática
     pop_scope();

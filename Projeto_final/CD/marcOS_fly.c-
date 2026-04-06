@@ -21,7 +21,7 @@ void mapeamento(){
     
     i = 0;
     desviodados = 11000;
-    desvio = 1501;
+    desvio = 1901;
     while(i <= 9){
         nop();
         dados[i] = desviodados;
@@ -165,13 +165,29 @@ void initRR(){
 }
 
 void initDados(){
-    int temp;
+    int temp ;
     int combustivel;
     int altura;
 
-    initial(temp, 25);
-    initial(combustivel, 1000);
-    initial(altura, 0); //instrucao que salva o valor para a variavel x na posicao x
+    temp = 25;
+    combustivel = 1000;
+    altura = 0;
+
+    saveinitial(temp);
+    saveinitial(combustivel);
+    saveinitial(altura);
+}
+
+void initUART(){
+    nop();
+}
+
+void receiveUART(){
+    nop();
+}
+
+void sendUART(){
+    nop();
 }
 
 void main(void){
@@ -204,17 +220,17 @@ void main(void){
             nop();
             defineProcesso();
             initDados();
-            // initUART();
+            initUART();
             primeiraVez = 0;
         }
         else{
             nop();
         }
         
-        // receiveUART();
+        receiveUART();
         initRR();
-        // vote_sw();
-        // sendUART();
+        votesw();
+        sendUART();
         nop();
         salto = 0;
     }

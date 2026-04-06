@@ -1,38 +1,49 @@
-
+int processoAtual;
 
 void flybyw(){ 
-    msgLcd(30); // Fly by wire em andamento
-    int pacote_uart_rx; //ler da posição de memória onde o SO preencheu o pacote recebido pela UART
-    //salvar em 5 posicoes diferentes o header, flag, comando, valor e checksum para facilitar a lógica depois
-    int header = load(header);
-    int flag = load(flag);
-    int comando = load(comando);
-    int valor = load(valor);
-    int checksum = load(checksum);
-
-    int temp = load(temp);
-    int combustivel = load(combustivel);
-    int altura = load(altura);
-
+    int header ;
+    int flag ;
+    int comando ;
+    int valor ;
+    int checksum ;
+    int temp ;
+    int combustivel ;
+    int altura ;
     int newtemp;
     int newcombustivel;
     int newaltura;
+    int auxProc;
+    
+    msgLcd(30); 
+    header = loadpkt(header);
+    flag = loadpkt(flag);
+    comando = loadpkt(comando);
+    valor = loadpkt(valor);
+    checksum = loadpkt(checksum);
+    temp = loadinitial(temp);
+    combustivel = loadinitial(combustivel);
+    altura = loadinitial(altura);
 
-    if (comando == 1) { // CMD_SUBIR
+
+    if (comando == 1) { 
         newaltura = altura + valor;
-        newtemp = temp + (valor * 0.5); // Exemplo: cada grau sobe a temperatura em 0.5
-        newcombustivel = combustivel - (valor * 0.2); // Ex 
+        newtemp = temp + (valor/2); 
+        newcombustivel = combustivel - (valor * 2/10); 
     } 
-    else if (comando == 2) { // CMD_DESCER
+    else if (comando == 2) { 
         newaltura = altura - valor;
-        newtemp = temp - (valor * 0.5); // Exemplo: cada grau desce a temperatura em 0.5
-        newcombustivel = combustivel - (valor * 0.2); // Exemplo: cada grau desce o combustível em 0.2
+        newtemp = temp - (valor - 5); 
+        newcombustivel = combustivel - (valor - 10); 
     }
     else {
         nop();
     }
-        
-   //salva na posicao do processo atual
+    
+    
+    auxProc = 40000 + 1000*(processoAtual);
+    savenewinfo(auxProc, newtemp);
+    savenewinfo(auxProc, newcombustivel);
+    savenewinfo(auxProc, newaltura);    
 }
 
 void main (void){
