@@ -670,7 +670,8 @@ void buildSymtab(ASTNode *syntaxTree) {
     st_insert("savepkt", 0, location++, "global", "func", "int", 0, 0);
     st_insert("loadpkt", 0, location++, "global", "func", "int", 0, 0);
     st_insert("savenewinfo", 0, location++, "global", "func", "int", 0, 0);
-    
+    st_insert("loadnewinfo", 0, location++, "global", "func", "int", 0, 0);
+    st_insert("voteHdw", 0, location++, "global", "func", "int", 0, 0);
     traverse(syntaxTree, insertNode, nullProc); //percorre a árvore sintática
     pop_scope();
 

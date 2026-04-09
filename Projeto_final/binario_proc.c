@@ -118,7 +118,7 @@ InstructionInfo instructionTable[] = {
 
     // {"fbw", TYPE_COMM, 30, 0}, // opcode 011110
     // {"rfbw", TYPE_COMM, 31, 0}, // opcode 011111
-    // {"voteHdw", TYPE_R, 32, 10}, // opcode 100000 ... 1010
+    {"voteHdw", TYPE_R, 32, 10}, // opcode 100000 ... 1010
     
     {"", TYPE_INVALID, 0, 0}
 };

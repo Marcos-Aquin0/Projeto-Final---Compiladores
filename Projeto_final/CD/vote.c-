@@ -1,51 +1,90 @@
-void vote() {
-    int temp = load(temp);
-    int combustivel = load(combustivel);
-    int altura = load(altura);
+int processoAtual;
+int processosExecucao[10];
 
-    int proc1_temp = load(proc1_temp);
-    int proc1_combustivel = load(proc1_combustivel);
-    int proc1_altura = load(proc1_altura);
-    int proc2_temp = load(proc2_temp);
-    int proc2_combustivel = load(proc2_combustivel);
-    int proc2_altura = load(proc2_altura);
-    int proc3_temp = load(proc3_temp);
-    int proc3_combustivel = load(proc3_combustivel);
-    int proc3_altura = load(proc3_altura);
+int temp ;
+int comb ;
+int altura ;
 
-    //ver valor da memoria de cada processo para as mesmas 3 var
-    //tirar media dos 3 valores de cada processo para cada variavel
-    int media_temp = (proc1_temp + proc2_temp + proc3_temp) / 3;
-    int media_combustivel = (proc1_combustivel + proc2_combustivel + proc3_combustivel) / 3;
-    int media_altura = (proc1_altura + proc2_altura + proc3_altura) / 3;
+int vototemp;
+int votocomb;
+int votoaltura;
 
-    if(media_temp > temp + 10 || media_temp < temp - 10){ //conferir se realizar essa operacao
-        //manter temperatura atual e enviar a flag com 1 para temperatura divergente
-        //flags 00 tudo ok, flag 01 temperatura divergente, flag 10 combustivel e temperatura divergente, flag 11 ambos divergente
-        msgLcd(31); // Voto de temperatura divergente, ainda nao esta implementado
+void voteSanityCheck(){
+    
+}
+
+
+void initVote() {
+    int auxProc;
+    
+    int procUmtemp ;
+    int procUmcomb ;
+    int procUmaltura ;
+    int procDoistemp ;
+    int procDoiscomb ;
+    int procDoisaltura ;
+    int procTrestemp ;
+    int procTrescomb ;
+    int procTresaltura ;
+
+    temp = loadinitial(temp);
+    comb = loadinitial(comb);
+    altura = loadinitial(altura);
+    
+    processoAtual = processosExecucao[1];
+    auxProc = 40000 + 1000*(processoAtual);
+    procUmtemp = loadnewinfo(auxProc);
+    procUmcomb = loadnewinfo(auxProc);
+    procUmaltura = loadnewinfo(auxProc);
+    processoAtual = processosExecucao[2];
+    auxProc = 40000 + 1000*(processoAtual);
+    procDoistemp = loadnewinfo(auxProc);
+    procDoiscomb = loadnewinfo(auxProc);
+    procDoisaltura = loadnewinfo(auxProc);
+    processoAtual = processosExecucao[3];
+    auxProc = 40000 + 1000*(processoAtual);
+    procTrestemp = loadnewinfo(auxProc);
+    procTrescomb = loadnewinfo(auxProc);
+    procTresaltura = loadnewinfo(auxProc);
+
+    vototemp = voteHdw(procUmtemp, procDoistemp, procTrestemp);
+    votocomb = voteHdw(procUmcomb, procDoiscomb, procTrescomb);
+    votoaltura = voteHdw(procUmaltura, procDoisaltura, procTresaltura);    
+    
+    if(vototemp > temp + 10) { 
+        msgLcd(35);
+        saveinitial(temp);
+    } else if (vototemp < temp - 10) {
+        msgLcd(35);
+        saveinitial(temp);
+    } else {
+        saveinitial(vototemp);
     }
-    else {
-        temp = media_temp; //atualizar a temperatura para a media
+    
+    if(votocomb > comb + 100) { 
+        msgLcd(36);
+        saveinitial(comb);
+    } else if (votocomb < comb - 100) {
+        msgLcd(36);
+        saveinitial(comb);
+    } else {
+        saveinitial(votocomb);
     }
-    if(media_combustivel > combustivel + 100 || media_combustivel < combustivel - 100){
-        //manter combustivel atual e enviar a flag com 1 para combustivel divergente
-        msgLcd(32); // Voto de combustivel divergente, ainda nao esta implementado
+    
+    if(votoaltura > altura + 50) { 
+        msgLcd(37);
+        saveinitial(altura);
+    } else if (votoaltura < altura - 50) {
+        msgLcd(37);
+        saveinitial(altura);
+    } else {
+        saveinitial(votoaltura);
     }
-    else {
-        combustivel = media_combustivel; //atualizar o combustivel para a media
-    }
-    if(media_altura > altura + 100 || media_altura < altura - 100){
-        //manter altura atual e enviar a flag com 1 para altura divergente
-        msgLcd(33); // Voto de altura divergente, ainda nao esta implementado
-    }
-    else {
-        altura = media_altura; //atualizar a altura para a media
-    }
-    //verificação dos valores de acordo com os atuais de temp, combustivel
-    vote_hdw();
+
+    
 }
 
 void main(void){
-    vote();
+    initVote();
     saltoSO();
 }

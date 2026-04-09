@@ -1158,7 +1158,7 @@ void generateAssembly(FILE* inputFile, int mode) {
                     }
                 }
                 else if(strcmp(quad.arg1,"savepkt") == 0){
-                    fprintf(output, "%d - li $r63 %d\n", lineIndex++, 25000 + 4*savepktCount++); //r referente ao salto
+                    fprintf(output, "%d - li $r63 %d\n", lineIndex++, 30000 + 4*savepktCount++); //r referente ao salto
                     fprintf(output, "%d - sw $r46 0($r63)\n", lineIndex++);
                     fprintf(output, "%d - li $63 0\n", lineIndex++); 
                     if(savepktCount == 5){
@@ -1175,7 +1175,15 @@ void generateAssembly(FILE* inputFile, int mode) {
                 }
                 else if(strcmp(quad.arg1,"savenewinfo") == 0){
                     fprintf(output, "%d - addi $r63 $r46 %d\n", lineIndex++, 4*savenewinfoCount++); //r referente ao salto
-                    fprintf(output, "%d - sw $r47 0($r63)\n", lineIndex++, r3);
+                    fprintf(output, "%d - sw $r47 0($r63)\n", lineIndex++);
+                    fprintf(output, "%d - li $63 0\n", lineIndex++);
+                    if(savenewinfoCount == 3){
+                        savenewinfoCount = 0;
+                    } 
+                }
+                else if(strcmp(quad.arg1,"loadnewinfo") == 0){
+                    fprintf(output, "%d - addi $r63 $r46 %d\n", lineIndex++, 4*savenewinfoCount++); //r referente ao salto
+                    fprintf(output, "%d - lw $r%d 0($r63)\n", lineIndex++, r3);
                     fprintf(output, "%d - li $63 0\n", lineIndex++);
                     if(savenewinfoCount == 3){
                         savenewinfoCount = 0;

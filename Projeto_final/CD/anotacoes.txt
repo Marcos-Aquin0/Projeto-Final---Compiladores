@@ -18,7 +18,7 @@ pin planner gpio
 
 flags
 sanity check depois da votação 
-
+ver uso de regs, se nao precisa criar funcoes
 
 
 
@@ -37,3 +37,89 @@ receber os dados como uma instrução de 32bits
 alterar ula - fazer add 2 vezes quando aparecer o vote
 
 instrução para ativar o envio de pacotes, flag
+
+
+
+
+
+
+
+
+module Votador_TMR (
+    input [31:0] p1,  // Resposta do Processo 1
+    input [31:0] p2,  // Resposta do Processo 2
+    input [31:0] p3,  // Resposta do Processo 3
+    output reg [31:0] resultado_seguro,
+    output reg falha_critica // Acende um LED vermelho se os 3 processos divergirem!
+);
+
+    always @(*) begin
+        falha_critica = 1'b0; // Por padrão, assumimos que há concordância
+
+        // Regra da Maioria Simples (2 contra 1)
+        if (p1 == p2) begin
+            resultado_seguro = p1;
+        end 
+        else if (p1 == p3) begin
+            resultado_seguro = p1;
+        end 
+        else if (p2 == p3) begin
+            resultado_seguro = p2;
+        end 
+        else begin
+            // CAOS TOTAL: P1 != P2 != P3. Todos os processos falharam de formas diferentes!
+            // Aqui você define um "Valor Seguro" (Fail-Safe). Ex: Manter a mesma inclinação.
+            resultado_seguro = 32'd0; 
+            falha_critica = 1'b1;     // Sinaliza pro SO ou acende LED de emergência
+        end
+    end
+endmodule
+
+
+
+
+
+
+
+
+module ULA(
+    input [31:0] A,           // Vem do registrador rs (Ex: saida do processo 1)
+    input [31:0] B,           // Vem do registrador rt (Ex: saida do processo 2)
+    input [31:0] C_implicito, // NOVO: Um fio direto para o registrador do Processo 3
+    input enable,
+    input [3:0] controle_ULA, // O sinal que diz qual operação fazer
+    output reg ZERO, 
+    output reg [31:0] saida
+);
+
+    // Códigos de operação da ULA (Exemplos)
+    parameter OP_ADD  = 4'b0010;
+    parameter OP_SUB  = 4'b0110;
+    parameter OP_VOTE = 4'b1111; // NOSSO NOVO OPCODE DE HARDWARE!
+
+    always @(*) begin
+        if (enable) begin
+            case (controle_ULA)
+                OP_ADD: saida = A + B;
+                OP_SUB: saida = A - B;
+                
+                // ==========================================
+                // NOSSA INSTRUÇÃO CUSTOMIZADA DE VOTAÇÃO
+                // ==========================================
+                OP_VOTE: begin
+                    if (A == B) 
+                        saida = A;
+                    else if (A == C_implicito) 
+                        saida = A;
+                    else if (B == C_implicito) 
+                        saida = B;
+                    else 
+                        saida = 32'd0; // Estado Fail-Safe
+                end
+                
+                default: saida = 32'd0;
+            endcase
+        end
+    end
+endmodule
+

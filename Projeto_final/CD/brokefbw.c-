@@ -24,22 +24,27 @@ void flybyw(){
     combustivel = loadinitial(combustivel);
     altura = loadinitial(altura);
 
-
-    if (comando == 1) { 
+    if(processoAtual == 3){
         newaltura = altura + valor + 500;
         newtemp = temp + (valor/2); 
         newcombustivel = combustivel - (valor * 2/10); 
-    } 
-    else if (comando == 2) { 
+    } else if(processoAtual == 4){
         newaltura = altura - valor;
         newtemp = temp - (valor - 50); 
-        newcombustivel = combustivel - (valor * 5); 
+        newcombustivel = combustivel - (valor * 7); 
     }
-    else {
+    else if(processoAtual == 5){
+        newaltura = altura + valor + 500;
+        newtemp = temp + (valor - 50); 
+        newcombustivel = combustivel - (valor * 2/10); 
+    }
+    else{
         nop();
+        newaltura = altura;
+        newtemp = temp;
+        newcombustivel = combustivel;
     }
-    
-    
+
     auxProc = 40000 + 1000*(processoAtual);
     savenewinfo(auxProc, newtemp);
     savenewinfo(auxProc, newcombustivel);

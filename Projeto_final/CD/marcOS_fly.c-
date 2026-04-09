@@ -58,6 +58,20 @@ void menuShell(){
     opcao = input();
 }
 
+void votenaoPreemptivo(){
+    processoAtual = 6;
+    nop();
+    msgLcd(31); 
+    salto = processos[processoAtual];
+    memdados = dados[processoAtual];
+    dispatchersavenp(); 
+    dispatcherloadnp(); 
+    
+    nop();
+    salto = 0;
+    nop();
+}
+
 void analisefirst(){
     nop();
     if(rodouumavez[processoAtual] == 0){
@@ -179,14 +193,18 @@ void initDados(){
 }
 
 void initUART(){
+    msgLcd(32);
     nop();
 }
 
 void receiveUART(){
+    msgLcd(33);
     nop();
 }
 
 void sendUART(){
+    msgLcd(34);
+    // depende do comando requerido
     nop();
 }
 
@@ -229,7 +247,7 @@ void main(void){
         
         receiveUART();
         initRR();
-        votesw();
+        votenaoPreemptivo();
         sendUART();
         nop();
         salto = 0;
