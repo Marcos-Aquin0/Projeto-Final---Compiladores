@@ -1,4 +1,6 @@
 // opcode (6) | 00 | comando(8) | valor (8) | checksum (8) 
+// flag 00 - tudo ok
+
 #define CMD_SUBIR   0b00000001  
 #define CMD_DESCER  0b00000010  
 #define CMD_CHECAR  0b00000011  

@@ -184,7 +184,7 @@ void initDados(){
     int altura;
 
     temp = 25;
-    combustivel = 1000;
+    combustivel = 10000;
     altura = 0;
 
     saveinitial(temp);
@@ -198,7 +198,19 @@ void initUART(){
 }
 
 void receiveUART(){
+    int pronto;
+    int aux;
     msgLcd(33);
+    
+    aux = 50000;
+    pronto = 0;
+
+    while(pronto == 0){
+        pronto = load(aux);
+    }
+
+    save(pronto, aux);
+
     nop();
 }
 

@@ -9,14 +9,36 @@ int vototemp;
 int votocomb;
 int votoaltura;
 
-void voteSanityCheck(){
+int voteSw(int procUmtemp, int procDoistemp, int procTrestemp){
+    int auxValue = 0;
+    if(procUmtemp == procDoistemp){
+        return procUmtemp;
+    }
+    else{
+        nop(); //mantem
+    }
     
+    if(procUmtemp == procTrestemp){
+        return procUmtemp;
+        //atualiza
+    }
+    else{
+        nop(); //mantem
+    }
+    
+    if(procDoistemp == procTrestemp){
+        return procDoistemp;
+        //atualiza
+    }
+    else{
+        nop(); //mantem
+    }
+    return auxValue;
 }
-
 
 void initVote() {
     int auxProc;
-    
+
     int procUmtemp ;
     int procUmcomb ;
     int procUmaltura ;
@@ -47,9 +69,9 @@ void initVote() {
     procTrescomb = loadnewinfo(auxProc);
     procTresaltura = loadnewinfo(auxProc);
 
-    vototemp = voteHdw(procUmtemp, procDoistemp, procTrestemp);
-    votocomb = voteHdw(procUmcomb, procDoiscomb, procTrescomb);
-    votoaltura = voteHdw(procUmaltura, procDoisaltura, procTresaltura);    
+    vototemp = voteSw(procUmtemp, procDoistemp, procTrestemp);
+    votocomb = voteSw(procUmcomb, procDoiscomb, procTrescomb);
+    votoaltura = voteSw(procUmaltura, procDoisaltura, procTresaltura);    
     
     if(vototemp > temp + 10) { 
         msgLcd(35);
@@ -71,16 +93,15 @@ void initVote() {
         saveinitial(votocomb);
     }
     
-    if(votoaltura > altura + 50) { 
+    if(votoaltura > altura + 20) { 
         msgLcd(37);
         saveinitial(altura);
-    } else if (votoaltura < altura - 50) {
+    } else if (votoaltura < altura - 20) {
         msgLcd(37);
         saveinitial(altura);
     } else {
         saveinitial(votoaltura);
     }
-
     
 }
 
