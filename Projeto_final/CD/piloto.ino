@@ -1,9 +1,14 @@
-// opcode (6) | 00 | comando(8) | valor (8) | checksum (8) 
-// flag 00 - tudo ok
+// opcode (6) | flag(2) | comando(8) | valor (8) | checksum (8) 
+// #include <SoftwareSerial.h>
+// SoftwareSerial Serial1(10, 11);
 
 #define CMD_SUBIR   0b00000001  
 #define CMD_DESCER  0b00000010  
 #define CMD_CHECAR  0b00000011  
+#define FLAG_STD    0b00
+#define FLAG_TEMP    0b01
+#define FLAG_COMB    0b10
+#define FLAG_ALT    0b11
 
 // Opcodes de 6 bits
 #define OPCODE_E    0b011110    // TX (piloto -> Avião)
@@ -13,15 +18,19 @@
 #define RX_PIN 16
 #define TX_PIN 17
 
+byte flag; 
+
 void setup() {
   // Comunicação com o PC (Monitor Serial) via USB
+  // Serial.begin(2400); 
   Serial.begin(115200); 
   
   // Comunicação com a FPGA - ESP32
   Serial1.begin(115200, SERIAL_8N1, RX_PIN, TX_PIN); 
-  
+  // Serial1.begin(2400);
   // Aguarda a porta do PC iniciar
   while (!Serial); 
+  while(!Serial1);
   
   Serial.println("=====================================");
   Serial.println("       SISTEMA FLY BY WIRE   ");
@@ -61,7 +70,8 @@ void loop() {
 
         if(Serial.available() > 0){
             int graus = Serial.parseInt();
-            enviarComandoParaFPGA(CMD_SUBIR, graus);
+            flag = FLAG_STD;
+            enviarComandoParaFPGA(CMD_SUBIR, graus, flag);
         } 
     } 
     else if (tecla == 'S' || tecla == 's') {
@@ -70,7 +80,8 @@ void loop() {
 
         if(Serial.available() > 0){
             int graus = Serial.parseInt();
-            enviarComandoParaFPGA(CMD_DESCER, graus);
+            flag = FLAG_STD;
+            enviarComandoParaFPGA(CMD_DESCER, graus, flag);
         } 
     }
     else if (tecla == 'C' || tecla == 'c') {
@@ -78,8 +89,17 @@ void loop() {
         while(Serial.available() == 0); 
 
         if(Serial.available() > 0){
-            int check = Serial.parseInt();
-            enviarComandoParaFPGA(CMD_CHECAR, check);
+            int input = Serial.parseInt();
+            if(input == 1){
+              flag = FLAG_TEMP;
+            }
+            else if(input == 2){
+              flag = FLAG_COMB;
+            }
+            else if(input == 3){
+              flag = FLAG_ALT;
+            }
+            enviarComandoParaFPGA(CMD_CHECAR, 0, flag);
         } 
     }
   }
@@ -87,35 +107,47 @@ void loop() {
   // ==========================================================
   // FPGA -> ESP32 -> PC (Recebendo status do avião)
   // ==========================================================
-  
-  if (Serial1.available() >= 4) { // Verifica a Serial1 (FPGA)
-    byte expected_header = (OPCODE_R << 2) | 0b00;
-    if (Serial1.read() == expected_header) { // Verifica o header do pacote
-      byte cmd_recebido = Serial1.read();
-      byte val_recebido = Serial1.read();
-      byte chk_recebido = Serial1.read();
-      
-      // Sanity Check: Verifica integridade do pacote
-      byte chk_calculado = cmd_recebido ^ val_recebido;
-      
-      if (chk_calculado == chk_recebido) {
-        exibirRespostaNoPC(cmd_recebido, val_recebido);
-      } else {
-        Serial.println("[ALERTA] Interferência no link! Pacote corrompido.");
+  unsigned long tempoInicio = millis();
+  while (millis() - tempoInicio < 10000){
+    if (Serial1.available() >= 4) { // Verifica a Serial1 (FPGA)
+      byte expected_header = (OPCODE_R << 2) | flag;
+      byte header = Serial1.read();
+      Serial.println(header);
+      if (header == expected_header) { // Verifica o header do pacote
+        byte cmd_recebido = Serial1.read();
+        byte val_recebido = Serial1.read();
+        byte chk_recebido = Serial1.read();
+
+        // Sanity Check: Verifica integridade do pacote
+        byte chk_calculado = cmd_recebido ^ val_recebido;
+
+        if (chk_calculado == chk_recebido) {
+          exibirRespostaNoPC(cmd_recebido, val_recebido);
+        } else {
+          Serial.println("[ALERTA] Interferência no link! Pacote corrompido.");
+        }
       }
+      else {
+        // Se o header estiver errado, limpa o buffer para não travar a próxima leitura
+        while(Serial1.available() > 0) Serial1.read();
+      }
+    break;
     }
   }
 
 }
 
 // Envia os 4 bytes fisicamente para a FPGA usando a Serial1
-void enviarComandoParaFPGA(byte comando, byte valor) {
-  byte header = (OPCODE_E << 2) | 0b00;
+void enviarComandoParaFPGA(byte comando, byte valor, byte f) {
+  byte header = (OPCODE_E << 2) | flag;
   byte checksum = comando ^ valor; 
   
   Serial1.write(header);
+  delay(1000);
   Serial1.write(comando);
+  delay(1000);
   Serial1.write(valor);
+  delay(1000);
   Serial1.write(checksum);
 }
 
@@ -135,13 +167,9 @@ void exibirRespostaNoPC(byte comando, byte valor) {
   }
   else if (comando == CMD_CHECAR) {
     Serial.println("Check OK. Sistema operante ");
-    // verificar opcode de resposta 
-    // mostra altura atual, temperatura ou combustível dependendo do valor recebido
-    Serial.print("Altura atual: ");
-    Serial.println(valor);
-    Serial.print("Temperatura do motor atual: ");
-    Serial.println(valor);
-    Serial.print("Combustível atual: ");
+    if(flag == FLAG_TEMP)      Serial.println("Temperatura do Motor");
+    else if(flag == FLAG_COMB) Serial.println("Nivel de Combustivel");
+    else if(flag == FLAG_ALT)  Serial.println("Altura atual");
     Serial.println(valor);
   }
   else {

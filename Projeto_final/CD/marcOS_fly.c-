@@ -216,6 +216,7 @@ void receiveUART(){
 
 void sendUART(){
     msgLcd(34);
+    //ativar flag no fpga
     // depende do comando requerido
     nop();
 }
