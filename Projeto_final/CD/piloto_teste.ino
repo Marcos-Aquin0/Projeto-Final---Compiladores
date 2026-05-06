@@ -1,6 +1,6 @@
-#include <SoftwareSerial.h>
+// #include <SoftwareSerial.h>
 
-SoftwareSerial Serial1(10, 11); // RX (10), TX (11)
+// SoftwareSerial Serial1(10, 11); // RX (10), TX (11)
 
 #define OPCODE_E    0b011110    // TX (piloto -> Avião)
 #define OPCODE_R    0b011111    // RX (Avião -> piloto)
@@ -21,9 +21,9 @@ SoftwareSerial Serial1(10, 11); // RX (10), TX (11)
 byte altura_atual = 0;
 
 void setup() {
-  Serial1.begin(2400);
-  //Serial1.begin(115200, SERIAL_8N1, RX_PIN, TX_PIN);
-  Serial.begin(2400);
+  // Serial1.begin(2400);
+  Serial1.begin(115200, SERIAL_8N1, RX_PIN, TX_PIN);
+  Serial.begin(115200);
 }
 
 void loop() {

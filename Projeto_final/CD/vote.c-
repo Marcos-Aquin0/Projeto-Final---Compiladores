@@ -83,10 +83,10 @@ void initVote() {
         saveinitial(vototemp);
     }
     
-    if(votocomb > comb + 100) { 
+    if(votocomb > comb + 30) { 
         msgLcd(36);
         saveinitial(comb);
-    } else if (votocomb < comb - 100) {
+    } else if (votocomb < comb - 30) {
         msgLcd(36);
         saveinitial(comb);
     } else {

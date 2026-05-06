@@ -18,6 +18,7 @@
 #define RX_PIN 16
 #define TX_PIN 17
 
+int verMenu = 1;
 byte flag; 
 
 void setup() {
@@ -57,9 +58,11 @@ void loop() {
   // ==========================================================
   // PC -> ESP32 -> FPGA (Enviando comandos para o avião)
   // ==========================================================
-  
-  menu(); // Exibe o menu de comandos para o usuário
-  while(Serial.available() == 0); 
+  if(verMenu) {
+    menu(); // Exibe o menu de comandos para o usuário
+    verMenu = 0;
+  }
+   while(Serial.available() == 0); 
   if (Serial.available() > 0) {
     char tecla = Serial.read();
     
@@ -102,6 +105,7 @@ void loop() {
             enviarComandoParaFPGA(CMD_CHECAR, 0, flag);
         } 
     }
+    verMenu = 1;
   }
 
   // ==========================================================

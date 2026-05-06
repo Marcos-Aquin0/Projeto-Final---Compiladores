@@ -12,7 +12,6 @@ int dados [ 10 ];
 int opcao;
 int sinalsyscall;
 int rodouumavez [ 10 ];
-int primeiraVez;
 
 void mapeamento(){
     int i;
@@ -184,7 +183,7 @@ void initDados(){
     int altura;
 
     temp = 25;
-    combustivel = 10000;
+    combustivel = 255;
     altura = 0;
 
     saveinitial(temp);
@@ -206,67 +205,54 @@ void receiveUART(){
     pronto = 0;
 
     while(pronto == 0){
-        pronto = load(aux);
+        pronto = loadpkt(aux);
     }
-
-    save(pronto, aux);
+ 
+    savepkt(pronto, aux);
 
     nop();
 }
 
 void sendUART(){
     msgLcd(34);
-    //ativar flag no fpga
-    // depende do comando requerido
     nop();
 }
 
 void main(void){
     mapeamento();
+    msgLcd(0);
     nop();
     salto = 0;
     processosCarregados = 3;
-    msgLcd(0);
+    nop();
     nop();
     menuShell();
     nop();
 
     salto = 0;
     nop();
-    primeiraVez = 1;
     
+    nop();
+    defineProcesso();
+    initDados();
+    initUART();
+
     while(opcao != 6){
-        salto = 0;
-        nop();
-        if(opcao==5){
-            salto = 0;
-            nop();
-            menuShell();
-            primeiraVez = 1; 
-        }
-        else{
-            nop();
-        }
-        if(primeiraVez == 1){
-            nop();
-            defineProcesso();
-            initDados();
-            initUART();
-            primeiraVez = 0;
-        }
-        else{
-            nop();
-        }
-        
+        output(50);
         receiveUART();
         initRR();
         votenaoPreemptivo();
         sendUART();
         nop();
         salto = 0;
+        menuShell();
     }
     nop();
+    nop();
+    nop();
     msgLcd(28);
+    nop();
+    nop();
     nop();
     nop();
     halt();

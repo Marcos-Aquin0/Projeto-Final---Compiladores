@@ -873,16 +873,16 @@ void generateAssembly(FILE* inputFile, int mode) {
                     }
                     else{
                         if(strcmp(quad.arg1,"dispatchersavenpremp")==0){
-                            fprintf(output, "%d - li $r39 601\n", lineIndex++);    
+                            fprintf(output, "%d - li $r39 1001\n", lineIndex++);    
                         }
                         else if(strcmp(quad.arg1,"dispatcherloadnpremp")==0){
-                            fprintf(output, "%d - li $r39 801\n", lineIndex++);                                
+                            fprintf(output, "%d - li $r39 1201\n", lineIndex++);                                
                         }
                         else if(strcmp(quad.arg1,"dispatchersavepprog")==0){
-                            fprintf(output, "%d - li $r39 1001\n", lineIndex++);                                
+                            fprintf(output, "%d - li $r39 1401\n", lineIndex++);                                
                         }
                         else if(strcmp(quad.arg1,"dispatchersavepremp")==0){
-                            fprintf(output, "%d - li $r39 1201\n", lineIndex++);                                
+                            fprintf(output, "%d - li $r39 1601\n", lineIndex++);                                
                         }
                         
                         fprintf(output, "%d - addil $r43 $r39 main\n", lineIndex++, quad.arg1);
@@ -1064,22 +1064,22 @@ void generateAssembly(FILE* inputFile, int mode) {
                     fprintf(output, "%d - move $r42 $r1 # salva a posição de memoria\n", lineIndex++); //r referente ao destino do salto  
                     fprintf(output, "%d - move $r1 $r40\n", lineIndex++); //r referente ao salto
                     fprintf(output, "%d - li $r58 %d \n", lineIndex++, (lineIndex)-labelCount+3); //r referente ao salto
-                    fprintf(output, "%d - li $r43 601\n", lineIndex++);
-                    fprintf(output, "%d - j 601\n", lineIndex++);
+                    fprintf(output, "%d - li $r43 1001\n", lineIndex++);
+                    fprintf(output, "%d - j 1001\n", lineIndex++);
                 }
                 else if (strcmp(quad.arg1, "dispatcherloadnp") == 0){
                     fprintf(output, "%d - move $r1 $r40 # carrega o valor salvo\n", lineIndex++); //r referente ao salto
                     fprintf(output, "%d - li $r58 %d \n", lineIndex++, (lineIndex)-labelCount+3); //r referente ao salto
-                    fprintf(output, "%d - li $r43 801\n", lineIndex++);
-                    fprintf(output, "%d - j 801\n", lineIndex++);
+                    fprintf(output, "%d - li $r43 1201\n", lineIndex++);
+                    fprintf(output, "%d - j 1201\n", lineIndex++);
                     fprintf(output, "%d - move $r1 $r42 # carrega a posição de memoria\n", lineIndex++); //r referente ao destino do salto  
                 }
                 else if (strcmp(quad.arg1, "dispatchersavep") == 0){
                     fprintf(output, "%d - move $r42 $r1 # salva a posição de memoria\n", lineIndex++); //r referente ao destino do salto  
                     fprintf(output, "%d - move $r1 $r40\n", lineIndex++); //r referente ao salto
                     fprintf(output, "%d - li $r58 %d \n", lineIndex++, (lineIndex)-labelCount+3); //r referente ao salto
-                    fprintf(output, "%d - li $r43 1201\n", lineIndex++);
-                    fprintf(output, "%d - j 1201\n", lineIndex++);
+                    fprintf(output, "%d - li $r43 1601\n", lineIndex++);
+                    fprintf(output, "%d - j 1601\n", lineIndex++);
                 }
                 else if (strcmp(quad.arg1, "salvaregSO") == 0){
                     for (int j=63; j>=0; j--){
@@ -1144,7 +1144,7 @@ void generateAssembly(FILE* inputFile, int mode) {
                 else if(strcmp(quad.arg1,"saveinitial") == 0){
                     fprintf(output, "%d - li $r63 %d\n", lineIndex++, 25000 + 4*saveinitialCount++); //r referente ao salto
                     fprintf(output, "%d - sw $r46 0($r63)\n", lineIndex++);
-                    fprintf(output, "%d - li $63 0\n", lineIndex++); 
+                    fprintf(output, "%d - li $r63 0\n", lineIndex++); 
                     if(saveinitialCount == 3){
                         saveinitialCount = 0;
                     }
@@ -1152,7 +1152,7 @@ void generateAssembly(FILE* inputFile, int mode) {
                 else if(strcmp(quad.arg1,"loadinitial") == 0){
                     fprintf(output, "%d - li $r63 %d\n", lineIndex++, 25000 + 4*loadinitialCount++); //r referente ao salto
                     fprintf(output, "%d - lw $r%d 0($r63)\n", lineIndex++, r3);
-                    fprintf(output, "%d - li $63 0\n", lineIndex++); 
+                    fprintf(output, "%d - li $r63 0\n", lineIndex++); 
                     if(loadinitialCount == 3){
                         loadinitialCount = 0;
                     }
@@ -1160,7 +1160,7 @@ void generateAssembly(FILE* inputFile, int mode) {
                 else if(strcmp(quad.arg1,"savepkt") == 0){
                     fprintf(output, "%d - li $r63 %d\n", lineIndex++, 30000 + 4*savepktCount++); //r referente ao salto
                     fprintf(output, "%d - sw $r46 0($r63)\n", lineIndex++);
-                    fprintf(output, "%d - li $63 0\n", lineIndex++); 
+                    fprintf(output, "%d - li $r63 0\n", lineIndex++); 
                     if(savepktCount == 5){
                         savepktCount = 0;
                     }
@@ -1168,7 +1168,7 @@ void generateAssembly(FILE* inputFile, int mode) {
                 else if(strcmp(quad.arg1,"loadpkt") == 0){
                     fprintf(output, "%d - li $r63 %d\n", lineIndex++, 30000 + 4*loadpktCount++); //r referente ao salto
                     fprintf(output, "%d - lw $r%d 0($r63)\n", lineIndex++, r3);
-                    fprintf(output, "%d - li $63 0\n", lineIndex++);
+                    fprintf(output, "%d - li $r63 0\n", lineIndex++);
                     if(loadpktCount == 5){
                         loadpktCount = 0;
                     } 
@@ -1176,7 +1176,7 @@ void generateAssembly(FILE* inputFile, int mode) {
                 else if(strcmp(quad.arg1,"savenewinfo") == 0){
                     fprintf(output, "%d - addi $r63 $r46 %d\n", lineIndex++, 4*savenewinfoCount++); //r referente ao salto
                     fprintf(output, "%d - sw $r47 0($r63)\n", lineIndex++);
-                    fprintf(output, "%d - li $63 0\n", lineIndex++);
+                    fprintf(output, "%d - li $r63 0\n", lineIndex++);
                     if(savenewinfoCount == 3){
                         savenewinfoCount = 0;
                     } 
@@ -1184,7 +1184,7 @@ void generateAssembly(FILE* inputFile, int mode) {
                 else if(strcmp(quad.arg1,"loadnewinfo") == 0){
                     fprintf(output, "%d - addi $r63 $r46 %d\n", lineIndex++, 4*savenewinfoCount++); //r referente ao salto
                     fprintf(output, "%d - lw $r%d 0($r63)\n", lineIndex++, r3);
-                    fprintf(output, "%d - li $63 0\n", lineIndex++);
+                    fprintf(output, "%d - li $r63 0\n", lineIndex++);
                     if(savenewinfoCount == 3){
                         savenewinfoCount = 0;
                     } 
@@ -1204,16 +1204,16 @@ void generateAssembly(FILE* inputFile, int mode) {
                     }
                     else{
                         if(strcmp(quad.arg1,"dispatchersavenpremp")==0){
-                            fprintf(output, "%d - li $r39 601\n", lineIndex++);    
+                            fprintf(output, "%d - li $r39 1001\n", lineIndex++);    
                         }
                         else if(strcmp(quad.arg1,"dispatcherloadnpremp")==0){
-                            fprintf(output, "%d - li $r39 801\n", lineIndex++);                                
+                            fprintf(output, "%d - li $r39 1201\n", lineIndex++);                                
                         }
                         else if(strcmp(quad.arg1,"dispatchersavepprog")==0){
-                            fprintf(output, "%d - li $r39 1001\n", lineIndex++);                                
+                            fprintf(output, "%d - li $r39 1401\n", lineIndex++);                                
                         }
                         else if(strcmp(quad.arg1,"dispatchersavepremp")==0){
-                            fprintf(output, "%d - li $r39 1201\n", lineIndex++);                                
+                            fprintf(output, "%d - li $r39 1601\n", lineIndex++);                                
                         }
                         
                         fprintf(output, "%d - addil $r43 $r39 %s\n", lineIndex++, quad.arg1);

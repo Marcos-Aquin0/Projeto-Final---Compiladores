@@ -28,7 +28,7 @@ void flybyw(){
     if (comando == 1) { 
         newaltura = altura + valor;
         newtemp = temp + 5; 
-        newcombustivel = combustivel - (valor - 50); 
+        newcombustivel = combustivel - (valor - 20); 
     } 
     else if (comando == 2) { 
         newaltura = altura - valor;
