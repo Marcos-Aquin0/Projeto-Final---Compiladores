@@ -186,9 +186,9 @@ void initDados(){
     combustivel = 255;
     altura = 0;
 
-    saveinitial(temp);
-    saveinitial(combustivel);
-    saveinitial(altura);
+    saveword(2000, temp);
+    saveword(2001, combustivel);
+    saveword(2002, altura);
 }
 
 void initUART(){
@@ -201,14 +201,14 @@ void receiveUART(){
     int aux;
     msgLcd(33);
     
-    aux = 50000;
+    aux = 1000;
     pronto = 0;
 
     while(pronto == 0){
-        pronto = loadpkt(aux);
+        pronto = loadword(aux);
     }
- 
-    savepkt(pronto, aux);
+
+    saveword(aux+1, 1);
 
     nop();
 }
@@ -238,7 +238,6 @@ void main(void){
     initUART();
 
     while(opcao != 6){
-        output(50);
         receiveUART();
         initRR();
         votenaoPreemptivo();

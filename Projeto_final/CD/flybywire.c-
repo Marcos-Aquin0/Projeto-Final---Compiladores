@@ -1,29 +1,12 @@
 int processoAtual;
 
-void flybyw(){ 
-    int header ;
-    int flag ;
-    int comando ;
-    int valor ;
-    int checksum ;
-    int temp ;
-    int combustivel ;
-    int altura ;
+void verify(int comando, int valor, int temp, int combustivel, int altura){
     int newtemp;
     int newcombustivel;
     int newaltura;
-    int auxProc;
-    
-    msgLcd(30); 
-    header = loadpkt(header);
-    flag = loadpkt(flag);
-    comando = loadpkt(comando);
-    valor = loadpkt(valor);
-    checksum = loadpkt(checksum);
-    temp = loadinitial(temp);
-    combustivel = loadinitial(combustivel);
-    altura = loadinitial(altura);
+    int aux;
 
+    aux = 12000 + 1000*(processoAtual);
 
     if (comando == 1) { 
         newaltura = altura + valor;
@@ -39,11 +22,40 @@ void flybyw(){
         nop();
     }
     
-    
-    auxProc = 40000 + 1000*(processoAtual);
-    savenewinfo(auxProc, newtemp);
-    savenewinfo(auxProc, newcombustivel);
-    savenewinfo(auxProc, newaltura);    
+    saveword(aux-10, newtemp);
+    saveword(aux-11, newcombustivel);
+    saveword(aux-12, newaltura); 
+}
+
+void flybyw(){ 
+    int header ;
+    int flag ;
+    int comando ;
+    int valor ;
+    int checksum ;
+    int temp ;
+    int combustivel ;
+    int altura ;
+    int newtemp;
+    int newcombustivel;
+    int newaltura;
+    int aux;
+
+    msgLcd(30); 
+    aux = 12000 + 1000*(processoAtual);
+
+    header = loadword(aux-1);
+    flag = loadword(aux-2);
+    comando = loadword(aux-3);
+    valor = loadword(aux-4);
+    checksum = loadword(aux-5);
+
+    temp = loadword(2000);
+    combustivel = loadword(2001);
+    altura = loadword(2002);
+
+    verify(comando, valor, temp, combustivel, altura);
+   
 }
 
 void main (void){
