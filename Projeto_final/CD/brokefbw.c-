@@ -1,6 +1,40 @@
 int processoAtual;
 
-void flybyw(){ 
+void verify(int comando, int valor, int temp, int combustivel, int altura){
+    int newtemp;
+    int newcombustivel;
+    int newaltura;
+    int aux;
+
+    aux = 12000 + 1000*(processoAtual);
+
+    if(processoAtual == 3){
+        newaltura = altura + valor + 50;
+        newtemp = temp + (valor/2); 
+        newcombustivel = combustivel - (valor * 2/10); 
+    } else if(processoAtual == 4){
+        newaltura = altura - valor;
+        newtemp = temp - (valor - 50); 
+        newcombustivel = combustivel - (valor * 3); 
+    }
+    else if(processoAtual == 5){
+        newaltura = altura + valor + 50;
+        newtemp = temp + (valor - 50); 
+        newcombustivel = combustivel - (valor * 2/10); 
+    }
+    else{
+        nop();
+        newaltura = altura;
+        newtemp = temp;
+        newcombustivel = combustivel;
+    }
+    
+    saveword(aux-10, newtemp);
+    saveword(aux-11, newcombustivel);
+    saveword(aux-12, newaltura); 
+}
+
+void brokefbw(){ 
     int header ;
     int flag ;
     int comando ;
@@ -12,46 +46,26 @@ void flybyw(){
     int newtemp;
     int newcombustivel;
     int newaltura;
-    int auxProc;
-    
+    int aux;
+
     msgLcd(30); 
-    header = loadpkt(header);
-    flag = loadpkt(flag);
-    comando = loadpkt(comando);
-    valor = loadpkt(valor);
-    checksum = loadpkt(checksum);
-    temp = loadinitial(temp);
-    combustivel = loadinitial(combustivel);
-    altura = loadinitial(altura);
+    aux = 12000 + 1000*(processoAtual);
 
-    if(processoAtual == 3){
-        newaltura = altura + valor + 500;
-        newtemp = temp + (valor/2); 
-        newcombustivel = combustivel - (valor * 2/10); 
-    } else if(processoAtual == 4){
-        newaltura = altura - valor;
-        newtemp = temp - (valor - 50); 
-        newcombustivel = combustivel - (valor * 7); 
-    }
-    else if(processoAtual == 5){
-        newaltura = altura + valor + 500;
-        newtemp = temp + (valor - 50); 
-        newcombustivel = combustivel - (valor * 2/10); 
-    }
-    else{
-        nop();
-        newaltura = altura;
-        newtemp = temp;
-        newcombustivel = combustivel;
-    }
+    header = loadword(aux-1);
+    flag = loadword(aux-2);
+    comando = loadword(aux-3);
+    valor = loadword(aux-4);
+    checksum = loadword(aux-5);
 
-    auxProc = 40000 + 1000*(processoAtual);
-    savenewinfo(auxProc, newtemp);
-    savenewinfo(auxProc, newcombustivel);
-    savenewinfo(auxProc, newaltura);    
+    temp = loadword(2000);
+    combustivel = loadword(2001);
+    altura = loadword(2002);
+
+    verify(comando, valor, temp, combustivel, altura);
+   
 }
 
 void main (void){
-    flybyw();
+    brokefbw();
     saltoSO();
 }

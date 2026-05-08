@@ -178,7 +178,7 @@ void initRR(){
 }
 
 void initDados(){
-    int temp ;
+    int temp;
     int combustivel;
     int altura;
 
