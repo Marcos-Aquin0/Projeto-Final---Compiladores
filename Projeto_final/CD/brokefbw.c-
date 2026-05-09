@@ -46,16 +46,14 @@ void brokefbw(){
     int newtemp;
     int newcombustivel;
     int newaltura;
-    int aux;
 
     msgLcd(30); 
-    aux = 12000 + 1000*(processoAtual);
 
-    header = loadword(aux-1);
-    flag = loadword(aux-2);
-    comando = loadword(aux-3);
-    valor = loadword(aux-4);
-    checksum = loadword(aux-5);
+    header = loadword(500);
+    flag = loadword(501);
+    comando = loadword(502);
+    valor = loadword(503);
+    checksum = loadword(504);
 
     temp = loadword(2000);
     combustivel = loadword(2001);

@@ -199,6 +199,12 @@ void initUART(){
 void receiveUART(){
     int pronto;
     int aux;
+    int header;
+    int flag; 
+    int comando; 
+    int valor; 
+    int checksum; 
+   
     msgLcd(33);
     
     aux = 1000;
@@ -210,11 +216,70 @@ void receiveUART(){
 
     saveword(aux+1, 1);
 
+    header = loadword(aux+2);
+    flag = loadword(aux+3);
+    comando = loadword(aux+4);
+    valor = loadword(aux+5);
+    checksum = loadword(aux+6);
+
+    saveword(500, header);
+    saveword(501, flag);
+    saveword(502, comando);
+    saveword(503, valor);
+    saveword(504, checksum);
+    
     nop();
 }
 
 void sendUART(){
-    msgLcd(34);
+    int comando;
+    int flag;
+    int valorRec;
+    int valorAns;
+    int header;
+    int checksum;
+
+    msgLcd(34); 
+
+    flag = loadword(501);
+    comando = loadword(502);
+    valorRec = loadword(503);
+
+    if (comando == 1) { 
+        header = 124; 
+        valorAns = valorRec;
+    }
+    else if (comando == 2) { 
+        header = 124; 
+        valorAns = valorRec;
+    }
+    else if (comando == 3) { 
+        header = 124 + flag; 
+        
+        if (flag == 1) {
+            valorAns = loadword(2000); 
+        }
+        else if (flag == 2) {
+            valorAns = loadword(2001); 
+        }
+        else if (flag == 3) {
+            valorAns = loadword(2002); 
+        }
+        else {
+            valorAns = 0;
+            nop();
+        }
+    }
+    else {
+        nop();
+    }
+
+    saveword(1008, header);
+    saveword(1009, comando);
+    saveword(1010, valorAns);
+    
+    saveword(1011, 1);
+
     nop();
 }
 

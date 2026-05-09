@@ -1,23 +1,14 @@
-falta o uart 
-init, receive/savepkt
-enviar pkt 
-
-integrar certinho no fpga 
-
-checksum
-
-codigo esp32
-2 casas de flag
-testar infinitamente
 artigo
 video 
+pcs 
 
-rever save e load memoria 
-bem comum ter algo errado 
+checksum
+salvar e receber o pacote 
+testar um pacote diretamente nisso 
 
-pin planner gpio
+depois testar os processos
 
-flags
-
-o SO vai receber o comando da esp32 e salvar nas posiçoes
-de memoria para os 3 processos em questao
+se der tudo certo 
+testar a esp32
+testar a conexão final
+pin planner gpio (nao da para mapear junto com o remoto)
