@@ -21,14 +21,14 @@ void mapeamento(){
     i = 0;
     desviodados = 11000;
     desvio = 1901;
-    while(i <= 9){
+    while(i <= 6){
         nop();
         dados[i] = desviodados;
         halts[i] = 0;
         rodouumavez[i] = 0;
         programas[i] = i;
         processos[i] = desvio;
-        desvio = desvio + 200;
+        desvio = desvio + 300;
         desviodados = desviodados - 1000;
         i = i+1;    
         nop();
@@ -217,10 +217,19 @@ void receiveUART(){
     saveword(aux+1, 1);
 
     header = loadword(aux+2);
+    output(header);
+    
     flag = loadword(aux+3);
+    output(flag);
+    
     comando = loadword(aux+4);
+    output(comando);
+    
     valor = loadword(aux+5);
+    output(valor);
+
     checksum = loadword(aux+6);
+    output(checksum);
 
     saveword(500, header);
     saveword(501, flag);

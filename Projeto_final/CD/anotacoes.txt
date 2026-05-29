@@ -3,12 +3,5 @@ video
 pcs 
 
 checksum
-salvar e receber o pacote 
-testar um pacote diretamente nisso 
 
-depois testar os processos
-
-se der tudo certo 
-testar a esp32
-testar a conexão final
-pin planner gpio (nao da para mapear junto com o remoto)
+testar os processos

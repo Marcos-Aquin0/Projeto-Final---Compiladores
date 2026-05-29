@@ -86,17 +86,17 @@ void initVote() {
     altura = loadword(2002);
     
     processoAtual = processosExecucao[1];
-    auxProc = 12000 + 1000*(processoAtual);
+    auxProc = 12000 + 200*(processoAtual);
     procUmtemp = loadword(auxProc);
     procUmcomb = loadword(auxProc);
     procUmaltura = loadword(auxProc);
     processoAtual = processosExecucao[2];
-    auxProc = 12000 + 1000*(processoAtual);
+    auxProc = 12000 + 200*(processoAtual);
     procDoistemp = loadword(auxProc);
     procDoiscomb = loadword(auxProc);
     procDoisaltura = loadword(auxProc);
     processoAtual = processosExecucao[3];
-    auxProc = 12000 + 1000*(processoAtual);
+    auxProc = 12000 + 200*(processoAtual);
     procTrestemp = loadword(auxProc);
     procTrescomb = loadword(auxProc);
     procTresaltura = loadword(auxProc);

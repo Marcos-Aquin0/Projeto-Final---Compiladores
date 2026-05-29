@@ -6,7 +6,7 @@ void verify(int comando, int valor, int temp, int combustivel, int altura){
     int newaltura;
     int aux;
 
-    aux = 12000 + 500*(processoAtual);
+    aux = 12000 + 200*(processoAtual);
 
     if (comando == 1) { 
         newaltura = altura + valor;

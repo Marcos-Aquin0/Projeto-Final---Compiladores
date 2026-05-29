@@ -105,7 +105,6 @@ void loop() {
             enviarComandoParaFPGA(CMD_CHECAR, 0, flag);
         } 
     }
-    verMenu = 1;
   }
 
   // ==========================================================
@@ -116,7 +115,7 @@ void loop() {
     if (Serial1.available() >= 4) { // Verifica a Serial1 (FPGA)
       byte expected_header = (OPCODE_R << 2) | flag;
       byte header = Serial1.read();
-      Serial.println(header);
+      //Serial.println(header);
       if (header == expected_header) { // Verifica o header do pacote
         byte cmd_recebido = Serial1.read();
         byte val_recebido = Serial1.read();
@@ -135,6 +134,7 @@ void loop() {
         // Se o header estiver errado, limpa o buffer para não travar a próxima leitura
         while(Serial1.available() > 0) Serial1.read();
       }
+    verMenu = 1;
     break;
     }
   }
@@ -145,13 +145,13 @@ void loop() {
 void enviarComandoParaFPGA(byte comando, byte valor, byte f) {
   byte header = (OPCODE_E << 2) | flag;
   byte checksum = comando ^ valor; 
-  
+  Serial.println("enviando pacote");
   Serial1.write(header);
-  delay(1000);
+  delay(100);
   Serial1.write(comando);
-  delay(1000);
+  delay(100);
   Serial1.write(valor);
-  delay(1000);
+  delay(100);
   Serial1.write(checksum);
 }
 
@@ -171,9 +171,9 @@ void exibirRespostaNoPC(byte comando, byte valor) {
   }
   else if (comando == CMD_CHECAR) {
     Serial.println("Check OK. Sistema operante ");
-    if(flag == FLAG_TEMP)      Serial.println("Temperatura do Motor");
-    else if(flag == FLAG_COMB) Serial.println("Nivel de Combustivel");
-    else if(flag == FLAG_ALT)  Serial.println("Altura atual");
+    if(flag == FLAG_TEMP)      Serial.print("Temperatura do Motor: ");
+    else if(flag == FLAG_COMB) Serial.print("Nivel de Combustivel: ");
+    else if(flag == FLAG_ALT)  Serial.print("Altura atual: ");
     Serial.println(valor);
   }
   else {
