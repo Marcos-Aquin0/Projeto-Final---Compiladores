@@ -1,0 +1,1270 @@
+\-- Program
+    \-- DeclList
+        |-- DeclList
+        |   |-- DeclList
+        |   |   |-- DeclList
+        |   |   |   |-- DeclList
+        |   |   |   |   |-- DeclList
+        |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |   |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- DeclList
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- VarDecl (processos[10])
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- SpecType (int)
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- VarDecl (processoAtual)
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- SpecType (int)
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- VarDecl (processosCarregados)
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- SpecType (int)
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- VarDecl (programas[10])
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- SpecType (int)
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- VarDecl (halts[10])
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- SpecType (int)
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- VarDecl (qtdHalt)
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- SpecType (int)
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- VarDecl (processosExecucao[10])
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- SpecType (int)
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- VarDecl (salto)
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- SpecType (int)
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- VarDecl (memdados)
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- SpecType (int)
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- VarDecl (dados[10])
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- SpecType (int)
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- VarDecl (opcao)
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- SpecType (int)
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- VarDecl (sinalsyscall)
+        |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- SpecType (int)
+        |   |   |   |   |   |   |   |   |   |   |   |   |   \-- VarDecl (rodouumavez[10])
+        |   |   |   |   |   |   |   |   |   |   |   |   |       \-- SpecType (int)
+        |   |   |   |   |   |   |   |   |   |   |   |   \-- FuncDecl (mapeamento)
+        |   |   |   |   |   |   |   |   |   |   |   |       |-- Decl
+        |   |   |   |   |   |   |   |   |   |   |   |       |   |-- SpecType (void)
+        |   |   |   |   |   |   |   |   |   |   |   |       |   \-- Func (mapeamento)
+        |   |   |   |   |   |   |   |   |   |   |   |       \-- Decl
+        |   |   |   |   |   |   |   |   |   |   |   |           \-- CompoundDecl
+        |   |   |   |   |   |   |   |   |   |   |   |               |-- LocalDecl
+        |   |   |   |   |   |   |   |   |   |   |   |               |   |-- LocalDecl
+        |   |   |   |   |   |   |   |   |   |   |   |               |   |   |-- LocalDecl
+        |   |   |   |   |   |   |   |   |   |   |   |               |   |   |   \-- VarDecl (i)
+        |   |   |   |   |   |   |   |   |   |   |   |               |   |   |       \-- SpecType (int)
+        |   |   |   |   |   |   |   |   |   |   |   |               |   |   \-- VarDecl (desvio)
+        |   |   |   |   |   |   |   |   |   |   |   |               |   |       \-- SpecType (int)
+        |   |   |   |   |   |   |   |   |   |   |   |               |   \-- VarDecl (desviodados)
+        |   |   |   |   |   |   |   |   |   |   |   |               |       \-- SpecType (int)
+        |   |   |   |   |   |   |   |   |   |   |   |               \-- StateList
+        |   |   |   |   |   |   |   |   |   |   |   |                   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |   |                   |   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |   |                   |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |   |                   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |   |                   |   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |   |                   |   |   |           |-- Var (i)
+        |   |   |   |   |   |   |   |   |   |   |   |                   |   |   |           \-- Factor (0)
+        |   |   |   |   |   |   |   |   |   |   |   |                   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |   |                   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |   |                   |   |           |-- Var (desviodados)
+        |   |   |   |   |   |   |   |   |   |   |   |                   |   |           \-- Factor (11000)
+        |   |   |   |   |   |   |   |   |   |   |   |                   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |   |                   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |   |                   |           |-- Var (desvio)
+        |   |   |   |   |   |   |   |   |   |   |   |                   |           \-- Factor (1901)
+        |   |   |   |   |   |   |   |   |   |   |   |                   \-- IterDecl
+        |   |   |   |   |   |   |   |   |   |   |   |                       |-- SimpExpr
+        |   |   |   |   |   |   |   |   |   |   |   |                       |   |-- Var (i)
+        |   |   |   |   |   |   |   |   |   |   |   |                       |   \-- Relational
+        |   |   |   |   |   |   |   |   |   |   |   |                       |       |-- Relational (<=)
+        |   |   |   |   |   |   |   |   |   |   |   |                       |       \-- Factor (6)
+        |   |   |   |   |   |   |   |   |   |   |   |                       \-- CompoundDecl
+        |   |   |   |   |   |   |   |   |   |   |   |                           \-- StateList
+        |   |   |   |   |   |   |   |   |   |   |   |                               |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |   |   |   |       \-- Activation
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |   |   |   |           \-- Func (nop)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |   |   |           |-- ArrayAccess (dados[])
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |   |   |           |   |-- Var (dados)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |   |   |           |   \-- Var (i)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |   |   |           \-- Var (desviodados)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |   |           |-- ArrayAccess (halts[])
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |   |           |   |-- Var (halts)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |   |           |   \-- Var (i)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |   |           \-- Factor (0)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |           |-- ArrayAccess (rodouumavez[])
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |           |   |-- Var (rodouumavez)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |           |   \-- Var (i)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   |           \-- Factor (0)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |           |-- ArrayAccess (programas[])
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |           |   |-- Var (programas)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |           |   \-- Var (i)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   |           \-- Var (i)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |           |-- ArrayAccess (processos[])
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |           |   |-- Var (processos)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |           |   \-- Var (i)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   |           \-- Var (desvio)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |           |-- Var (desvio)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |           \-- SumExpr (+)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |               |-- Var (desvio)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   |               \-- Factor (300)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |           |-- Var (desviodados)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |           \-- SumExpr (-)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |               |-- Var (desviodados)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   |               \-- Factor (1000)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |   |                               |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |           |-- Var (i)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |           \-- SumExpr (+)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |               |-- Var (i)
+        |   |   |   |   |   |   |   |   |   |   |   |                               |               \-- Factor (1)
+        |   |   |   |   |   |   |   |   |   |   |   |                               \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |   |                                   \-- Activation
+        |   |   |   |   |   |   |   |   |   |   |   |                                       \-- Func (nop)
+        |   |   |   |   |   |   |   |   |   |   |   \-- FuncDecl (limpaVar)
+        |   |   |   |   |   |   |   |   |   |   |       |-- Decl
+        |   |   |   |   |   |   |   |   |   |   |       |   |-- SpecType (void)
+        |   |   |   |   |   |   |   |   |   |   |       |   \-- Func (limpaVar)
+        |   |   |   |   |   |   |   |   |   |   |       \-- Decl
+        |   |   |   |   |   |   |   |   |   |   |           \-- CompoundDecl
+        |   |   |   |   |   |   |   |   |   |   |               |-- LocalDecl
+        |   |   |   |   |   |   |   |   |   |   |               |   \-- VarDecl (i)
+        |   |   |   |   |   |   |   |   |   |   |               |       \-- SpecType (int)
+        |   |   |   |   |   |   |   |   |   |   |               \-- StateList
+        |   |   |   |   |   |   |   |   |   |   |                   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |                   |   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |   |           |-- Var (i)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |   |           \-- Factor (0)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |   \-- IterDecl
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |       |-- SimpExpr
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |       |   |-- Var (i)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |       |   \-- Relational
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |       |       |-- Relational (<=)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |       |       \-- Factor (9)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |       \-- CompoundDecl
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |           \-- StateList
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |   |   |   |       \-- Activation
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |   |   |   |           \-- Func (nop)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |   |   |           |-- ArrayAccess (halts[])
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |   |   |           |   |-- Var (halts)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |   |   |           |   \-- Var (i)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |   |   |           \-- Factor (0)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |   |           |-- ArrayAccess (rodouumavez[])
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |   |           |   |-- Var (rodouumavez)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |   |           |   \-- Var (i)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |   |           \-- Factor (0)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |           |-- ArrayAccess (processosExecucao[])
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |           |   |-- Var (processosExecucao)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |           |   \-- Var (i)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   |           \-- Factor (0)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |           |-- Var (i)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |           \-- SumExpr (+)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |               |-- Var (i)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               |               \-- Factor (1)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |               \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |                   \-- Activation
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   |                       \-- Func (nop)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |           |-- Var (qtdHalt)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   |           \-- Factor (0)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |                   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |           |-- Var (sinalsyscall)
+        |   |   |   |   |   |   |   |   |   |   |                   |   |           \-- Factor (0)
+        |   |   |   |   |   |   |   |   |   |   |                   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |                   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |                   |           |-- Var (opcao)
+        |   |   |   |   |   |   |   |   |   |   |                   |           \-- Factor (0)
+        |   |   |   |   |   |   |   |   |   |   |                   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |   |                       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |   |                           |-- Var (processosCarregados)
+        |   |   |   |   |   |   |   |   |   |   |                           \-- Factor (0)
+        |   |   |   |   |   |   |   |   |   |   \-- FuncDecl (menuShell)
+        |   |   |   |   |   |   |   |   |   |       |-- Decl
+        |   |   |   |   |   |   |   |   |   |       |   |-- SpecType (void)
+        |   |   |   |   |   |   |   |   |   |       |   \-- Func (menuShell)
+        |   |   |   |   |   |   |   |   |   |       \-- Decl
+        |   |   |   |   |   |   |   |   |   |           \-- CompoundDecl
+        |   |   |   |   |   |   |   |   |   |               \-- StateList
+        |   |   |   |   |   |   |   |   |   |                   |-- StateList
+        |   |   |   |   |   |   |   |   |   |                   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |                   |       \-- Activation
+        |   |   |   |   |   |   |   |   |   |                   |           |-- Func (msgLcd)
+        |   |   |   |   |   |   |   |   |   |                   |           \-- Args
+        |   |   |   |   |   |   |   |   |   |                   |               \-- ArgList
+        |   |   |   |   |   |   |   |   |   |                   |                   \-- Factor (26)
+        |   |   |   |   |   |   |   |   |   |                   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |   |                       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |   |                           |-- Var (opcao)
+        |   |   |   |   |   |   |   |   |   |                           \-- Activation
+        |   |   |   |   |   |   |   |   |   |                               \-- Func (input)
+        |   |   |   |   |   |   |   |   |   \-- FuncDecl (votenaoPreemptivo)
+        |   |   |   |   |   |   |   |   |       |-- Decl
+        |   |   |   |   |   |   |   |   |       |   |-- SpecType (void)
+        |   |   |   |   |   |   |   |   |       |   \-- Func (votenaoPreemptivo)
+        |   |   |   |   |   |   |   |   |       \-- Decl
+        |   |   |   |   |   |   |   |   |           \-- CompoundDecl
+        |   |   |   |   |   |   |   |   |               \-- StateList
+        |   |   |   |   |   |   |   |   |                   |-- StateList
+        |   |   |   |   |   |   |   |   |                   |   |-- StateList
+        |   |   |   |   |   |   |   |   |                   |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |                   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |   |   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |   |   |   |           |-- Var (processoAtual)
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |   |   |   |           \-- Factor (6)
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |   |   |       \-- Activation
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |   |   |           \-- Func (nop)
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |   |       \-- Activation
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |   |           |-- Func (msgLcd)
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |   |           \-- Args
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |   |               \-- ArgList
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |   |                   \-- Factor (31)
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |           |-- Var (salto)
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |           \-- ArrayAccess (processos[])
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |               |-- Var (processos)
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   |               \-- Var (processoAtual)
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |           |-- Var (memdados)
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |           \-- ArrayAccess (dados[])
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |               |-- Var (dados)
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   |               \-- Var (processoAtual)
+        |   |   |   |   |   |   |   |   |                   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |                   |   |   |   |       \-- Activation
+        |   |   |   |   |   |   |   |   |                   |   |   |   |           \-- Func (dispatchersavenp)
+        |   |   |   |   |   |   |   |   |                   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |                   |   |   |       \-- Activation
+        |   |   |   |   |   |   |   |   |                   |   |   |           \-- Func (dispatcherloadnp)
+        |   |   |   |   |   |   |   |   |                   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |                   |   |       \-- Activation
+        |   |   |   |   |   |   |   |   |                   |   |           \-- Func (nop)
+        |   |   |   |   |   |   |   |   |                   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |                   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |   |                   |           |-- Var (salto)
+        |   |   |   |   |   |   |   |   |                   |           \-- Factor (0)
+        |   |   |   |   |   |   |   |   |                   \-- ExprDecl
+        |   |   |   |   |   |   |   |   |                       \-- Activation
+        |   |   |   |   |   |   |   |   |                           \-- Func (nop)
+        |   |   |   |   |   |   |   |   \-- FuncDecl (execucaoNP)
+        |   |   |   |   |   |   |   |       |-- Decl
+        |   |   |   |   |   |   |   |       |   |-- SpecType (void)
+        |   |   |   |   |   |   |   |       |   \-- Func (execucaoNP)
+        |   |   |   |   |   |   |   |       \-- Decl
+        |   |   |   |   |   |   |   |           \-- CompoundDecl
+        |   |   |   |   |   |   |   |               |-- LocalDecl
+        |   |   |   |   |   |   |   |               |   \-- VarDecl (i)
+        |   |   |   |   |   |   |   |               |       \-- SpecType (int)
+        |   |   |   |   |   |   |   |               \-- StateList
+        |   |   |   |   |   |   |   |                   |-- StateList
+        |   |   |   |   |   |   |   |                   |   |-- StateList
+        |   |   |   |   |   |   |   |                   |   |   |-- StateList
+        |   |   |   |   |   |   |   |                   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |                   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |                   |   |   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |                   |   |   |   |           |-- Var (i)
+        |   |   |   |   |   |   |   |                   |   |   |   |           \-- Factor (0)
+        |   |   |   |   |   |   |   |                   |   |   |   \-- IterDecl
+        |   |   |   |   |   |   |   |                   |   |   |       |-- SimpExpr
+        |   |   |   |   |   |   |   |                   |   |   |       |   |-- Var (i)
+        |   |   |   |   |   |   |   |                   |   |   |       |   \-- Relational
+        |   |   |   |   |   |   |   |                   |   |   |       |       |-- Relational (<)
+        |   |   |   |   |   |   |   |                   |   |   |       |       \-- Factor (3)
+        |   |   |   |   |   |   |   |                   |   |   |       \-- CompoundDecl
+        |   |   |   |   |   |   |   |                   |   |   |           \-- StateList
+        |   |   |   |   |   |   |   |                   |   |   |               |-- StateList
+        |   |   |   |   |   |   |   |                   |   |   |               |   |-- StateList
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |-- StateList
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |   |   |-- StateList
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |   |   |           |-- Var (processoAtual)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |   |   |           \-- ArrayAccess (processosExecucao[])
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |   |   |               |-- Var (processosExecucao)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |   |   |               \-- SumExpr (+)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |   |   |                   |-- Var (i)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |   |   |                   \-- Factor (1)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |   |       \-- Activation
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |   |           \-- Func (nop)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |       \-- Activation
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |           |-- Func (msgLcd)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |           \-- Args
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |               \-- ArgList
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   |                   \-- Factor (31)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |           |-- Var (salto)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |           \-- ArrayAccess (processos[])
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |               |-- Var (processos)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   |               \-- Var (processoAtual)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |           |-- Var (memdados)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |           \-- ArrayAccess (dados[])
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |               |-- Var (dados)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   |               \-- Var (processoAtual)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |       \-- Activation
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   |           \-- Func (dispatchersavenp)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |       \-- Activation
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   |           \-- Func (dispatcherloadnp)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |       \-- Activation
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   |           \-- Func (nop)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |           |-- Var (salto)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   |           \-- Factor (0)
+        |   |   |   |   |   |   |   |                   |   |   |               |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |                   |   |   |               |   |       \-- Activation
+        |   |   |   |   |   |   |   |                   |   |   |               |   |           \-- Func (nop)
+        |   |   |   |   |   |   |   |                   |   |   |               |   \-- ExprDecl
+        |   |   |   |   |   |   |   |                   |   |   |               |       \-- Activation
+        |   |   |   |   |   |   |   |                   |   |   |               |           |-- Func (output)
+        |   |   |   |   |   |   |   |                   |   |   |               |           \-- Args
+        |   |   |   |   |   |   |   |                   |   |   |               |               \-- ArgList
+        |   |   |   |   |   |   |   |                   |   |   |               |                   \-- Var (i)
+        |   |   |   |   |   |   |   |                   |   |   |               \-- ExprDecl
+        |   |   |   |   |   |   |   |                   |   |   |                   \-- Expr (=)
+        |   |   |   |   |   |   |   |                   |   |   |                       |-- Var (i)
+        |   |   |   |   |   |   |   |                   |   |   |                       \-- SumExpr (+)
+        |   |   |   |   |   |   |   |                   |   |   |                           |-- Var (i)
+        |   |   |   |   |   |   |   |                   |   |   |                           \-- Factor (1)
+        |   |   |   |   |   |   |   |                   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |                   |   |       \-- Activation
+        |   |   |   |   |   |   |   |                   |   |           \-- Func (nop)
+        |   |   |   |   |   |   |   |                   |   \-- ExprDecl
+        |   |   |   |   |   |   |   |                   |       \-- Expr (=)
+        |   |   |   |   |   |   |   |                   |           |-- Var (salto)
+        |   |   |   |   |   |   |   |                   |           \-- Factor (0)
+        |   |   |   |   |   |   |   |                   \-- ExprDecl
+        |   |   |   |   |   |   |   |                       \-- Activation
+        |   |   |   |   |   |   |   |                           \-- Func (nop)
+        |   |   |   |   |   |   |   \-- FuncDecl (defineProcesso)
+        |   |   |   |   |   |   |       |-- Decl
+        |   |   |   |   |   |   |       |   |-- SpecType (void)
+        |   |   |   |   |   |   |       |   \-- Func (defineProcesso)
+        |   |   |   |   |   |   |       \-- Decl
+        |   |   |   |   |   |   |           \-- CompoundDecl
+        |   |   |   |   |   |   |               \-- StateList
+        |   |   |   |   |   |   |                   |-- StateList
+        |   |   |   |   |   |   |                   |   |-- StateList
+        |   |   |   |   |   |   |                   |   |   |-- StateList
+        |   |   |   |   |   |   |                   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |                   |   |   |       \-- Activation
+        |   |   |   |   |   |   |                   |   |   |           |-- Func (msgLcd)
+        |   |   |   |   |   |   |                   |   |   |           \-- Args
+        |   |   |   |   |   |   |                   |   |   |               \-- ArgList
+        |   |   |   |   |   |   |                   |   |   |                   \-- Factor (27)
+        |   |   |   |   |   |   |                   |   |   \-- ExprDecl
+        |   |   |   |   |   |   |                   |   |       \-- Activation
+        |   |   |   |   |   |   |                   |   |           \-- Func (nop)
+        |   |   |   |   |   |   |                   |   \-- ExprDecl
+        |   |   |   |   |   |   |                   |       \-- Activation
+        |   |   |   |   |   |   |                   |           \-- Func (nop)
+        |   |   |   |   |   |   |                   \-- SelectDecl
+        |   |   |   |   |   |   |                       |-- SimpExpr
+        |   |   |   |   |   |   |                       |   |-- Var (opcao)
+        |   |   |   |   |   |   |                       |   \-- Relational
+        |   |   |   |   |   |   |                       |       |-- Relational (==)
+        |   |   |   |   |   |   |                       |       \-- Factor (1)
+        |   |   |   |   |   |   |                       \-- Statement
+        |   |   |   |   |   |   |                           |-- CompoundDecl
+        |   |   |   |   |   |   |                           |   \-- StateList
+        |   |   |   |   |   |   |                           |       |-- StateList
+        |   |   |   |   |   |   |                           |       |   |-- StateList
+        |   |   |   |   |   |   |                           |       |   |   \-- ExprDecl
+        |   |   |   |   |   |   |                           |       |   |       \-- Expr (=)
+        |   |   |   |   |   |   |                           |       |   |           |-- ArrayAccess (processosExecucao[])
+        |   |   |   |   |   |   |                           |       |   |           |   |-- Var (processosExecucao)
+        |   |   |   |   |   |   |                           |       |   |           |   \-- Factor (1)
+        |   |   |   |   |   |   |                           |       |   |           \-- Factor (0)
+        |   |   |   |   |   |   |                           |       |   \-- ExprDecl
+        |   |   |   |   |   |   |                           |       |       \-- Expr (=)
+        |   |   |   |   |   |   |                           |       |           |-- ArrayAccess (processosExecucao[])
+        |   |   |   |   |   |   |                           |       |           |   |-- Var (processosExecucao)
+        |   |   |   |   |   |   |                           |       |           |   \-- Factor (2)
+        |   |   |   |   |   |   |                           |       |           \-- Factor (1)
+        |   |   |   |   |   |   |                           |       \-- ExprDecl
+        |   |   |   |   |   |   |                           |           \-- Expr (=)
+        |   |   |   |   |   |   |                           |               |-- ArrayAccess (processosExecucao[])
+        |   |   |   |   |   |   |                           |               |   |-- Var (processosExecucao)
+        |   |   |   |   |   |   |                           |               |   \-- Factor (3)
+        |   |   |   |   |   |   |                           |               \-- Factor (2)
+        |   |   |   |   |   |   |                           \-- SelectDecl
+        |   |   |   |   |   |   |                               |-- SimpExpr
+        |   |   |   |   |   |   |                               |   |-- Var (opcao)
+        |   |   |   |   |   |   |                               |   \-- Relational
+        |   |   |   |   |   |   |                               |       |-- Relational (==)
+        |   |   |   |   |   |   |                               |       \-- Factor (2)
+        |   |   |   |   |   |   |                               \-- Statement
+        |   |   |   |   |   |   |                                   |-- CompoundDecl
+        |   |   |   |   |   |   |                                   |   \-- StateList
+        |   |   |   |   |   |   |                                   |       |-- StateList
+        |   |   |   |   |   |   |                                   |       |   |-- StateList
+        |   |   |   |   |   |   |                                   |       |   |   \-- ExprDecl
+        |   |   |   |   |   |   |                                   |       |   |       \-- Expr (=)
+        |   |   |   |   |   |   |                                   |       |   |           |-- ArrayAccess (processosExecucao[])
+        |   |   |   |   |   |   |                                   |       |   |           |   |-- Var (processosExecucao)
+        |   |   |   |   |   |   |                                   |       |   |           |   \-- Factor (1)
+        |   |   |   |   |   |   |                                   |       |   |           \-- Factor (0)
+        |   |   |   |   |   |   |                                   |       |   \-- ExprDecl
+        |   |   |   |   |   |   |                                   |       |       \-- Expr (=)
+        |   |   |   |   |   |   |                                   |       |           |-- ArrayAccess (processosExecucao[])
+        |   |   |   |   |   |   |                                   |       |           |   |-- Var (processosExecucao)
+        |   |   |   |   |   |   |                                   |       |           |   \-- Factor (2)
+        |   |   |   |   |   |   |                                   |       |           \-- Factor (1)
+        |   |   |   |   |   |   |                                   |       \-- ExprDecl
+        |   |   |   |   |   |   |                                   |           \-- Expr (=)
+        |   |   |   |   |   |   |                                   |               |-- ArrayAccess (processosExecucao[])
+        |   |   |   |   |   |   |                                   |               |   |-- Var (processosExecucao)
+        |   |   |   |   |   |   |                                   |               |   \-- Factor (3)
+        |   |   |   |   |   |   |                                   |               \-- Factor (3)
+        |   |   |   |   |   |   |                                   \-- SelectDecl
+        |   |   |   |   |   |   |                                       |-- SimpExpr
+        |   |   |   |   |   |   |                                       |   |-- Var (opcao)
+        |   |   |   |   |   |   |                                       |   \-- Relational
+        |   |   |   |   |   |   |                                       |       |-- Relational (==)
+        |   |   |   |   |   |   |                                       |       \-- Factor (3)
+        |   |   |   |   |   |   |                                       \-- Statement
+        |   |   |   |   |   |   |                                           |-- CompoundDecl
+        |   |   |   |   |   |   |                                           |   \-- StateList
+        |   |   |   |   |   |   |                                           |       |-- StateList
+        |   |   |   |   |   |   |                                           |       |   |-- StateList
+        |   |   |   |   |   |   |                                           |       |   |   \-- ExprDecl
+        |   |   |   |   |   |   |                                           |       |   |       \-- Expr (=)
+        |   |   |   |   |   |   |                                           |       |   |           |-- ArrayAccess (processosExecucao[])
+        |   |   |   |   |   |   |                                           |       |   |           |   |-- Var (processosExecucao)
+        |   |   |   |   |   |   |                                           |       |   |           |   \-- Factor (1)
+        |   |   |   |   |   |   |                                           |       |   |           \-- Factor (0)
+        |   |   |   |   |   |   |                                           |       |   \-- ExprDecl
+        |   |   |   |   |   |   |                                           |       |       \-- Expr (=)
+        |   |   |   |   |   |   |                                           |       |           |-- ArrayAccess (processosExecucao[])
+        |   |   |   |   |   |   |                                           |       |           |   |-- Var (processosExecucao)
+        |   |   |   |   |   |   |                                           |       |           |   \-- Factor (2)
+        |   |   |   |   |   |   |                                           |       |           \-- Factor (3)
+        |   |   |   |   |   |   |                                           |       \-- ExprDecl
+        |   |   |   |   |   |   |                                           |           \-- Expr (=)
+        |   |   |   |   |   |   |                                           |               |-- ArrayAccess (processosExecucao[])
+        |   |   |   |   |   |   |                                           |               |   |-- Var (processosExecucao)
+        |   |   |   |   |   |   |                                           |               |   \-- Factor (3)
+        |   |   |   |   |   |   |                                           |               \-- Factor (4)
+        |   |   |   |   |   |   |                                           \-- SelectDecl
+        |   |   |   |   |   |   |                                               |-- SimpExpr
+        |   |   |   |   |   |   |                                               |   |-- Var (opcao)
+        |   |   |   |   |   |   |                                               |   \-- Relational
+        |   |   |   |   |   |   |                                               |       |-- Relational (==)
+        |   |   |   |   |   |   |                                               |       \-- Factor (4)
+        |   |   |   |   |   |   |                                               \-- Statement
+        |   |   |   |   |   |   |                                                   |-- CompoundDecl
+        |   |   |   |   |   |   |                                                   |   \-- StateList
+        |   |   |   |   |   |   |                                                   |       |-- StateList
+        |   |   |   |   |   |   |                                                   |       |   |-- StateList
+        |   |   |   |   |   |   |                                                   |       |   |   \-- ExprDecl
+        |   |   |   |   |   |   |                                                   |       |   |       \-- Expr (=)
+        |   |   |   |   |   |   |                                                   |       |   |           |-- ArrayAccess (processosExecucao[])
+        |   |   |   |   |   |   |                                                   |       |   |           |   |-- Var (processosExecucao)
+        |   |   |   |   |   |   |                                                   |       |   |           |   \-- Factor (1)
+        |   |   |   |   |   |   |                                                   |       |   |           \-- Factor (3)
+        |   |   |   |   |   |   |                                                   |       |   \-- ExprDecl
+        |   |   |   |   |   |   |                                                   |       |       \-- Expr (=)
+        |   |   |   |   |   |   |                                                   |       |           |-- ArrayAccess (processosExecucao[])
+        |   |   |   |   |   |   |                                                   |       |           |   |-- Var (processosExecucao)
+        |   |   |   |   |   |   |                                                   |       |           |   \-- Factor (2)
+        |   |   |   |   |   |   |                                                   |       |           \-- Factor (4)
+        |   |   |   |   |   |   |                                                   |       \-- ExprDecl
+        |   |   |   |   |   |   |                                                   |           \-- Expr (=)
+        |   |   |   |   |   |   |                                                   |               |-- ArrayAccess (processosExecucao[])
+        |   |   |   |   |   |   |                                                   |               |   |-- Var (processosExecucao)
+        |   |   |   |   |   |   |                                                   |               |   \-- Factor (3)
+        |   |   |   |   |   |   |                                                   |               \-- Factor (5)
+        |   |   |   |   |   |   |                                                   \-- CompoundDecl
+        |   |   |   |   |   |   |                                                       \-- StateList
+        |   |   |   |   |   |   |                                                           \-- ExprDecl
+        |   |   |   |   |   |   |                                                               \-- Activation
+        |   |   |   |   |   |   |                                                                   \-- Func (nop)
+        |   |   |   |   |   |   \-- FuncDecl (initRR)
+        |   |   |   |   |   |       |-- Decl
+        |   |   |   |   |   |       |   |-- SpecType (void)
+        |   |   |   |   |   |       |   \-- Func (initRR)
+        |   |   |   |   |   |       \-- Decl
+        |   |   |   |   |   |           \-- CompoundDecl
+        |   |   |   |   |   |               \-- StateList
+        |   |   |   |   |   |                   |-- StateList
+        |   |   |   |   |   |                   |   |-- StateList
+        |   |   |   |   |   |                   |   |   |-- StateList
+        |   |   |   |   |   |                   |   |   |   |-- StateList
+        |   |   |   |   |   |                   |   |   |   |   |-- StateList
+        |   |   |   |   |   |                   |   |   |   |   |   |-- StateList
+        |   |   |   |   |   |                   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |                   |   |   |   |   |   |       \-- Activation
+        |   |   |   |   |   |                   |   |   |   |   |   |           \-- Func (nop)
+        |   |   |   |   |   |                   |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |                   |   |   |   |   |       \-- Expr (=)
+        |   |   |   |   |   |                   |   |   |   |   |           |-- Var (qtdHalt)
+        |   |   |   |   |   |                   |   |   |   |   |           \-- Factor (0)
+        |   |   |   |   |   |                   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |                   |   |   |   |       \-- Activation
+        |   |   |   |   |   |                   |   |   |   |           \-- Func (nop)
+        |   |   |   |   |   |                   |   |   |   \-- ExprDecl
+        |   |   |   |   |   |                   |   |   |       \-- Activation
+        |   |   |   |   |   |                   |   |   |           \-- Func (execucaoNP)
+        |   |   |   |   |   |                   |   |   \-- ExprDecl
+        |   |   |   |   |   |                   |   |       \-- Activation
+        |   |   |   |   |   |                   |   |           \-- Func (nop)
+        |   |   |   |   |   |                   |   \-- ExprDecl
+        |   |   |   |   |   |                   |       \-- Activation
+        |   |   |   |   |   |                   |           |-- Func (msgLcd)
+        |   |   |   |   |   |                   |           \-- Args
+        |   |   |   |   |   |                   |               \-- ArgList
+        |   |   |   |   |   |                   |                   \-- Factor (29)
+        |   |   |   |   |   |                   \-- ExprDecl
+        |   |   |   |   |   |                       \-- Activation
+        |   |   |   |   |   |                           \-- Func (nop)
+        |   |   |   |   |   \-- FuncDecl (initDados)
+        |   |   |   |   |       |-- Decl
+        |   |   |   |   |       |   |-- SpecType (void)
+        |   |   |   |   |       |   \-- Func (initDados)
+        |   |   |   |   |       \-- Decl
+        |   |   |   |   |           \-- CompoundDecl
+        |   |   |   |   |               |-- LocalDecl
+        |   |   |   |   |               |   |-- LocalDecl
+        |   |   |   |   |               |   |   |-- LocalDecl
+        |   |   |   |   |               |   |   |   \-- VarDecl (temp)
+        |   |   |   |   |               |   |   |       \-- SpecType (int)
+        |   |   |   |   |               |   |   \-- VarDecl (combustivel)
+        |   |   |   |   |               |   |       \-- SpecType (int)
+        |   |   |   |   |               |   \-- VarDecl (altura)
+        |   |   |   |   |               |       \-- SpecType (int)
+        |   |   |   |   |               \-- StateList
+        |   |   |   |   |                   |-- StateList
+        |   |   |   |   |                   |   |-- StateList
+        |   |   |   |   |                   |   |   |-- StateList
+        |   |   |   |   |                   |   |   |   |-- StateList
+        |   |   |   |   |                   |   |   |   |   |-- StateList
+        |   |   |   |   |                   |   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |                   |   |   |   |   |       \-- Expr (=)
+        |   |   |   |   |                   |   |   |   |   |           |-- Var (temp)
+        |   |   |   |   |                   |   |   |   |   |           \-- Factor (25)
+        |   |   |   |   |                   |   |   |   |   \-- ExprDecl
+        |   |   |   |   |                   |   |   |   |       \-- Expr (=)
+        |   |   |   |   |                   |   |   |   |           |-- Var (combustivel)
+        |   |   |   |   |                   |   |   |   |           \-- Factor (255)
+        |   |   |   |   |                   |   |   |   \-- ExprDecl
+        |   |   |   |   |                   |   |   |       \-- Expr (=)
+        |   |   |   |   |                   |   |   |           |-- Var (altura)
+        |   |   |   |   |                   |   |   |           \-- Factor (0)
+        |   |   |   |   |                   |   |   \-- ExprDecl
+        |   |   |   |   |                   |   |       \-- Activation
+        |   |   |   |   |                   |   |           |-- Func (saveword)
+        |   |   |   |   |                   |   |           \-- Args
+        |   |   |   |   |                   |   |               \-- ArgList
+        |   |   |   |   |                   |   |                   |-- ArgList
+        |   |   |   |   |                   |   |                   |   \-- Factor (2000)
+        |   |   |   |   |                   |   |                   \-- Var (temp)
+        |   |   |   |   |                   |   \-- ExprDecl
+        |   |   |   |   |                   |       \-- Activation
+        |   |   |   |   |                   |           |-- Func (saveword)
+        |   |   |   |   |                   |           \-- Args
+        |   |   |   |   |                   |               \-- ArgList
+        |   |   |   |   |                   |                   |-- ArgList
+        |   |   |   |   |                   |                   |   \-- Factor (2001)
+        |   |   |   |   |                   |                   \-- Var (combustivel)
+        |   |   |   |   |                   \-- ExprDecl
+        |   |   |   |   |                       \-- Activation
+        |   |   |   |   |                           |-- Func (saveword)
+        |   |   |   |   |                           \-- Args
+        |   |   |   |   |                               \-- ArgList
+        |   |   |   |   |                                   |-- ArgList
+        |   |   |   |   |                                   |   \-- Factor (2002)
+        |   |   |   |   |                                   \-- Var (altura)
+        |   |   |   |   \-- FuncDecl (initUART)
+        |   |   |   |       |-- Decl
+        |   |   |   |       |   |-- SpecType (void)
+        |   |   |   |       |   \-- Func (initUART)
+        |   |   |   |       \-- Decl
+        |   |   |   |           \-- CompoundDecl
+        |   |   |   |               \-- StateList
+        |   |   |   |                   |-- StateList
+        |   |   |   |                   |   \-- ExprDecl
+        |   |   |   |                   |       \-- Activation
+        |   |   |   |                   |           |-- Func (msgLcd)
+        |   |   |   |                   |           \-- Args
+        |   |   |   |                   |               \-- ArgList
+        |   |   |   |                   |                   \-- Factor (32)
+        |   |   |   |                   \-- ExprDecl
+        |   |   |   |                       \-- Activation
+        |   |   |   |                           \-- Func (nop)
+        |   |   |   \-- FuncDecl (receiveUART)
+        |   |   |       |-- Decl
+        |   |   |       |   |-- SpecType (void)
+        |   |   |       |   \-- Func (receiveUART)
+        |   |   |       \-- Decl
+        |   |   |           \-- CompoundDecl
+        |   |   |               |-- LocalDecl
+        |   |   |               |   |-- LocalDecl
+        |   |   |               |   |   |-- LocalDecl
+        |   |   |               |   |   |   |-- LocalDecl
+        |   |   |               |   |   |   |   |-- LocalDecl
+        |   |   |               |   |   |   |   |   |-- LocalDecl
+        |   |   |               |   |   |   |   |   |   |-- LocalDecl
+        |   |   |               |   |   |   |   |   |   |   \-- VarDecl (pronto)
+        |   |   |               |   |   |   |   |   |   |       \-- SpecType (int)
+        |   |   |               |   |   |   |   |   |   \-- VarDecl (aux)
+        |   |   |               |   |   |   |   |   |       \-- SpecType (int)
+        |   |   |               |   |   |   |   |   \-- VarDecl (header)
+        |   |   |               |   |   |   |   |       \-- SpecType (int)
+        |   |   |               |   |   |   |   \-- VarDecl (flag)
+        |   |   |               |   |   |   |       \-- SpecType (int)
+        |   |   |               |   |   |   \-- VarDecl (comando)
+        |   |   |               |   |   |       \-- SpecType (int)
+        |   |   |               |   |   \-- VarDecl (valor)
+        |   |   |               |   |       \-- SpecType (int)
+        |   |   |               |   \-- VarDecl (checksum)
+        |   |   |               |       \-- SpecType (int)
+        |   |   |               \-- StateList
+        |   |   |                   |-- StateList
+        |   |   |                   |   |-- StateList
+        |   |   |                   |   |   |-- StateList
+        |   |   |                   |   |   |   |-- StateList
+        |   |   |                   |   |   |   |   |-- StateList
+        |   |   |                   |   |   |   |   |   |-- StateList
+        |   |   |                   |   |   |   |   |   |   |-- StateList
+        |   |   |                   |   |   |   |   |   |   |   |-- StateList
+        |   |   |                   |   |   |   |   |   |   |   |   |-- StateList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |-- StateList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |-- StateList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- Activation
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           |-- Func (msgLcd)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           \-- Args
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |               \-- ArgList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |                   \-- Factor (33)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- Expr (=)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           |-- Var (aux)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           \-- Factor (1000)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- Expr (=)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           |-- Var (pronto)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           \-- Factor (0)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- IterDecl
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       |-- SimpExpr
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       |   |-- Var (pronto)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       |   \-- Relational
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       |       |-- Relational (==)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       |       \-- Factor (0)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- CompoundDecl
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           \-- StateList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |               \-- ExprDecl
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |                   \-- Expr (=)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |                       |-- Var (pronto)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |                       \-- Activation
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |                           |-- Func (loadword)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |                           \-- Args
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |                               \-- ArgList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |                                   \-- Var (aux)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- Activation
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           |-- Func (saveword)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           \-- Args
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |               \-- ArgList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |                   |-- ArgList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |                   |   \-- SumExpr (+)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |                   |       |-- Var (aux)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |                   |       \-- Factor (1)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |                   \-- Factor (1)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- Expr (=)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           |-- Var (header)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           \-- Activation
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |               |-- Func (loadword)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |               \-- Args
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |                   \-- ArgList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |                       \-- SumExpr (+)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |                           |-- Var (aux)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |                           \-- Factor (2)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- Activation
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |           |-- Func (output)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |           \-- Args
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |               \-- ArgList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   |                   \-- Var (header)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- Expr (=)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |           |-- Var (flag)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |           \-- Activation
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |               |-- Func (loadword)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |               \-- Args
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |                   \-- ArgList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |                       \-- SumExpr (+)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |                           |-- Var (aux)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   |                           \-- Factor (3)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |       \-- Activation
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |           |-- Func (output)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |           \-- Args
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |               \-- ArgList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   |                   \-- Var (flag)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |       \-- Expr (=)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |           |-- Var (comando)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |           \-- Activation
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |               |-- Func (loadword)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |               \-- Args
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |                   \-- ArgList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |                       \-- SumExpr (+)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |                           |-- Var (aux)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   |                           \-- Factor (4)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |                   |   |   |   |   |   |   |   |   |   |       \-- Activation
+        |   |   |                   |   |   |   |   |   |   |   |   |   |           |-- Func (output)
+        |   |   |                   |   |   |   |   |   |   |   |   |   |           \-- Args
+        |   |   |                   |   |   |   |   |   |   |   |   |   |               \-- ArgList
+        |   |   |                   |   |   |   |   |   |   |   |   |   |                   \-- Var (comando)
+        |   |   |                   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |                   |   |   |   |   |   |   |   |   |       \-- Expr (=)
+        |   |   |                   |   |   |   |   |   |   |   |   |           |-- Var (valor)
+        |   |   |                   |   |   |   |   |   |   |   |   |           \-- Activation
+        |   |   |                   |   |   |   |   |   |   |   |   |               |-- Func (loadword)
+        |   |   |                   |   |   |   |   |   |   |   |   |               \-- Args
+        |   |   |                   |   |   |   |   |   |   |   |   |                   \-- ArgList
+        |   |   |                   |   |   |   |   |   |   |   |   |                       \-- SumExpr (+)
+        |   |   |                   |   |   |   |   |   |   |   |   |                           |-- Var (aux)
+        |   |   |                   |   |   |   |   |   |   |   |   |                           \-- Factor (5)
+        |   |   |                   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |                   |   |   |   |   |   |   |   |       \-- Activation
+        |   |   |                   |   |   |   |   |   |   |   |           |-- Func (output)
+        |   |   |                   |   |   |   |   |   |   |   |           \-- Args
+        |   |   |                   |   |   |   |   |   |   |   |               \-- ArgList
+        |   |   |                   |   |   |   |   |   |   |   |                   \-- Var (valor)
+        |   |   |                   |   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |                   |   |   |   |   |   |   |       \-- Expr (=)
+        |   |   |                   |   |   |   |   |   |   |           |-- Var (checksum)
+        |   |   |                   |   |   |   |   |   |   |           \-- Activation
+        |   |   |                   |   |   |   |   |   |   |               |-- Func (loadword)
+        |   |   |                   |   |   |   |   |   |   |               \-- Args
+        |   |   |                   |   |   |   |   |   |   |                   \-- ArgList
+        |   |   |                   |   |   |   |   |   |   |                       \-- SumExpr (+)
+        |   |   |                   |   |   |   |   |   |   |                           |-- Var (aux)
+        |   |   |                   |   |   |   |   |   |   |                           \-- Factor (6)
+        |   |   |                   |   |   |   |   |   |   \-- ExprDecl
+        |   |   |                   |   |   |   |   |   |       \-- Activation
+        |   |   |                   |   |   |   |   |   |           |-- Func (output)
+        |   |   |                   |   |   |   |   |   |           \-- Args
+        |   |   |                   |   |   |   |   |   |               \-- ArgList
+        |   |   |                   |   |   |   |   |   |                   \-- Var (checksum)
+        |   |   |                   |   |   |   |   |   \-- ExprDecl
+        |   |   |                   |   |   |   |   |       \-- Activation
+        |   |   |                   |   |   |   |   |           |-- Func (saveword)
+        |   |   |                   |   |   |   |   |           \-- Args
+        |   |   |                   |   |   |   |   |               \-- ArgList
+        |   |   |                   |   |   |   |   |                   |-- ArgList
+        |   |   |                   |   |   |   |   |                   |   \-- Factor (500)
+        |   |   |                   |   |   |   |   |                   \-- Var (header)
+        |   |   |                   |   |   |   |   \-- ExprDecl
+        |   |   |                   |   |   |   |       \-- Activation
+        |   |   |                   |   |   |   |           |-- Func (saveword)
+        |   |   |                   |   |   |   |           \-- Args
+        |   |   |                   |   |   |   |               \-- ArgList
+        |   |   |                   |   |   |   |                   |-- ArgList
+        |   |   |                   |   |   |   |                   |   \-- Factor (501)
+        |   |   |                   |   |   |   |                   \-- Var (flag)
+        |   |   |                   |   |   |   \-- ExprDecl
+        |   |   |                   |   |   |       \-- Activation
+        |   |   |                   |   |   |           |-- Func (saveword)
+        |   |   |                   |   |   |           \-- Args
+        |   |   |                   |   |   |               \-- ArgList
+        |   |   |                   |   |   |                   |-- ArgList
+        |   |   |                   |   |   |                   |   \-- Factor (502)
+        |   |   |                   |   |   |                   \-- Var (comando)
+        |   |   |                   |   |   \-- ExprDecl
+        |   |   |                   |   |       \-- Activation
+        |   |   |                   |   |           |-- Func (saveword)
+        |   |   |                   |   |           \-- Args
+        |   |   |                   |   |               \-- ArgList
+        |   |   |                   |   |                   |-- ArgList
+        |   |   |                   |   |                   |   \-- Factor (503)
+        |   |   |                   |   |                   \-- Var (valor)
+        |   |   |                   |   \-- ExprDecl
+        |   |   |                   |       \-- Activation
+        |   |   |                   |           |-- Func (saveword)
+        |   |   |                   |           \-- Args
+        |   |   |                   |               \-- ArgList
+        |   |   |                   |                   |-- ArgList
+        |   |   |                   |                   |   \-- Factor (504)
+        |   |   |                   |                   \-- Var (checksum)
+        |   |   |                   \-- ExprDecl
+        |   |   |                       \-- Activation
+        |   |   |                           \-- Func (nop)
+        |   |   \-- FuncDecl (checkFlags)
+        |   |       |-- Decl
+        |   |       |   |-- SpecType (int)
+        |   |       |   \-- Func (checkFlags)
+        |   |       \-- Decl
+        |   |           |-- Params
+        |   |           |   \-- ParamList
+        |   |           |       \-- Param (flag)
+        |   |           |           \-- SpecType (int)
+        |   |           \-- CompoundDecl
+        |   |               |-- LocalDecl
+        |   |               |   \-- VarDecl (valorAns)
+        |   |               |       \-- SpecType (int)
+        |   |               \-- StateList
+        |   |                   |-- StateList
+        |   |                   |   \-- SelectDecl
+        |   |                   |       |-- SimpExpr
+        |   |                   |       |   |-- Var (flag)
+        |   |                   |       |   \-- Relational
+        |   |                   |       |       |-- Relational (==)
+        |   |                   |       |       \-- Factor (1)
+        |   |                   |       \-- Statement
+        |   |                   |           |-- CompoundDecl
+        |   |                   |           |   \-- StateList
+        |   |                   |           |       \-- ExprDecl
+        |   |                   |           |           \-- Expr (=)
+        |   |                   |           |               |-- Var (valorAns)
+        |   |                   |           |               \-- Activation
+        |   |                   |           |                   |-- Func (loadword)
+        |   |                   |           |                   \-- Args
+        |   |                   |           |                       \-- ArgList
+        |   |                   |           |                           \-- Factor (2000)
+        |   |                   |           \-- SelectDecl
+        |   |                   |               |-- SimpExpr
+        |   |                   |               |   |-- Var (flag)
+        |   |                   |               |   \-- Relational
+        |   |                   |               |       |-- Relational (==)
+        |   |                   |               |       \-- Factor (2)
+        |   |                   |               \-- Statement
+        |   |                   |                   |-- CompoundDecl
+        |   |                   |                   |   \-- StateList
+        |   |                   |                   |       \-- ExprDecl
+        |   |                   |                   |           \-- Expr (=)
+        |   |                   |                   |               |-- Var (valorAns)
+        |   |                   |                   |               \-- Activation
+        |   |                   |                   |                   |-- Func (loadword)
+        |   |                   |                   |                   \-- Args
+        |   |                   |                   |                       \-- ArgList
+        |   |                   |                   |                           \-- Factor (2001)
+        |   |                   |                   \-- SelectDecl
+        |   |                   |                       |-- SimpExpr
+        |   |                   |                       |   |-- Var (flag)
+        |   |                   |                       |   \-- Relational
+        |   |                   |                       |       |-- Relational (==)
+        |   |                   |                       |       \-- Factor (3)
+        |   |                   |                       \-- Statement
+        |   |                   |                           |-- CompoundDecl
+        |   |                   |                           |   \-- StateList
+        |   |                   |                           |       \-- ExprDecl
+        |   |                   |                           |           \-- Expr (=)
+        |   |                   |                           |               |-- Var (valorAns)
+        |   |                   |                           |               \-- Activation
+        |   |                   |                           |                   |-- Func (loadword)
+        |   |                   |                           |                   \-- Args
+        |   |                   |                           |                       \-- ArgList
+        |   |                   |                           |                           \-- Factor (2002)
+        |   |                   |                           \-- CompoundDecl
+        |   |                   |                               \-- StateList
+        |   |                   |                                   |-- StateList
+        |   |                   |                                   |   \-- ExprDecl
+        |   |                   |                                   |       \-- Expr (=)
+        |   |                   |                                   |           |-- Var (valorAns)
+        |   |                   |                                   |           \-- Factor (0)
+        |   |                   |                                   \-- ExprDecl
+        |   |                   |                                       \-- Activation
+        |   |                   |                                           \-- Func (nop)
+        |   |                   \-- ReturnDecl
+        |   |                       \-- Var (valorAns)
+        |   \-- FuncDecl (sendUART)
+        |       |-- Decl
+        |       |   |-- SpecType (void)
+        |       |   \-- Func (sendUART)
+        |       \-- Decl
+        |           \-- CompoundDecl
+        |               |-- LocalDecl
+        |               |   |-- LocalDecl
+        |               |   |   |-- LocalDecl
+        |               |   |   |   |-- LocalDecl
+        |               |   |   |   |   |-- LocalDecl
+        |               |   |   |   |   |   |-- LocalDecl
+        |               |   |   |   |   |   |   \-- VarDecl (comando)
+        |               |   |   |   |   |   |       \-- SpecType (int)
+        |               |   |   |   |   |   \-- VarDecl (flag)
+        |               |   |   |   |   |       \-- SpecType (int)
+        |               |   |   |   |   \-- VarDecl (valorRec)
+        |               |   |   |   |       \-- SpecType (int)
+        |               |   |   |   \-- VarDecl (valorAns)
+        |               |   |   |       \-- SpecType (int)
+        |               |   |   \-- VarDecl (header)
+        |               |   |       \-- SpecType (int)
+        |               |   \-- VarDecl (checksum)
+        |               |       \-- SpecType (int)
+        |               \-- StateList
+        |                   |-- StateList
+        |                   |   |-- StateList
+        |                   |   |   |-- StateList
+        |                   |   |   |   |-- StateList
+        |                   |   |   |   |   |-- StateList
+        |                   |   |   |   |   |   |-- StateList
+        |                   |   |   |   |   |   |   |-- StateList
+        |                   |   |   |   |   |   |   |   |-- StateList
+        |                   |   |   |   |   |   |   |   |   |-- StateList
+        |                   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |                   |   |   |   |   |   |   |   |   |       \-- Activation
+        |                   |   |   |   |   |   |   |   |   |           |-- Func (msgLcd)
+        |                   |   |   |   |   |   |   |   |   |           \-- Args
+        |                   |   |   |   |   |   |   |   |   |               \-- ArgList
+        |                   |   |   |   |   |   |   |   |   |                   \-- Factor (34)
+        |                   |   |   |   |   |   |   |   |   \-- ExprDecl
+        |                   |   |   |   |   |   |   |   |       \-- Expr (=)
+        |                   |   |   |   |   |   |   |   |           |-- Var (flag)
+        |                   |   |   |   |   |   |   |   |           \-- Activation
+        |                   |   |   |   |   |   |   |   |               |-- Func (loadword)
+        |                   |   |   |   |   |   |   |   |               \-- Args
+        |                   |   |   |   |   |   |   |   |                   \-- ArgList
+        |                   |   |   |   |   |   |   |   |                       \-- Factor (501)
+        |                   |   |   |   |   |   |   |   \-- ExprDecl
+        |                   |   |   |   |   |   |   |       \-- Expr (=)
+        |                   |   |   |   |   |   |   |           |-- Var (comando)
+        |                   |   |   |   |   |   |   |           \-- Activation
+        |                   |   |   |   |   |   |   |               |-- Func (loadword)
+        |                   |   |   |   |   |   |   |               \-- Args
+        |                   |   |   |   |   |   |   |                   \-- ArgList
+        |                   |   |   |   |   |   |   |                       \-- Factor (502)
+        |                   |   |   |   |   |   |   \-- ExprDecl
+        |                   |   |   |   |   |   |       \-- Expr (=)
+        |                   |   |   |   |   |   |           |-- Var (valorRec)
+        |                   |   |   |   |   |   |           \-- Activation
+        |                   |   |   |   |   |   |               |-- Func (loadword)
+        |                   |   |   |   |   |   |               \-- Args
+        |                   |   |   |   |   |   |                   \-- ArgList
+        |                   |   |   |   |   |   |                       \-- Factor (503)
+        |                   |   |   |   |   |   \-- SelectDecl
+        |                   |   |   |   |   |       |-- SimpExpr
+        |                   |   |   |   |   |       |   |-- Var (comando)
+        |                   |   |   |   |   |       |   \-- Relational
+        |                   |   |   |   |   |       |       |-- Relational (==)
+        |                   |   |   |   |   |       |       \-- Factor (1)
+        |                   |   |   |   |   |       \-- Statement
+        |                   |   |   |   |   |           |-- CompoundDecl
+        |                   |   |   |   |   |           |   \-- StateList
+        |                   |   |   |   |   |           |       |-- StateList
+        |                   |   |   |   |   |           |       |   \-- ExprDecl
+        |                   |   |   |   |   |           |       |       \-- Expr (=)
+        |                   |   |   |   |   |           |       |           |-- Var (header)
+        |                   |   |   |   |   |           |       |           \-- Factor (124)
+        |                   |   |   |   |   |           |       \-- ExprDecl
+        |                   |   |   |   |   |           |           \-- Expr (=)
+        |                   |   |   |   |   |           |               |-- Var (valorAns)
+        |                   |   |   |   |   |           |               \-- Var (valorRec)
+        |                   |   |   |   |   |           \-- SelectDecl
+        |                   |   |   |   |   |               |-- SimpExpr
+        |                   |   |   |   |   |               |   |-- Var (comando)
+        |                   |   |   |   |   |               |   \-- Relational
+        |                   |   |   |   |   |               |       |-- Relational (==)
+        |                   |   |   |   |   |               |       \-- Factor (2)
+        |                   |   |   |   |   |               \-- Statement
+        |                   |   |   |   |   |                   |-- CompoundDecl
+        |                   |   |   |   |   |                   |   \-- StateList
+        |                   |   |   |   |   |                   |       |-- StateList
+        |                   |   |   |   |   |                   |       |   \-- ExprDecl
+        |                   |   |   |   |   |                   |       |       \-- Expr (=)
+        |                   |   |   |   |   |                   |       |           |-- Var (header)
+        |                   |   |   |   |   |                   |       |           \-- Factor (124)
+        |                   |   |   |   |   |                   |       \-- ExprDecl
+        |                   |   |   |   |   |                   |           \-- Expr (=)
+        |                   |   |   |   |   |                   |               |-- Var (valorAns)
+        |                   |   |   |   |   |                   |               \-- Var (valorRec)
+        |                   |   |   |   |   |                   \-- SelectDecl
+        |                   |   |   |   |   |                       |-- SimpExpr
+        |                   |   |   |   |   |                       |   |-- Var (comando)
+        |                   |   |   |   |   |                       |   \-- Relational
+        |                   |   |   |   |   |                       |       |-- Relational (==)
+        |                   |   |   |   |   |                       |       \-- Factor (3)
+        |                   |   |   |   |   |                       \-- Statement
+        |                   |   |   |   |   |                           |-- CompoundDecl
+        |                   |   |   |   |   |                           |   \-- StateList
+        |                   |   |   |   |   |                           |       |-- StateList
+        |                   |   |   |   |   |                           |       |   \-- ExprDecl
+        |                   |   |   |   |   |                           |       |       \-- Expr (=)
+        |                   |   |   |   |   |                           |       |           |-- Var (header)
+        |                   |   |   |   |   |                           |       |           \-- SumExpr (+)
+        |                   |   |   |   |   |                           |       |               |-- Factor (124)
+        |                   |   |   |   |   |                           |       |               \-- Var (flag)
+        |                   |   |   |   |   |                           |       \-- ExprDecl
+        |                   |   |   |   |   |                           |           \-- Expr (=)
+        |                   |   |   |   |   |                           |               |-- Var (valorAns)
+        |                   |   |   |   |   |                           |               \-- Activation
+        |                   |   |   |   |   |                           |                   |-- Func (checkFlags)
+        |                   |   |   |   |   |                           |                   \-- Args
+        |                   |   |   |   |   |                           |                       \-- ArgList
+        |                   |   |   |   |   |                           |                           \-- Var (flag)
+        |                   |   |   |   |   |                           \-- CompoundDecl
+        |                   |   |   |   |   |                               \-- StateList
+        |                   |   |   |   |   |                                   \-- ExprDecl
+        |                   |   |   |   |   |                                       \-- Activation
+        |                   |   |   |   |   |                                           \-- Func (nop)
+        |                   |   |   |   |   \-- ExprDecl
+        |                   |   |   |   |       \-- Activation
+        |                   |   |   |   |           |-- Func (saveword)
+        |                   |   |   |   |           \-- Args
+        |                   |   |   |   |               \-- ArgList
+        |                   |   |   |   |                   |-- ArgList
+        |                   |   |   |   |                   |   \-- Factor (1008)
+        |                   |   |   |   |                   \-- Var (header)
+        |                   |   |   |   \-- ExprDecl
+        |                   |   |   |       \-- Activation
+        |                   |   |   |           |-- Func (saveword)
+        |                   |   |   |           \-- Args
+        |                   |   |   |               \-- ArgList
+        |                   |   |   |                   |-- ArgList
+        |                   |   |   |                   |   \-- Factor (1009)
+        |                   |   |   |                   \-- Var (comando)
+        |                   |   |   \-- ExprDecl
+        |                   |   |       \-- Activation
+        |                   |   |           |-- Func (saveword)
+        |                   |   |           \-- Args
+        |                   |   |               \-- ArgList
+        |                   |   |                   |-- ArgList
+        |                   |   |                   |   \-- Factor (1010)
+        |                   |   |                   \-- Var (valorAns)
+        |                   |   \-- ExprDecl
+        |                   |       \-- Activation
+        |                   |           |-- Func (saveword)
+        |                   |           \-- Args
+        |                   |               \-- ArgList
+        |                   |                   |-- ArgList
+        |                   |                   |   \-- Factor (1011)
+        |                   |                   \-- Factor (1)
+        |                   \-- ExprDecl
+        |                       \-- Activation
+        |                           \-- Func (nop)
+        \-- FuncDecl (main)
+            |-- Decl
+            |   |-- SpecType (void)
+            |   \-- Func (main)
+            \-- Decl
+                |-- Params (void)
+                \-- CompoundDecl
+                    \-- StateList
+                        |-- StateList
+                        |   |-- StateList
+                        |   |   |-- StateList
+                        |   |   |   |-- StateList
+                        |   |   |   |   |-- StateList
+                        |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- Activation
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           \-- Func (mapeamento)
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- Activation
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           |-- Func (msgLcd)
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           \-- Args
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |               \-- ArgList
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |                   \-- Factor (0)
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- Activation
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           \-- Func (nop)
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- Expr (=)
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           |-- Var (salto)
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           \-- Factor (0)
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- Expr (=)
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           |-- Var (processosCarregados)
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           \-- Factor (3)
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- Activation
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           \-- Func (nop)
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- Activation
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           \-- Func (nop)
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- Activation
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           \-- Func (menuShell)
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- Activation
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           \-- Func (nop)
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- Expr (=)
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           |-- Var (salto)
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   |           \-- Factor (0)
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |       \-- Activation
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   |           \-- Func (nop)
+                        |   |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |   |   |   |   |       \-- Activation
+                        |   |   |   |   |   |   |   |   |   |   |   |   |           \-- Func (nop)
+                        |   |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |   |   |   |       \-- Activation
+                        |   |   |   |   |   |   |   |   |   |   |   |           \-- Func (defineProcesso)
+                        |   |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |   |   |       \-- Activation
+                        |   |   |   |   |   |   |   |   |   |   |           \-- Func (initDados)
+                        |   |   |   |   |   |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |   |       \-- Activation
+                        |   |   |   |   |   |   |   |   |   |           \-- Func (initUART)
+                        |   |   |   |   |   |   |   |   |   \-- IterDecl
+                        |   |   |   |   |   |   |   |   |       |-- SimpExpr
+                        |   |   |   |   |   |   |   |   |       |   |-- Var (opcao)
+                        |   |   |   |   |   |   |   |   |       |   \-- Relational
+                        |   |   |   |   |   |   |   |   |       |       |-- Relational (!=)
+                        |   |   |   |   |   |   |   |   |       |       \-- Factor (6)
+                        |   |   |   |   |   |   |   |   |       \-- CompoundDecl
+                        |   |   |   |   |   |   |   |   |           \-- StateList
+                        |   |   |   |   |   |   |   |   |               |-- StateList
+                        |   |   |   |   |   |   |   |   |               |   |-- StateList
+                        |   |   |   |   |   |   |   |   |               |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |               |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |               |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |               |   |   |   |   |   |-- StateList
+                        |   |   |   |   |   |   |   |   |               |   |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |               |   |   |   |   |   |       \-- Activation
+                        |   |   |   |   |   |   |   |   |               |   |   |   |   |   |           \-- Func (receiveUART)
+                        |   |   |   |   |   |   |   |   |               |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |               |   |   |   |   |       \-- Activation
+                        |   |   |   |   |   |   |   |   |               |   |   |   |   |           \-- Func (initRR)
+                        |   |   |   |   |   |   |   |   |               |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |               |   |   |   |       \-- Activation
+                        |   |   |   |   |   |   |   |   |               |   |   |   |           \-- Func (votenaoPreemptivo)
+                        |   |   |   |   |   |   |   |   |               |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |               |   |   |       \-- Activation
+                        |   |   |   |   |   |   |   |   |               |   |   |           \-- Func (sendUART)
+                        |   |   |   |   |   |   |   |   |               |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |               |   |       \-- Activation
+                        |   |   |   |   |   |   |   |   |               |   |           \-- Func (nop)
+                        |   |   |   |   |   |   |   |   |               |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |               |       \-- Expr (=)
+                        |   |   |   |   |   |   |   |   |               |           |-- Var (salto)
+                        |   |   |   |   |   |   |   |   |               |           \-- Factor (0)
+                        |   |   |   |   |   |   |   |   |               \-- ExprDecl
+                        |   |   |   |   |   |   |   |   |                   \-- Activation
+                        |   |   |   |   |   |   |   |   |                       \-- Func (menuShell)
+                        |   |   |   |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |   |       \-- Activation
+                        |   |   |   |   |   |   |   |           \-- Func (nop)
+                        |   |   |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |   |       \-- Activation
+                        |   |   |   |   |   |   |           \-- Func (nop)
+                        |   |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |   |       \-- Activation
+                        |   |   |   |   |   |           \-- Func (nop)
+                        |   |   |   |   |   \-- ExprDecl
+                        |   |   |   |   |       \-- Activation
+                        |   |   |   |   |           |-- Func (msgLcd)
+                        |   |   |   |   |           \-- Args
+                        |   |   |   |   |               \-- ArgList
+                        |   |   |   |   |                   \-- Factor (28)
+                        |   |   |   |   \-- ExprDecl
+                        |   |   |   |       \-- Activation
+                        |   |   |   |           \-- Func (nop)
+                        |   |   |   \-- ExprDecl
+                        |   |   |       \-- Activation
+                        |   |   |           \-- Func (nop)
+                        |   |   \-- ExprDecl
+                        |   |       \-- Activation
+                        |   |           \-- Func (nop)
+                        |   \-- ExprDecl
+                        |       \-- Activation
+                        |           \-- Func (nop)
+                        \-- ExprDecl
+                            \-- Activation
+                                \-- Func (halt)

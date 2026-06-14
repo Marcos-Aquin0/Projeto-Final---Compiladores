@@ -71,69 +71,25 @@ void votenaoPreemptivo(){
     nop();
 }
 
-void analisefirst(){
-    nop();
-    if(rodouumavez[processoAtual] == 0){
-        salto = processos[processoAtual];
-        memdados = dados[processoAtual];
-        dispatchersavenp();
-        dispatcherloadnp(); 
-        rodouumavez[processoAtual] = 1;
-        salto = 0;
-    }
-    else{
-        nop();
-        salto = processos[processoAtual];
-        memdados = dados[processoAtual];
-        nop(); 
-        dispatchersavep();
-        dispatcherloadnp(); 
-        salto = 0;
-    }
-}
-
-void analisesyscall(){
-    if(sinalsyscall == 1){
-        sinalsyscall = 0;
-        halts[processoAtual+1] = 1;
-        qtdHalt = qtdHalt + 1;
-    }
-    else{
-        nop();
-    }
-}
-
-void roundrobin(){
+void execucaoNP(){
     int i;
     i = 0;
-    while(qtdHalt < processosCarregados){
+    while (i<3){
         processoAtual = processosExecucao[i+1];
         nop();
+        msgLcd(31); 
+        salto = processos[processoAtual];
+        memdados = dados[processoAtual];
+        dispatchersavenp(); 
+        dispatcherloadnp(); 
         nop();
-        if(halts[processoAtual+1] == 0){
-            msgLcd(12);
-            nop();
-            nop();
-            analisefirst();
-            nop();
-            salto = 0;
-            nop();
-            
-            analisesyscall();
-        }
-        else {
-            nop();
-        }
-        
-        i = i + 1;
-        if (i == processosCarregados){
-            i = 0;
-        }
-        else{
-            nop();
-        }
+        salto = 0;
+        nop();
+        output(i);
+        i = i+1;
     }
-    limparVar();
+    nop();
+    salto = 0;
     nop();
 }
 
@@ -171,7 +127,7 @@ void initRR(){
     nop();
     qtdHalt = 0;
     nop();
-    roundrobin();
+    execucaoNP();
     nop();
     msgLcd(29);
     nop();
@@ -240,6 +196,25 @@ void receiveUART(){
     nop();
 }
 
+int checkFlags(int flag){
+    int valorAns;
+
+    if (flag == 1) {
+        valorAns = loadword(2000); 
+    }
+    else if (flag == 2) {
+        valorAns = loadword(2001); 
+    }
+    else if (flag == 3) {
+        valorAns = loadword(2002); 
+    }
+    else {
+        valorAns = 0;
+        nop();
+    }
+    return valorAns;
+}
+
 void sendUART(){
     int comando;
     int flag;
@@ -264,20 +239,7 @@ void sendUART(){
     }
     else if (comando == 3) { 
         header = 124 + flag; 
-        
-        if (flag == 1) {
-            valorAns = loadword(2000); 
-        }
-        else if (flag == 2) {
-            valorAns = loadword(2001); 
-        }
-        else if (flag == 3) {
-            valorAns = loadword(2002); 
-        }
-        else {
-            valorAns = 0;
-            nop();
-        }
+        valorAns = checkFlags(flag);
     }
     else {
         nop();

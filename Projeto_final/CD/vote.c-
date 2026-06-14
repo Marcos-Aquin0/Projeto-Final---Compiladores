@@ -4,31 +4,28 @@ int processosExecucao[10];
 int temp ;
 int comb ;
 int altura ;
+int votos[3];
 
-int vototemp;
-int votocomb;
-int votoaltura;
-
-int voteSw(int procUmtemp, int procDoistemp, int procTrestemp){
+int voteSw(int procUm, int procDois, int procTres){
     int auxValue;
     auxValue = 0;
     
-    if(procUmtemp == procDoistemp){
-        return procUmtemp;
+    if(procUm == procDois){
+        return procUm;
     }
     else{
         nop(); 
     }
     
-    if(procUmtemp == procTrestemp){
-        return procUmtemp;
+    if(procUm == procTres){
+        return procUm;
     }
     else{
         nop(); 
     }
     
-    if(procDoistemp == procTrestemp){
-        return procDoistemp;
+    if(procDois == procTres){
+        return procDois;
     }
     else{
         nop(); 
@@ -36,76 +33,52 @@ int voteSw(int procUmtemp, int procDoistemp, int procTrestemp){
     return auxValue;
 }
 
-void SaveInfo(){
-    if(vototemp > temp + 10) { 
+void SaveInfo(int voto, int var, int diff, int pos){
+    
+    if(voto > var + diff) { 
         msgLcd(35);
-        saveword(2000, temp);
-    } else if (vototemp < temp - 10) {
+        saveword(pos, var);
+    } else if (voto < var - diff) {
         msgLcd(35);
-        saveword(2000, temp);
+        saveword(pos, var);
     } else {
-        saveword(2000, vototemp);
+        saveword(pos, voto);
     }
     
-    if(votocomb > comb + 30) { 
-        msgLcd(36);
-        saveword(2001, comb);
-    } else if (votocomb < comb - 30) {
-        msgLcd(36);
-        saveword(2001, comb);
-    } else {
-        saveword(2001, votocomb);
-    }
-    
-    if(votoaltura > altura + 20) { 
-        msgLcd(37);
-        saveword(2002, altura);
-    } else if (votoaltura < altura - 20) {
-        msgLcd(37);
-        saveword(2002, altura);
-    } else {
-        saveword(2002, votoaltura);
-    }
 }
 
 void initVote() {
     int auxProc;
 
-    int procUmtemp ;
-    int procUmcomb ;
-    int procUmaltura ;
-    int procDoistemp ;
-    int procDoiscomb ;
-    int procDoisaltura ;
-    int procTrestemp ;
-    int procTrescomb ;
-    int procTresaltura ;
+    int procTemp[3];
+    int procComb[3];
+    int procAltura[3];
+   
+
+    int i;
 
     temp = loadword(2000);
     comb = loadword(2001);
     altura = loadword(2002);
     
-    processoAtual = processosExecucao[1];
-    auxProc = 12000 + 200*(processoAtual);
-    procUmtemp = loadword(auxProc);
-    procUmcomb = loadword(auxProc);
-    procUmaltura = loadword(auxProc);
-    processoAtual = processosExecucao[2];
-    auxProc = 12000 + 200*(processoAtual);
-    procDoistemp = loadword(auxProc);
-    procDoiscomb = loadword(auxProc);
-    procDoisaltura = loadword(auxProc);
-    processoAtual = processosExecucao[3];
-    auxProc = 12000 + 200*(processoAtual);
-    procTrestemp = loadword(auxProc);
-    procTrescomb = loadword(auxProc);
-    procTresaltura = loadword(auxProc);
+    i = 0;
 
-    vototemp = voteSw(procUmtemp, procDoistemp, procTrestemp);
-    votocomb = voteSw(procUmcomb, procDoiscomb, procTrescomb);
-    votoaltura = voteSw(procUmaltura, procDoisaltura, procTresaltura);    
+    while(i<3){
+        processoAtual = processosExecucao[i+1];
+        auxProc = 12000 + 200*(processoAtual);
+        procTemp[i] = loadword(auxProc-10);
+        procComb[i] = loadword(auxProc-11);
+        procAltura[i] = loadword(auxProc-12);
+        i = i+1;
+    }
+
+    votos[0] = voteSw(procTemp[0], procTemp[1], procTemp[2]);
+    votos[1] = voteSw(procComb[0], procComb[1], procComb[2]);
+    votos[2] = voteSw(procAltura[0], procAltura[1], procAltura[2]);    
     
-    SaveInfo();
+    SaveInfo(votos[0], temp, 10, 2000);
+    SaveInfo(votos[1], comb, 30, 2001);
+    SaveInfo(votos[2], altura, 20, 2002);
     
 }
 

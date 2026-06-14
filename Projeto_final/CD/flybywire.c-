@@ -51,7 +51,7 @@ void flybyw(){
     temp = loadword(2000);
     combustivel = loadword(2001);
     altura = loadword(2002);
-
+    
     verify(comando, valor, temp, combustivel, altura);
    
 }

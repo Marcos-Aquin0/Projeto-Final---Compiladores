@@ -1,0 +1,523 @@
+Código Intermediário de 3 Endereços:
+-------------------------------------
+processos = alloc 40
+processoAtual = alloc 4
+processosCarregados = alloc 4
+programas = alloc 40
+halts = alloc 40
+qtdHalt = alloc 4
+processosExecucao = alloc 40
+salto = alloc 4
+memdados = alloc 4
+dados = alloc 40
+opcao = alloc 4
+sinalsyscall = alloc 4
+rodouumavez = alloc 40
+function mapeamento
+i = alloc 4
+desvio = alloc 4
+desviodados = alloc 4
+t0 = 0
+i = t0
+t1 = 11000
+desviodados = t1
+t2 = 1901
+desvio = t2
+L0:
+t3 = i
+t4 = 6
+t5 = t3 <= t4
+if (t5) goto L1
+goto L2
+L1:
+call nop, 0
+t6 = i
+t7 = desviodados
+dados[t6] = t7
+t8 = i
+t9 = 0
+halts[t8] = t9
+t10 = i
+t11 = 0
+rodouumavez[t10] = t11
+t12 = i
+t13 = i
+programas[t12] = t13
+t14 = i
+t15 = desvio
+processos[t14] = t15
+t16 = desvio
+t17 = 300
+t18 = t16 + t17
+desvio = t18
+t19 = desviodados
+t20 = 1000
+t21 = t19 - t20
+desviodados = t21
+t22 = i
+t23 = 1
+t24 = t22 + t23
+i = t24
+call nop, 0
+goto L0
+L2:
+end mapeamento
+function limpaVar
+i = alloc 4
+t0 = 0
+i = t0
+L3:
+t1 = i
+t2 = 9
+t3 = t1 <= t2
+if (t3) goto L4
+goto L5
+L4:
+call nop, 0
+t4 = i
+t5 = 0
+halts[t4] = t5
+t6 = i
+t7 = 0
+rodouumavez[t6] = t7
+t8 = i
+t9 = 0
+processosExecucao[t8] = t9
+t10 = i
+t11 = 1
+t12 = t10 + t11
+i = t12
+call nop, 0
+goto L3
+L5:
+t13 = 0
+qtdHalt = t13
+t14 = 0
+sinalsyscall = t14
+t15 = 0
+opcao = t15
+t16 = 0
+processosCarregados = t16
+end limpaVar
+function menuShell
+argument 26
+call msgLcd, 1
+t1 = call input, 0
+opcao = t1
+end menuShell
+function votenaoPreemptivo
+t0 = 6
+processoAtual = t0
+call nop, 0
+argument 31
+call msgLcd, 1
+t2 = processoAtual
+t3 = processos[t2]
+salto = t3
+t4 = processoAtual
+t5 = dados[t4]
+memdados = t5
+call dispatchersavenp, 0
+call dispatcherloadnp, 0
+call nop, 0
+t6 = 0
+salto = t6
+call nop, 0
+end votenaoPreemptivo
+function execucaoNP
+i = alloc 4
+t0 = 0
+i = t0
+L6:
+t1 = i
+t2 = 3
+t3 = t1 < t2
+if (t3) goto L7
+goto L8
+L7:
+t4 = i
+t5 = 1
+t6 = t4 + t5
+t7 = processosExecucao[t6]
+processoAtual = t7
+call nop, 0
+argument 31
+call msgLcd, 1
+t9 = processoAtual
+t10 = processos[t9]
+salto = t10
+t11 = processoAtual
+t12 = dados[t11]
+memdados = t12
+call dispatchersavenp, 0
+call dispatcherloadnp, 0
+call nop, 0
+t13 = 0
+salto = t13
+call nop, 0
+argument i
+call output, 1
+t15 = i
+t16 = 1
+t17 = t15 + t16
+i = t17
+goto L6
+L8:
+call nop, 0
+t18 = 0
+salto = t18
+call nop, 0
+end execucaoNP
+function defineProcesso
+argument 27
+call msgLcd, 1
+call nop, 0
+call nop, 0
+t1 = opcao
+t2 = 1
+t3 = t1 == t2
+if (!t3) goto L9
+t4 = 1
+t5 = 0
+processosExecucao[t4] = t5
+t6 = 2
+t7 = 1
+processosExecucao[t6] = t7
+t8 = 3
+t9 = 2
+processosExecucao[t8] = t9
+goto L10
+L9:
+t10 = opcao
+t11 = 2
+t12 = t10 == t11
+if (!t12) goto L11
+t13 = 1
+t14 = 0
+processosExecucao[t13] = t14
+t15 = 2
+t16 = 1
+processosExecucao[t15] = t16
+t17 = 3
+t18 = 3
+processosExecucao[t17] = t18
+goto L12
+L11:
+t19 = opcao
+t20 = 3
+t21 = t19 == t20
+if (!t21) goto L13
+t22 = 1
+t23 = 0
+processosExecucao[t22] = t23
+t24 = 2
+t25 = 3
+processosExecucao[t24] = t25
+t26 = 3
+t27 = 4
+processosExecucao[t26] = t27
+goto L14
+L13:
+t28 = opcao
+t29 = 4
+t30 = t28 == t29
+if (!t30) goto L15
+t31 = 1
+t32 = 3
+processosExecucao[t31] = t32
+t33 = 2
+t34 = 4
+processosExecucao[t33] = t34
+t35 = 3
+t36 = 5
+processosExecucao[t35] = t36
+goto L16
+L15:
+call nop, 0
+L16:
+L14:
+L12:
+L10:
+end defineProcesso
+function initRR
+call nop, 0
+t0 = 0
+qtdHalt = t0
+call nop, 0
+call execucaoNP, 0
+call nop, 0
+argument 29
+call msgLcd, 1
+call nop, 0
+end initRR
+function initDados
+temp = alloc 4
+combustivel = alloc 4
+altura = alloc 4
+t0 = 25
+temp = t0
+t1 = 255
+combustivel = t1
+t2 = 0
+altura = t2
+argument 2000
+argument temp
+call saveword, 2
+argument 2001
+argument combustivel
+call saveword, 2
+argument 2002
+argument altura
+call saveword, 2
+end initDados
+function initUART
+argument 32
+call msgLcd, 1
+call nop, 0
+end initUART
+function receiveUART
+pronto = alloc 4
+aux = alloc 4
+header = alloc 4
+flag = alloc 4
+comando = alloc 4
+valor = alloc 4
+checksum = alloc 4
+argument 33
+call msgLcd, 1
+t1 = 1000
+aux = t1
+t2 = 0
+pronto = t2
+L17:
+t3 = pronto
+t4 = 0
+t5 = t3 == t4
+if (t5) goto L18
+goto L19
+L18:
+argument aux
+t7 = call loadword, 1
+pronto = t7
+goto L17
+L19:
+t8 = aux
+t9 = 1
+t10 = t8 + t9
+argument t10
+argument 1
+call saveword, 2
+t12 = aux
+t13 = 2
+t14 = t12 + t13
+argument t14
+t15 = call loadword, 1
+header = t15
+argument header
+call output, 1
+t17 = aux
+t18 = 3
+t19 = t17 + t18
+argument t19
+t20 = call loadword, 1
+flag = t20
+argument flag
+call output, 1
+t22 = aux
+t23 = 4
+t24 = t22 + t23
+argument t24
+t25 = call loadword, 1
+comando = t25
+argument comando
+call output, 1
+t27 = aux
+t28 = 5
+t29 = t27 + t28
+argument t29
+t30 = call loadword, 1
+valor = t30
+argument valor
+call output, 1
+t32 = aux
+t33 = 6
+t34 = t32 + t33
+argument t34
+t35 = call loadword, 1
+checksum = t35
+argument checksum
+call output, 1
+argument 500
+argument header
+call saveword, 2
+argument 501
+argument flag
+call saveword, 2
+argument 502
+argument comando
+call saveword, 2
+argument 503
+argument valor
+call saveword, 2
+argument 504
+argument checksum
+call saveword, 2
+call nop, 0
+end receiveUART
+function checkFlags
+param flag
+valorAns = alloc 4
+t0 = flag
+t1 = 1
+t2 = t0 == t1
+if (!t2) goto L20
+argument 2000
+t4 = call loadword, 1
+valorAns = t4
+goto L21
+L20:
+t5 = flag
+t6 = 2
+t7 = t5 == t6
+if (!t7) goto L22
+argument 2001
+t9 = call loadword, 1
+valorAns = t9
+goto L23
+L22:
+t10 = flag
+t11 = 3
+t12 = t10 == t11
+if (!t12) goto L24
+argument 2002
+t14 = call loadword, 1
+valorAns = t14
+goto L25
+L24:
+t15 = 0
+valorAns = t15
+call nop, 0
+L25:
+L23:
+L21:
+t16 = valorAns
+return t16
+end checkFlags
+function sendUART
+comando = alloc 4
+flag = alloc 4
+valorRec = alloc 4
+valorAns = alloc 4
+header = alloc 4
+checksum = alloc 4
+argument 34
+call msgLcd, 1
+argument 501
+t2 = call loadword, 1
+flag = t2
+argument 502
+t4 = call loadword, 1
+comando = t4
+argument 503
+t6 = call loadword, 1
+valorRec = t6
+t7 = comando
+t8 = 1
+t9 = t7 == t8
+if (!t9) goto L26
+t10 = 124
+header = t10
+t11 = valorRec
+valorAns = t11
+goto L27
+L26:
+t12 = comando
+t13 = 2
+t14 = t12 == t13
+if (!t14) goto L28
+t15 = 124
+header = t15
+t16 = valorRec
+valorAns = t16
+goto L29
+L28:
+t17 = comando
+t18 = 3
+t19 = t17 == t18
+if (!t19) goto L30
+t20 = 124
+t21 = flag
+t22 = t20 + t21
+header = t22
+argument flag
+t24 = call checkFlags, 1
+valorAns = t24
+goto L31
+L30:
+call nop, 0
+L31:
+L29:
+L27:
+argument 1008
+argument header
+call saveword, 2
+argument 1009
+argument comando
+call saveword, 2
+argument 1010
+argument valorAns
+call saveword, 2
+argument 1011
+argument 1
+call saveword, 2
+call nop, 0
+end sendUART
+function main
+call mapeamento, 0
+argument 0
+call msgLcd, 1
+call nop, 0
+t1 = 0
+salto = t1
+t2 = 3
+processosCarregados = t2
+call nop, 0
+call nop, 0
+call menuShell, 0
+call nop, 0
+t3 = 0
+salto = t3
+call nop, 0
+call nop, 0
+call defineProcesso, 0
+call initDados, 0
+call initUART, 0
+L32:
+t4 = opcao
+t5 = 6
+t6 = t4 != t5
+if (t6) goto L33
+goto L34
+L33:
+call receiveUART, 0
+call initRR, 0
+call votenaoPreemptivo, 0
+call sendUART, 0
+call nop, 0
+t7 = 0
+salto = t7
+call menuShell, 0
+goto L32
+L34:
+call nop, 0
+call nop, 0
+call nop, 0
+argument 28
+call msgLcd, 1
+call nop, 0
+call nop, 0
+call nop, 0
+call nop, 0
+call halt, 0
+end main
+-------------------------------------

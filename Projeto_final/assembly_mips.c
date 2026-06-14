@@ -240,6 +240,52 @@ void updateCurrentFunction(const char* funcName) {
     }
 }
 
+// Função para verificar duas quádruplas à frente
+void checkNextNextQuadruple(FILE* inputFile, long* filePos, QuadrupleInfo* nextQuad, QuadrupleInfo* nextNextQuad) {
+    char buffer[256];
+    
+    // Salva a posição atual no arquivo
+    *filePos = ftell(inputFile);
+    
+    // Inicializa ambas as quádruplas
+    strcpy(nextQuad->op, "");
+    strcpy(nextQuad->arg1, "-");
+    strcpy(nextQuad->arg2, "-");
+    strcpy(nextQuad->result, "-");
+    
+    strcpy(nextNextQuad->op, "");
+    strcpy(nextNextQuad->arg1, "-");
+    strcpy(nextNextQuad->arg2, "-");
+    strcpy(nextNextQuad->result, "-");
+    
+    int quadCount = 0;
+    
+    // Tenta ler as próximas duas linhas válidas
+    while (fgets(buffer, sizeof(buffer), inputFile) != NULL && quadCount < 2) {
+        // Ignora linhas de separação e cabeçalho
+        if (strstr(buffer, "---") != NULL || 
+            strstr(buffer, "Quad") != NULL ||
+            strlen(buffer) <= 1) {
+            continue;
+        }
+        
+        // Analisa a linha para extrair os campos
+        if (quadCount == 0) {
+            sscanf(buffer, "%d %d %s %s %s %s",
+                   &nextQuad->line, &nextQuad->sourceLine, 
+                   nextQuad->op, nextQuad->arg1, nextQuad->arg2, nextQuad->result);
+        } else {
+            sscanf(buffer, "%d %d %s %s %s %s",
+                   &nextNextQuad->line, &nextNextQuad->sourceLine, 
+                   nextNextQuad->op, nextNextQuad->arg1, nextNextQuad->arg2, nextNextQuad->result);
+        }
+        quadCount++;
+    }
+    
+    // Volta para a posição original no arquivo
+    fseek(inputFile, *filePos, SEEK_SET);
+}
+
 // Função auxiliar para verificar a próxima quádrupla
 void checkNextQuadruple(FILE* inputFile, long* filePos, QuadrupleInfo* nextQuad) {
     char buffer[256];
@@ -556,7 +602,7 @@ void generateAssembly(FILE* inputFile, int mode) {
         }
     }
 
-    QuadrupleInfo quad, nextQuad;
+    QuadrupleInfo quad, nextQuad, nextNextQuad;
     //variáveis para controle de quádruplas
     int lineIndex = 0;
     long filePos;
@@ -962,8 +1008,8 @@ void generateAssembly(FILE* inputFile, int mode) {
                     if (argumentNum == 0) {
                         long currentPos = ftell(inputFile);
                         int totalArgs = countArgumentsUntilCall(inputFile, currentPos);
-                        
-                        if(strcmp(nextQuad.arg1,"output") !=0 && strcmp(nextQuad.arg1,"msgLcd")!=0 && strcmp(nextQuad.arg1,"saltoUser")!=0){
+                        checkNextNextQuadruple(inputFile, &filePos, &nextQuad, &nextNextQuad);
+                        if(strcmp(nextQuad.arg1,"output") !=0 && strcmp(nextQuad.arg1,"msgLcd")!=0 && strcmp(nextQuad.arg1,"saltoUser")!=0  && strcmp(nextNextQuad.arg1,"saveword") !=0 && strcmp(nextQuad.arg1,"loadword")!=0){
                             // Aloca espaço para todos os argumentos de uma vez
                             fprintf(output, "%d - subi $r1 $r1 %d  # aloca espaço para %d argumentos\n", 
                                     lineIndex++, (totalArgs+1), totalArgs+1);
@@ -1006,7 +1052,7 @@ void generateAssembly(FILE* inputFile, int mode) {
                                     lineIndex++, argumentNum, quad.arg1, destReg);
                         }
                     }
-                    if(strcmp(nextQuad.arg1,"output") !=0 && strcmp(nextQuad.arg1,"halt") !=0 && strcmp(nextQuad.arg1,"saltoUser") !=0 && strcmp(nextQuad.arg1,"msgLcd") !=0){
+                    if(strcmp(nextQuad.arg1,"output") !=0 && strcmp(nextQuad.arg1,"halt") !=0 && strcmp(nextQuad.arg1,"saltoUser") !=0 && strcmp(nextQuad.arg1,"msgLcd") !=0 && strcmp(nextQuad.arg1,"loadword") !=0 && strcmp(nextNextQuad.arg1,"saveword") !=0){
                         fprintf(output, "%d - sw $r%d %d($r1)  # salva argument %d na pilha\n", 
                                 lineIndex++, destReg, argumentNum, argumentNum);
                     }
