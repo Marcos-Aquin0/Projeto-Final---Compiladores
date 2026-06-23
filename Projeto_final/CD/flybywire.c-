@@ -21,7 +21,7 @@ void verify(int comando, int valor, int temp, int combustivel, int altura){
     else {
         nop();
     }
-    
+    output(52);
     saveword(aux-10, newtemp);
     saveword(aux-11, newcombustivel);
     saveword(aux-12, newaltura); 

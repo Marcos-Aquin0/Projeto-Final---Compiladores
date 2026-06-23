@@ -20,15 +20,15 @@
 
 int verMenu = 1;
 byte flag; 
+bool aguardandoFPGA = false; // controlar o fluxo do loop
+bool comandoEnviado = false; // controlar o fluxo do loop
 
 void setup() {
   // Comunicação com o PC (Monitor Serial) via USB
-  // Serial.begin(2400); 
   Serial.begin(115200); 
   
   // Comunicação com a FPGA - ESP32
   Serial1.begin(115200, SERIAL_8N1, RX_PIN, TX_PIN); 
-  // Serial1.begin(2400);
   // Aguarda a porta do PC iniciar
   while (!Serial); 
   while(!Serial1);
@@ -58,16 +58,17 @@ void loop() {
   // ==========================================================
   // PC -> ESP32 -> FPGA (Enviando comandos para o avião)
   // ==========================================================
-  if(verMenu) {
-    menu(); // Exibe o menu de comandos para o usuário
-    verMenu = 0;
-  }
-   while(Serial.available() == 0); 
-  if (Serial.available() > 0) {
-    char tecla = Serial.read();
+  if(!aguardandoFPGA){
+    if(verMenu) {
+      menu(); // Exibe o menu de comandos para o usuário
+      verMenu = 0;
+    }
     
-    if (tecla == 'W' || tecla == 'w') {
+    while(Serial.available() == 0); 
+    if (Serial.available() > 0) {
+      char tecla = Serial.read();
       
+      if (tecla == 'W' || tecla == 'w') {
         Serial.println("\n Quantos graus?");
         while(Serial.available() == 0); 
 
@@ -75,9 +76,10 @@ void loop() {
             int graus = Serial.parseInt();
             flag = FLAG_STD;
             enviarComandoParaFPGA(CMD_SUBIR, graus, flag);
+            comandoEnviado = true;
         } 
-    } 
-    else if (tecla == 'S' || tecla == 's') {
+      } 
+      else if (tecla == 'S' || tecla == 's') {
         Serial.println("\n Quantos graus?");
         while(Serial.available() == 0); 
 
@@ -85,9 +87,10 @@ void loop() {
             int graus = Serial.parseInt();
             flag = FLAG_STD;
             enviarComandoParaFPGA(CMD_DESCER, graus, flag);
+            comandoEnviado = true;
         } 
-    }
-    else if (tecla == 'C' || tecla == 'c') {
+      }
+      else if (tecla == 'C' || tecla == 'c') {
         menu2();
         while(Serial.available() == 0); 
 
@@ -103,55 +106,66 @@ void loop() {
               flag = FLAG_ALT;
             }
             enviarComandoParaFPGA(CMD_CHECAR, 0, flag);
+            comandoEnviado = true;
         } 
+      }
+    }
+    if (comandoEnviado) {
+      aguardandoFPGA = true; // Bloqueia o menu e ativa a espera da resposta
+      Serial.println("\n[INFO] Aguardando processamento da FPGA (pode levar cerca de 3 minutos)...");
     }
   }
 
   // ==========================================================
   // FPGA -> ESP32 -> PC (Recebendo status do avião)
   // ==========================================================
-  unsigned long tempoInicio = millis();
-  while (millis() - tempoInicio < 10000){
-    if (Serial1.available() >= 4) { // Verifica a Serial1 (FPGA)
-      byte expected_header = (OPCODE_R << 2) | flag;
-      byte header = Serial1.read();
-      //Serial.println(header);
-      if (header == expected_header) { // Verifica o header do pacote
-        byte cmd_recebido = Serial1.read();
-        byte val_recebido = Serial1.read();
-        byte chk_recebido = Serial1.read();
+  if (aguardandoFPGA) {
+    bool pacoteConfirmado = false;
 
-        // Sanity Check: Verifica integridade do pacote
-        byte chk_calculado = cmd_recebido ^ val_recebido;
+    // Loop infinito até que pacoteConfirmado seja verdadeiro
+    while (!pacoteConfirmado){
+      if (Serial1.available() >= 4) { // Verifica a Serial1 (FPGA)
+        byte expected_header = (OPCODE_R << 2) | flag;
+        byte header = Serial1.read();
+        //Serial.println(header);
+        if (header == expected_header) { // Verifica o header do pacote
+          byte cmd_recebido = Serial1.read();
+          byte val_recebido = Serial1.read();
+          byte chk_recebido = Serial1.read();
 
-        if (chk_calculado == chk_recebido) {
-          exibirRespostaNoPC(cmd_recebido, val_recebido);
-        } else {
-          Serial.println("[ALERTA] Interferência no link! Pacote corrompido.");
+          // Sanity Check: Verifica integridade do pacote
+          byte chk_calculado = cmd_recebido ^ val_recebido;
+
+          if (chk_calculado == chk_recebido) {
+            exibirRespostaNoPC(cmd_recebido, val_recebido);
+            pacoteConfirmado = true; // Pacote confirmado, sai do loop
+            aguardandoFPGA = false; // Libera o menu para novos comandos
+            comandoEnviado = false; // Reseta o estado do comando enviado
+            verMenu = 1; // Permite que o menu seja exibido novamente
+          } else {
+            Serial.println("[ALERTA] Interferência no link! Pacote corrompido.");
+          }
+        }
+        else {
+          // Se o header estiver errado, limpa o buffer para não travar a próxima leitura
+          while(Serial1.available() > 0) Serial1.read();
         }
       }
-      else {
-        // Se o header estiver errado, limpa o buffer para não travar a próxima leitura
-        while(Serial1.available() > 0) Serial1.read();
-      }
-    verMenu = 1;
-    break;
     }
   }
-
 }
 
 // Envia os 4 bytes fisicamente para a FPGA usando a Serial1
 void enviarComandoParaFPGA(byte comando, byte valor, byte f) {
-  byte header = (OPCODE_E << 2) | flag;
+  byte header = (OPCODE_E << 2) | f;
   byte checksum = comando ^ valor; 
   Serial.println("enviando pacote");
   Serial1.write(header);
-  delay(100);
+  delay(10);
   Serial1.write(comando);
-  delay(100);
+  delay(10);
   Serial1.write(valor);
-  delay(100);
+  delay(10);
   Serial1.write(checksum);
 }
 

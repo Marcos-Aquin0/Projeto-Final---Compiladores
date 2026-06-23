@@ -5,7 +5,7 @@ processoAtual = alloc 4
 processosCarregados = alloc 4
 programas = alloc 40
 halts = alloc 40
-qtdHalt = alloc 4
+comandoUart = alloc 4
 processosExecucao = alloc 40
 salto = alloc 4
 memdados = alloc 4
@@ -91,7 +91,7 @@ call nop, 0
 goto L3
 L5:
 t13 = 0
-qtdHalt = t13
+comandoUart = t13
 t14 = 0
 sinalsyscall = t14
 t15 = 0
@@ -141,7 +141,7 @@ t6 = t4 + t5
 t7 = processosExecucao[t6]
 processoAtual = t7
 call nop, 0
-argument 31
+argument 12
 call msgLcd, 1
 t9 = processoAtual
 t10 = processos[t9]
@@ -239,17 +239,6 @@ L14:
 L12:
 L10:
 end defineProcesso
-function initRR
-call nop, 0
-t0 = 0
-qtdHalt = t0
-call nop, 0
-call execucaoNP, 0
-call nop, 0
-argument 29
-call msgLcd, 1
-call nop, 0
-end initRR
 function initDados
 temp = alloc 4
 combustivel = alloc 4
@@ -313,40 +302,32 @@ t14 = t12 + t13
 argument t14
 t15 = call loadword, 1
 header = t15
-argument header
-call output, 1
-t17 = aux
-t18 = 3
-t19 = t17 + t18
-argument t19
-t20 = call loadword, 1
-flag = t20
-argument flag
-call output, 1
-t22 = aux
-t23 = 4
-t24 = t22 + t23
-argument t24
-t25 = call loadword, 1
-comando = t25
-argument comando
-call output, 1
-t27 = aux
-t28 = 5
-t29 = t27 + t28
-argument t29
-t30 = call loadword, 1
-valor = t30
-argument valor
-call output, 1
-t32 = aux
-t33 = 6
-t34 = t32 + t33
-argument t34
-t35 = call loadword, 1
-checksum = t35
-argument checksum
-call output, 1
+t16 = aux
+t17 = 3
+t18 = t16 + t17
+argument t18
+t19 = call loadword, 1
+flag = t19
+t20 = aux
+t21 = 4
+t22 = t20 + t21
+argument t22
+t23 = call loadword, 1
+comando = t23
+t24 = comando
+comandoUart = t24
+t25 = aux
+t26 = 5
+t27 = t25 + t26
+argument t27
+t28 = call loadword, 1
+valor = t28
+t29 = aux
+t30 = 6
+t31 = t29 + t30
+argument t31
+t32 = call loadword, 1
+checksum = t32
 argument 500
 argument header
 call saveword, 2
@@ -488,10 +469,6 @@ call nop, 0
 t3 = 0
 salto = t3
 call nop, 0
-call nop, 0
-call defineProcesso, 0
-call initDados, 0
-call initUART, 0
 L32:
 t4 = opcao
 t5 = 6
@@ -499,13 +476,25 @@ t6 = t4 != t5
 if (t6) goto L33
 goto L34
 L33:
+call defineProcesso, 0
+call initDados, 0
+call initUART, 0
 call receiveUART, 0
-call initRR, 0
+t7 = comandoUart
+t8 = 3
+t9 = t7 == t8
+if (!t9) goto L35
+call sendUART, 0
+goto L36
+L35:
+call nop, 0
+call execucaoNP, 0
 call votenaoPreemptivo, 0
 call sendUART, 0
+L36:
 call nop, 0
-t7 = 0
-salto = t7
+t10 = 0
+salto = t10
 call menuShell, 0
 goto L32
 L34:

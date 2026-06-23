@@ -6,9 +6,9 @@
 5 - subi $r1 $r1 10  # próximo elemento
 6 - move $r34 $r1   # endereço base do array 'halts'
 7 - subi $r1 $r1 10  # próximo elemento
-8 - subi $r1 $r1 1 # aloca espaço para variável 'qtdHalt'
+8 - subi $r1 $r1 1 # aloca espaço para variável 'comandoUart'
 9 - sw $r63 0($r1)  # inicializa com 0
-10 - move $r35 $r1   # endereço da variável 'qtdHalt'
+10 - move $r35 $r1   # endereço da variável 'comandoUart'
 11 - move $r36 $r1   # endereço base do array 'processosExecucao'
 12 - subi $r1 $r1 10  # próximo elemento
 13 - move $r37 $r1   # endereço base do array 'dados'
@@ -131,7 +131,7 @@
 130 - j L3
 131 - L5: #Nova Label L5
 132 - li $r8 0
-133 - sw $r8 0($r35) # movendo t13 para qtdHalt
+133 - sw $r8 0($r35) # movendo t13 para comandoUart
 134 - li $r11 0
 135 - move $r51 $r11 # movendo t14 para registrador especial sinalsyscall
 136 - li $r12 0
@@ -229,7 +229,7 @@
 228 - lw $r8 0($r10)      # carrega processosExecucao[t6] em t7
 229 - move $r59 $r8 # movendo t7 para registrador especial processoAtual
 230 - nop 0
-231 - li $r46 31 # argument 0 (31)
+231 - li $r46 12 # argument 0 (12)
 232 - msgLcd $r46
 233 - move $r13 $r59 # movendo processoAtual para registrador especial t9
 234 - sub $r15 $r61 $r13    # endereço base - deslocamento
@@ -372,419 +372,393 @@
 371 - addi $r1 $r1 1       #desaloca espaço na pilha
 372 - move $r0 $r0
 373 - jr $r31         # retorna (void function end)
-374 - initRR: # nova função initRR
+374 - initDados: # nova função initDados
 375 - subi $r1 $r1 1      # aloca espaço na pilha
 376 - sw $r31 0($r1)       # empilha registrador
 377 - subi $r1 $r1 1      # aloca espaço na pilha
 378 - sw $r2 0($r1)       # empilha registrador
 379 - move $r2 $r1         # fp = sp
-380 - nop 0
-381 - li $r5 0
-382 - sw $r5 0($r35) # movendo t0 para qtdHalt
-383 - nop 0
-384 - addil $r43 $r44 execucaoNP
-385 - jal execucaoNP
-386 - nop 0
-387 - li $r46 29 # argument 0 (29)
-388 - msgLcd $r46
-389 - nop 0
-390 - move $r1 $r2         # restaura stack pointer
-391 - lw $r2 0($r1)       # desempilha registrador
-392 - addi $r1 $r1 1       #desaloca espaço na pilha
-393 - lw $r31 0($r1)       # desempilha registrador
-394 - addi $r1 $r1 1       #desaloca espaço na pilha
-395 - move $r0 $r0
-396 - jr $r31         # retorna (void function end)
-397 - initDados: # nova função initDados
-398 - subi $r1 $r1 1      # aloca espaço na pilha
-399 - sw $r31 0($r1)       # empilha registrador
-400 - subi $r1 $r1 1      # aloca espaço na pilha
-401 - sw $r2 0($r1)       # empilha registrador
-402 - move $r2 $r1         # fp = sp
-403 - subi $r1 $r1 1 # aloca espaço para variável 'temp'
-404 - sw $r63 0($r1)  # inicializa com 0
-405 - move $r5 $r1   # endereço da variável 'temp'
-406 - subi $r1 $r1 1 # aloca espaço para variável 'combustivel'
-407 - sw $r63 0($r1)  # inicializa com 0
-408 - move $r6 $r1   # endereço da variável 'combustivel'
-409 - subi $r1 $r1 1 # aloca espaço para variável 'altura'
-410 - sw $r63 0($r1)  # inicializa com 0
-411 - move $r7 $r1   # endereço da variável 'altura'
-412 - li $r9 25
-413 - sw $r9 0($r5) # movendo t0 para temp
-414 - li $r9 255
-415 - sw $r9 0($r6) # movendo t1 para combustivel
-416 - li $r9 0
-417 - sw $r9 0($r7) # movendo t2 para altura
-418 - li $r46 2000 # argument 0 (2000)
-419 - lw $r47 0($r5)    # carrega valor da variável local 'temp' para argument 1
-420 - sw $r47 0($r46)
-421 - li $r46 2001 # argument 0 (2001)
-422 - lw $r47 0($r6)    # carrega valor da variável local 'combustivel' para argument 1
-423 - sw $r47 0($r46)
-424 - li $r46 2002 # argument 0 (2002)
-425 - lw $r47 0($r7)    # carrega valor da variável local 'altura' para argument 1
-426 - sw $r47 0($r46)
-427 - move $r1 $r2         # restaura stack pointer
-428 - lw $r2 0($r1)       # desempilha registrador
-429 - addi $r1 $r1 1       #desaloca espaço na pilha
-430 - lw $r31 0($r1)       # desempilha registrador
-431 - addi $r1 $r1 1       #desaloca espaço na pilha
-432 - move $r0 $r0
-433 - jr $r31         # retorna (void function end)
-434 - initUART: # nova função initUART
-435 - subi $r1 $r1 1      # aloca espaço na pilha
-436 - sw $r31 0($r1)       # empilha registrador
-437 - subi $r1 $r1 1      # aloca espaço na pilha
-438 - sw $r2 0($r1)       # empilha registrador
-439 - move $r2 $r1         # fp = sp
-440 - li $r46 32 # argument 0 (32)
-441 - msgLcd $r46
-442 - nop 0
-443 - move $r1 $r2         # restaura stack pointer
-444 - lw $r2 0($r1)       # desempilha registrador
-445 - addi $r1 $r1 1       #desaloca espaço na pilha
-446 - lw $r31 0($r1)       # desempilha registrador
-447 - addi $r1 $r1 1       #desaloca espaço na pilha
-448 - move $r0 $r0
-449 - jr $r31         # retorna (void function end)
-450 - receiveUART: # nova função receiveUART
-451 - subi $r1 $r1 1      # aloca espaço na pilha
-452 - sw $r31 0($r1)       # empilha registrador
-453 - subi $r1 $r1 1      # aloca espaço na pilha
-454 - sw $r2 0($r1)       # empilha registrador
-455 - move $r2 $r1         # fp = sp
-456 - subi $r1 $r1 1 # aloca espaço para variável 'pronto'
-457 - sw $r63 0($r1)  # inicializa com 0
-458 - move $r5 $r1   # endereço da variável 'pronto'
-459 - subi $r1 $r1 1 # aloca espaço para variável 'aux'
-460 - sw $r63 0($r1)  # inicializa com 0
-461 - move $r6 $r1   # endereço da variável 'aux'
-462 - subi $r1 $r1 1 # aloca espaço para variável 'header'
-463 - sw $r63 0($r1)  # inicializa com 0
-464 - move $r7 $r1   # endereço da variável 'header'
-465 - subi $r1 $r1 1 # aloca espaço para variável 'flag'
-466 - sw $r63 0($r1)  # inicializa com 0
-467 - move $r8 $r1   # endereço da variável 'flag'
-468 - subi $r1 $r1 1 # aloca espaço para variável 'comando'
-469 - sw $r63 0($r1)  # inicializa com 0
-470 - move $r9 $r1   # endereço da variável 'comando'
-471 - subi $r1 $r1 1 # aloca espaço para variável 'valor'
-472 - sw $r63 0($r1)  # inicializa com 0
-473 - move $r10 $r1   # endereço da variável 'valor'
-474 - subi $r1 $r1 1 # aloca espaço para variável 'checksum'
-475 - sw $r63 0($r1)  # inicializa com 0
-476 - move $r11 $r1   # endereço da variável 'checksum'
-477 - li $r46 33 # argument 0 (33)
-478 - msgLcd $r46
-479 - li $r16 1000
-480 - sw $r16 0($r6) # movendo t1 para aux
-481 - li $r15 0
-482 - sw $r15 0($r5) # movendo t2 para pronto
-483 - L17: #Nova Label L17
-484 - lw $r13 0($r5) # movendo pronto para t3
-485 - li $r16 0
-486 - addil $r43 $r44 L18
-487 - beq $r13 $r16 L18 # jump se t3 == t4
-488 - addil $r43 $r44 L19
-489 - j L19
-490 - L18: #Nova Label L18
-491 - lw $r46 0($r6)    # carrega valor da variável local 'aux' para argument 0
-492 - lw $r17 0($r46)
-493 - sw $r17 0($r5) # movendo t7 para pronto
-494 - addil $r43 $r44 L17
-495 - j L17
-496 - L19: #Nova Label L19
-497 - lw $r16 0($r6) # movendo aux para t8
-498 - li $r17 1
-499 - add $r14 $r16 $r17 # salva em t10 (r14) 
-500 - move $r46 $r14 # argument 0 (t10)
-501 - li $r47 1 # argument 1 (1)
-502 - sw $r47 0($r46)
-503 - lw $r19 0($r6) # movendo aux para t12
-504 - li $r20 2
-505 - add $r18 $r19 $r20 # salva em t14 (r18) 
-506 - move $r46 $r18 # argument 0 (t14)
-507 - lw $r19 0($r46)
-508 - sw $r19 0($r7) # movendo t15 para header
-509 - lw $r46 0($r7)    # carrega valor da variável local 'header' para argument 0
-510 - move $r0 $r46
-511 - out $r0
-512 - lw $r19 0($r6) # movendo aux para t17
-513 - li $r21 3
-514 - add $r20 $r19 $r21 # salva em t19 (r20) 
-515 - move $r46 $r20 # argument 0 (t19)
-516 - lw $r19 0($r46)
-517 - sw $r19 0($r8) # movendo t20 para flag
-518 - lw $r46 0($r8)    # carrega valor da variável local 'flag' para argument 0
-519 - move $r0 $r46
-520 - out $r0
-521 - lw $r19 0($r6) # movendo aux para t22
-522 - li $r21 4
-523 - add $r4 $r19 $r21 # salva em t24 (r4) 
-524 - move $r46 $r4 # argument 0 (t24)
-525 - lw $r19 0($r46)
-526 - sw $r19 0($r9) # movendo t25 para comando
-527 - lw $r46 0($r9)    # carrega valor da variável local 'comando' para argument 0
-528 - move $r0 $r46
-529 - out $r0
-530 - lw $r19 0($r6) # movendo aux para t27
-531 - li $r22 5
-532 - add $r21 $r19 $r22 # salva em t29 (r21) 
-533 - move $r46 $r21 # argument 0 (t29)
-534 - lw $r19 0($r46)
-535 - sw $r19 0($r10) # movendo t30 para valor
-536 - lw $r46 0($r10)    # carrega valor da variável local 'valor' para argument 0
-537 - move $r0 $r46
-538 - out $r0
-539 - lw $r19 0($r6) # movendo aux para t32
-540 - li $r23 6
-541 - add $r22 $r19 $r23 # salva em t34 (r22) 
-542 - move $r46 $r22 # argument 0 (t34)
-543 - lw $r19 0($r46)
-544 - sw $r19 0($r11) # movendo t35 para checksum
-545 - lw $r46 0($r11)    # carrega valor da variável local 'checksum' para argument 0
-546 - move $r0 $r46
-547 - out $r0
-548 - li $r46 500 # argument 0 (500)
-549 - lw $r47 0($r7)    # carrega valor da variável local 'header' para argument 1
-550 - sw $r47 0($r46)
-551 - li $r46 501 # argument 0 (501)
-552 - lw $r47 0($r8)    # carrega valor da variável local 'flag' para argument 1
-553 - sw $r47 0($r46)
-554 - li $r46 502 # argument 0 (502)
-555 - lw $r47 0($r9)    # carrega valor da variável local 'comando' para argument 1
-556 - sw $r47 0($r46)
-557 - li $r46 503 # argument 0 (503)
-558 - lw $r47 0($r10)    # carrega valor da variável local 'valor' para argument 1
-559 - sw $r47 0($r46)
-560 - li $r46 504 # argument 0 (504)
-561 - lw $r47 0($r11)    # carrega valor da variável local 'checksum' para argument 1
-562 - sw $r47 0($r46)
-563 - nop 0
-564 - move $r1 $r2         # restaura stack pointer
-565 - lw $r2 0($r1)       # desempilha registrador
-566 - addi $r1 $r1 1       #desaloca espaço na pilha
-567 - lw $r31 0($r1)       # desempilha registrador
-568 - addi $r1 $r1 1       #desaloca espaço na pilha
-569 - move $r0 $r0
-570 - jr $r31         # retorna (void function end)
-571 - checkFlags: # nova função checkFlags
-572 - subi $r1 $r1 1      # aloca espaço na pilha
-573 - sw $r31 0($r1)       # empilha registrador
-574 - subi $r1 $r1 1      # aloca espaço na pilha
-575 - sw $r2 0($r1)       # empilha registrador
-576 - move $r2 $r1         # fp = sp
-577 - lw $r52 2($r2)      # carrega param 0
-578 - subi $r1 $r1 1 # aloca espaço para variável 'valorAns'
-579 - sw $r63 0($r1)  # inicializa com 0
-580 - move $r5 $r1   # endereço da variável 'valorAns'
-581 - move $r6 $r52 # movendo flag para t0
-582 - li $r8 1
-583 - addil $r43 $r44 L20
-584 - bnq $r6 $r8 L20 # jump se t0 != t1
-585 - li $r46 2000 # argument 0 (2000)
-586 - lw $r12 0($r46)
-587 - sw $r12 0($r5) # movendo t4 para valorAns
-588 - addil $r43 $r44 L21
-589 - j L21
-590 - L20: #Nova Label L20
-591 - move $r8 $r52 # movendo flag para t5
-592 - li $r13 2
-593 - addil $r43 $r44 L22
-594 - bnq $r8 $r13 L22 # jump se t5 != t6
-595 - li $r46 2001 # argument 0 (2001)
-596 - lw $r15 0($r46)
-597 - sw $r15 0($r5) # movendo t9 para valorAns
-598 - addil $r43 $r44 L23
-599 - j L23
-600 - L22: #Nova Label L22
-601 - move $r13 $r52 # movendo flag para t10
-602 - li $r16 3
-603 - addil $r43 $r44 L24
-604 - bnq $r13 $r16 L24 # jump se t10 != t11
-605 - li $r46 2002 # argument 0 (2002)
-606 - lw $r18 0($r46)
-607 - sw $r18 0($r5) # movendo t14 para valorAns
-608 - addil $r43 $r44 L25
-609 - j L25
-610 - L24: #Nova Label L24
-611 - li $r16 0
-612 - sw $r16 0($r5) # movendo t15 para valorAns
-613 - nop 0
-614 - L25: #Nova Label L25
-615 - L23: #Nova Label L23
-616 - L21: #Nova Label L21
-617 - lw $r16 0($r5) # movendo valorAns para t16
-618 - move $r45 $r16 # move valor de retorno para v0
-619 - move $r1 $r2         # restaura stack pointer
-620 - lw $r2 0($r1)       # desempilha registrador
-621 - addi $r1 $r1 1       #desaloca espaço na pilha
-622 - lw $r31 0($r1)       # desempilha registrador
-623 - addi $r1 $r1 1       #desaloca espaço na pilha
-624 - jr $r31         # retorna
-625 - sendUART: # nova função sendUART
-626 - subi $r1 $r1 1      # aloca espaço na pilha
-627 - sw $r31 0($r1)       # empilha registrador
-628 - subi $r1 $r1 1      # aloca espaço na pilha
-629 - sw $r2 0($r1)       # empilha registrador
-630 - move $r2 $r1         # fp = sp
-631 - subi $r1 $r1 1 # aloca espaço para variável 'comando'
-632 - sw $r63 0($r1)  # inicializa com 0
-633 - move $r5 $r1   # endereço da variável 'comando'
-634 - subi $r1 $r1 1 # aloca espaço para variável 'flag'
-635 - sw $r63 0($r1)  # inicializa com 0
-636 - move $r6 $r1   # endereço da variável 'flag'
-637 - subi $r1 $r1 1 # aloca espaço para variável 'valorRec'
-638 - sw $r63 0($r1)  # inicializa com 0
-639 - move $r7 $r1   # endereço da variável 'valorRec'
-640 - subi $r1 $r1 1 # aloca espaço para variável 'valorAns'
-641 - sw $r63 0($r1)  # inicializa com 0
-642 - move $r8 $r1   # endereço da variável 'valorAns'
-643 - subi $r1 $r1 1 # aloca espaço para variável 'header'
-644 - sw $r63 0($r1)  # inicializa com 0
-645 - move $r9 $r1   # endereço da variável 'header'
-646 - subi $r1 $r1 1 # aloca espaço para variável 'checksum'
-647 - sw $r63 0($r1)  # inicializa com 0
-648 - move $r10 $r1   # endereço da variável 'checksum'
-649 - li $r46 34 # argument 0 (34)
-650 - msgLcd $r46
-651 - li $r46 501 # argument 0 (501)
-652 - lw $r15 0($r46)
-653 - sw $r15 0($r6) # movendo t2 para flag
-654 - li $r46 502 # argument 0 (502)
-655 - lw $r16 0($r46)
-656 - sw $r16 0($r5) # movendo t4 para comando
-657 - li $r46 503 # argument 0 (503)
-658 - lw $r17 0($r46)
-659 - sw $r17 0($r7) # movendo t6 para valorRec
-660 - lw $r17 0($r5) # movendo comando para t7
-661 - li $r18 1
-662 - addil $r43 $r44 L26
-663 - bnq $r17 $r18 L26 # jump se t7 != t8
-664 - li $r20 124
-665 - sw $r20 0($r9) # movendo t10 para header
-666 - lw $r19 0($r7) # movendo valorRec para t11
-667 - sw $r19 0($r8) # movendo t11 para valorAns
-668 - addil $r43 $r44 L27
-669 - j L27
-670 - L26: #Nova Label L26
-671 - lw $r18 0($r5) # movendo comando para t12
-672 - li $r20 2
-673 - addil $r43 $r44 L28
-674 - bnq $r18 $r20 L28 # jump se t12 != t13
-675 - li $r22 124
-676 - sw $r22 0($r9) # movendo t15 para header
-677 - lw $r21 0($r7) # movendo valorRec para t16
-678 - sw $r21 0($r8) # movendo t16 para valorAns
-679 - addil $r43 $r44 L29
-680 - j L29
-681 - L28: #Nova Label L28
-682 - lw $r20 0($r5) # movendo comando para t17
-683 - li $r22 3
-684 - addil $r43 $r44 L30
-685 - bnq $r20 $r22 L30 # jump se t17 != t18
-686 - li $r24 124
-687 - lw $r23 0($r6) # movendo flag para t21
-688 - add $r25 $r24 $r23 # salva em t22 (r25) 
-689 - sw $r25 0($r9) # movendo t22 para header
-690 - subi $r1 $r1 1  # aloca espaço para 1 argumentos
-691 - lw $r46 0($r6)    # carrega valor da variável local 'flag' para argument 0
-692 - sw $r46 0($r1)  # salva argument 0 na pilha
-693 - addil $r43 $r44 checkFlags
-694 - jal checkFlags
-695 - addi $r1 $r1 1  # libera espaço de 1 argumentos
-696 - lw $r5 -1($r2)  # recarrega variavel local
-697 - lw $r6 -2($r2)  # recarrega variavel local
-698 - lw $r7 -3($r2)  # recarrega variavel local
-699 - lw $r8 -4($r2)  # recarrega variavel local
-700 - lw $r9 -5($r2)  # recarrega variavel local
-701 - lw $r10 -6($r2)  # recarrega variavel local
-702 - move $r24 $r45 # copia retorno (v0) para t24
-703 - sw $r24 0($r8) # movendo t24 para valorAns
-704 - addil $r43 $r44 L31
-705 - j L31
-706 - L30: #Nova Label L30
-707 - nop 0
-708 - L31: #Nova Label L31
-709 - L29: #Nova Label L29
-710 - L27: #Nova Label L27
-711 - li $r46 1008 # argument 0 (1008)
-712 - lw $r47 0($r9)    # carrega valor da variável local 'header' para argument 1
-713 - sw $r47 0($r46)
-714 - li $r46 1009 # argument 0 (1009)
-715 - lw $r47 0($r5)    # carrega valor da variável local 'comando' para argument 1
-716 - sw $r47 0($r46)
-717 - li $r46 1010 # argument 0 (1010)
-718 - lw $r47 0($r8)    # carrega valor da variável local 'valorAns' para argument 1
-719 - sw $r47 0($r46)
-720 - li $r46 1011 # argument 0 (1011)
-721 - li $r47 1 # argument 1 (1)
-722 - sw $r47 0($r46)
-723 - nop 0
-724 - move $r1 $r2         # restaura stack pointer
-725 - lw $r2 0($r1)       # desempilha registrador
-726 - addi $r1 $r1 1       #desaloca espaço na pilha
-727 - lw $r31 0($r1)       # desempilha registrador
-728 - addi $r1 $r1 1       #desaloca espaço na pilha
-729 - move $r0 $r0
-730 - jr $r31         # retorna (void function end)
-731 - main: # nova função main
-732 - addil $r43 $r44 mapeamento
-733 - jal mapeamento
-734 - li $r46 0 # argument 0 (0)
-735 - msgLcd $r46
-736 - nop 0
-737 - li $r6 0
-738 - move $r44 $r6 # movendo t1 para registrador especial salto
-739 - li $r7 3
-740 - move $r60 $r7 # movendo t2 para registrador especial processosCarregados
-741 - nop 0
-742 - nop 0
-743 - addil $r43 $r44 menuShell
-744 - jal menuShell
-745 - nop 0
-746 - li $r8 0
-747 - move $r44 $r8 # movendo t3 para registrador especial salto
-748 - nop 0
-749 - nop 0
-750 - addil $r43 $r44 defineProcesso
-751 - jal defineProcesso
-752 - addil $r43 $r44 initDados
-753 - jal initDados
-754 - addil $r43 $r44 initUART
-755 - jal initUART
-756 - L32: #Nova Label L32
-757 - move $r9 $r41 # movendo opcao para registrador especial t4
-758 - li $r11 6
-759 - addil $r43 $r44 L33
-760 - bnq $r9 $r11 L33 # jump se !=
-761 - addil $r43 $r44 L34
-762 - j L34
-763 - L33: #Nova Label L33
-764 - addil $r43 $r44 receiveUART
-765 - jal receiveUART
-766 - addil $r43 $r44 initRR
-767 - jal initRR
-768 - addil $r43 $r44 votenaoPreemptivo
-769 - jal votenaoPreemptivo
-770 - addil $r43 $r44 sendUART
-771 - jal sendUART
-772 - nop 0
-773 - li $r11 0
-774 - move $r44 $r11 # movendo t7 para registrador especial salto
-775 - addil $r43 $r44 menuShell
-776 - jal menuShell
-777 - addil $r43 $r44 L32
-778 - j L32
-779 - L34: #Nova Label L34
-780 - nop 0
-781 - nop 0
-782 - nop 0
-783 - li $r46 28 # argument 0 (28)
-784 - msgLcd $r46
-785 - nop 0
-786 - nop 0
-787 - nop 0
-788 - nop 0
-789 - halt # termina a execução
+380 - subi $r1 $r1 1 # aloca espaço para variável 'temp'
+381 - sw $r63 0($r1)  # inicializa com 0
+382 - move $r5 $r1   # endereço da variável 'temp'
+383 - subi $r1 $r1 1 # aloca espaço para variável 'combustivel'
+384 - sw $r63 0($r1)  # inicializa com 0
+385 - move $r6 $r1   # endereço da variável 'combustivel'
+386 - subi $r1 $r1 1 # aloca espaço para variável 'altura'
+387 - sw $r63 0($r1)  # inicializa com 0
+388 - move $r7 $r1   # endereço da variável 'altura'
+389 - li $r9 25
+390 - sw $r9 0($r5) # movendo t0 para temp
+391 - li $r9 255
+392 - sw $r9 0($r6) # movendo t1 para combustivel
+393 - li $r9 0
+394 - sw $r9 0($r7) # movendo t2 para altura
+395 - li $r46 2000 # argument 0 (2000)
+396 - lw $r47 0($r5)    # carrega valor da variável local 'temp' para argument 1
+397 - sw $r47 0($r46)
+398 - li $r46 2001 # argument 0 (2001)
+399 - lw $r47 0($r6)    # carrega valor da variável local 'combustivel' para argument 1
+400 - sw $r47 0($r46)
+401 - li $r46 2002 # argument 0 (2002)
+402 - lw $r47 0($r7)    # carrega valor da variável local 'altura' para argument 1
+403 - sw $r47 0($r46)
+404 - move $r1 $r2         # restaura stack pointer
+405 - lw $r2 0($r1)       # desempilha registrador
+406 - addi $r1 $r1 1       #desaloca espaço na pilha
+407 - lw $r31 0($r1)       # desempilha registrador
+408 - addi $r1 $r1 1       #desaloca espaço na pilha
+409 - move $r0 $r0
+410 - jr $r31         # retorna (void function end)
+411 - initUART: # nova função initUART
+412 - subi $r1 $r1 1      # aloca espaço na pilha
+413 - sw $r31 0($r1)       # empilha registrador
+414 - subi $r1 $r1 1      # aloca espaço na pilha
+415 - sw $r2 0($r1)       # empilha registrador
+416 - move $r2 $r1         # fp = sp
+417 - li $r46 32 # argument 0 (32)
+418 - msgLcd $r46
+419 - nop 0
+420 - move $r1 $r2         # restaura stack pointer
+421 - lw $r2 0($r1)       # desempilha registrador
+422 - addi $r1 $r1 1       #desaloca espaço na pilha
+423 - lw $r31 0($r1)       # desempilha registrador
+424 - addi $r1 $r1 1       #desaloca espaço na pilha
+425 - move $r0 $r0
+426 - jr $r31         # retorna (void function end)
+427 - receiveUART: # nova função receiveUART
+428 - subi $r1 $r1 1      # aloca espaço na pilha
+429 - sw $r31 0($r1)       # empilha registrador
+430 - subi $r1 $r1 1      # aloca espaço na pilha
+431 - sw $r2 0($r1)       # empilha registrador
+432 - move $r2 $r1         # fp = sp
+433 - subi $r1 $r1 1 # aloca espaço para variável 'pronto'
+434 - sw $r63 0($r1)  # inicializa com 0
+435 - move $r5 $r1   # endereço da variável 'pronto'
+436 - subi $r1 $r1 1 # aloca espaço para variável 'aux'
+437 - sw $r63 0($r1)  # inicializa com 0
+438 - move $r6 $r1   # endereço da variável 'aux'
+439 - subi $r1 $r1 1 # aloca espaço para variável 'header'
+440 - sw $r63 0($r1)  # inicializa com 0
+441 - move $r7 $r1   # endereço da variável 'header'
+442 - subi $r1 $r1 1 # aloca espaço para variável 'flag'
+443 - sw $r63 0($r1)  # inicializa com 0
+444 - move $r8 $r1   # endereço da variável 'flag'
+445 - subi $r1 $r1 1 # aloca espaço para variável 'comando'
+446 - sw $r63 0($r1)  # inicializa com 0
+447 - move $r9 $r1   # endereço da variável 'comando'
+448 - subi $r1 $r1 1 # aloca espaço para variável 'valor'
+449 - sw $r63 0($r1)  # inicializa com 0
+450 - move $r10 $r1   # endereço da variável 'valor'
+451 - subi $r1 $r1 1 # aloca espaço para variável 'checksum'
+452 - sw $r63 0($r1)  # inicializa com 0
+453 - move $r11 $r1   # endereço da variável 'checksum'
+454 - li $r46 33 # argument 0 (33)
+455 - msgLcd $r46
+456 - li $r16 1000
+457 - sw $r16 0($r6) # movendo t1 para aux
+458 - li $r15 0
+459 - sw $r15 0($r5) # movendo t2 para pronto
+460 - L17: #Nova Label L17
+461 - lw $r13 0($r5) # movendo pronto para t3
+462 - li $r16 0
+463 - addil $r43 $r44 L18
+464 - beq $r13 $r16 L18 # jump se t3 == t4
+465 - addil $r43 $r44 L19
+466 - j L19
+467 - L18: #Nova Label L18
+468 - lw $r46 0($r6)    # carrega valor da variável local 'aux' para argument 0
+469 - lw $r17 0($r46)
+470 - sw $r17 0($r5) # movendo t7 para pronto
+471 - addil $r43 $r44 L17
+472 - j L17
+473 - L19: #Nova Label L19
+474 - lw $r16 0($r6) # movendo aux para t8
+475 - li $r17 1
+476 - add $r14 $r16 $r17 # salva em t10 (r14) 
+477 - move $r46 $r14 # argument 0 (t10)
+478 - li $r47 1 # argument 1 (1)
+479 - sw $r47 0($r46)
+480 - lw $r19 0($r6) # movendo aux para t12
+481 - li $r20 2
+482 - add $r18 $r19 $r20 # salva em t14 (r18) 
+483 - move $r46 $r18 # argument 0 (t14)
+484 - lw $r19 0($r46)
+485 - sw $r19 0($r7) # movendo t15 para header
+486 - lw $r19 0($r6) # movendo aux para t16
+487 - li $r21 3
+488 - add $r20 $r19 $r21 # salva em t18 (r20) 
+489 - move $r46 $r20 # argument 0 (t18)
+490 - lw $r19 0($r46)
+491 - sw $r19 0($r8) # movendo t19 para flag
+492 - lw $r19 0($r6) # movendo aux para t20
+493 - li $r21 4
+494 - add $r4 $r19 $r21 # salva em t22 (r4) 
+495 - move $r46 $r4 # argument 0 (t22)
+496 - lw $r19 0($r46)
+497 - sw $r19 0($r9) # movendo t23 para comando
+498 - lw $r19 0($r9) # movendo comando para t24
+499 - sw $r19 0($r35) # movendo t24 para comandoUart
+500 - lw $r19 0($r6) # movendo aux para t25
+501 - li $r22 5
+502 - add $r21 $r19 $r22 # salva em t27 (r21) 
+503 - move $r46 $r21 # argument 0 (t27)
+504 - lw $r19 0($r46)
+505 - sw $r19 0($r10) # movendo t28 para valor
+506 - lw $r19 0($r6) # movendo aux para t29
+507 - li $r23 6
+508 - add $r22 $r19 $r23 # salva em t31 (r22) 
+509 - move $r46 $r22 # argument 0 (t31)
+510 - lw $r19 0($r46)
+511 - sw $r19 0($r11) # movendo t32 para checksum
+512 - li $r46 500 # argument 0 (500)
+513 - lw $r47 0($r7)    # carrega valor da variável local 'header' para argument 1
+514 - sw $r47 0($r46)
+515 - li $r46 501 # argument 0 (501)
+516 - lw $r47 0($r8)    # carrega valor da variável local 'flag' para argument 1
+517 - sw $r47 0($r46)
+518 - li $r46 502 # argument 0 (502)
+519 - lw $r47 0($r9)    # carrega valor da variável local 'comando' para argument 1
+520 - sw $r47 0($r46)
+521 - li $r46 503 # argument 0 (503)
+522 - lw $r47 0($r10)    # carrega valor da variável local 'valor' para argument 1
+523 - sw $r47 0($r46)
+524 - li $r46 504 # argument 0 (504)
+525 - lw $r47 0($r11)    # carrega valor da variável local 'checksum' para argument 1
+526 - sw $r47 0($r46)
+527 - nop 0
+528 - move $r1 $r2         # restaura stack pointer
+529 - lw $r2 0($r1)       # desempilha registrador
+530 - addi $r1 $r1 1       #desaloca espaço na pilha
+531 - lw $r31 0($r1)       # desempilha registrador
+532 - addi $r1 $r1 1       #desaloca espaço na pilha
+533 - move $r0 $r0
+534 - jr $r31         # retorna (void function end)
+535 - checkFlags: # nova função checkFlags
+536 - subi $r1 $r1 1      # aloca espaço na pilha
+537 - sw $r31 0($r1)       # empilha registrador
+538 - subi $r1 $r1 1      # aloca espaço na pilha
+539 - sw $r2 0($r1)       # empilha registrador
+540 - move $r2 $r1         # fp = sp
+541 - lw $r52 2($r2)      # carrega param 0
+542 - subi $r1 $r1 1 # aloca espaço para variável 'valorAns'
+543 - sw $r63 0($r1)  # inicializa com 0
+544 - move $r5 $r1   # endereço da variável 'valorAns'
+545 - move $r6 $r52 # movendo flag para t0
+546 - li $r8 1
+547 - addil $r43 $r44 L20
+548 - bnq $r6 $r8 L20 # jump se t0 != t1
+549 - li $r46 2000 # argument 0 (2000)
+550 - lw $r12 0($r46)
+551 - sw $r12 0($r5) # movendo t4 para valorAns
+552 - addil $r43 $r44 L21
+553 - j L21
+554 - L20: #Nova Label L20
+555 - move $r8 $r52 # movendo flag para t5
+556 - li $r13 2
+557 - addil $r43 $r44 L22
+558 - bnq $r8 $r13 L22 # jump se t5 != t6
+559 - li $r46 2001 # argument 0 (2001)
+560 - lw $r15 0($r46)
+561 - sw $r15 0($r5) # movendo t9 para valorAns
+562 - addil $r43 $r44 L23
+563 - j L23
+564 - L22: #Nova Label L22
+565 - move $r13 $r52 # movendo flag para t10
+566 - li $r16 3
+567 - addil $r43 $r44 L24
+568 - bnq $r13 $r16 L24 # jump se t10 != t11
+569 - li $r46 2002 # argument 0 (2002)
+570 - lw $r18 0($r46)
+571 - sw $r18 0($r5) # movendo t14 para valorAns
+572 - addil $r43 $r44 L25
+573 - j L25
+574 - L24: #Nova Label L24
+575 - li $r16 0
+576 - sw $r16 0($r5) # movendo t15 para valorAns
+577 - nop 0
+578 - L25: #Nova Label L25
+579 - L23: #Nova Label L23
+580 - L21: #Nova Label L21
+581 - lw $r16 0($r5) # movendo valorAns para t16
+582 - move $r45 $r16 # move valor de retorno para v0
+583 - move $r1 $r2         # restaura stack pointer
+584 - lw $r2 0($r1)       # desempilha registrador
+585 - addi $r1 $r1 1       #desaloca espaço na pilha
+586 - lw $r31 0($r1)       # desempilha registrador
+587 - addi $r1 $r1 1       #desaloca espaço na pilha
+588 - jr $r31         # retorna
+589 - sendUART: # nova função sendUART
+590 - subi $r1 $r1 1      # aloca espaço na pilha
+591 - sw $r31 0($r1)       # empilha registrador
+592 - subi $r1 $r1 1      # aloca espaço na pilha
+593 - sw $r2 0($r1)       # empilha registrador
+594 - move $r2 $r1         # fp = sp
+595 - subi $r1 $r1 1 # aloca espaço para variável 'comando'
+596 - sw $r63 0($r1)  # inicializa com 0
+597 - move $r5 $r1   # endereço da variável 'comando'
+598 - subi $r1 $r1 1 # aloca espaço para variável 'flag'
+599 - sw $r63 0($r1)  # inicializa com 0
+600 - move $r6 $r1   # endereço da variável 'flag'
+601 - subi $r1 $r1 1 # aloca espaço para variável 'valorRec'
+602 - sw $r63 0($r1)  # inicializa com 0
+603 - move $r7 $r1   # endereço da variável 'valorRec'
+604 - subi $r1 $r1 1 # aloca espaço para variável 'valorAns'
+605 - sw $r63 0($r1)  # inicializa com 0
+606 - move $r8 $r1   # endereço da variável 'valorAns'
+607 - subi $r1 $r1 1 # aloca espaço para variável 'header'
+608 - sw $r63 0($r1)  # inicializa com 0
+609 - move $r9 $r1   # endereço da variável 'header'
+610 - subi $r1 $r1 1 # aloca espaço para variável 'checksum'
+611 - sw $r63 0($r1)  # inicializa com 0
+612 - move $r10 $r1   # endereço da variável 'checksum'
+613 - li $r46 34 # argument 0 (34)
+614 - msgLcd $r46
+615 - li $r46 501 # argument 0 (501)
+616 - lw $r15 0($r46)
+617 - sw $r15 0($r6) # movendo t2 para flag
+618 - li $r46 502 # argument 0 (502)
+619 - lw $r16 0($r46)
+620 - sw $r16 0($r5) # movendo t4 para comando
+621 - li $r46 503 # argument 0 (503)
+622 - lw $r17 0($r46)
+623 - sw $r17 0($r7) # movendo t6 para valorRec
+624 - lw $r17 0($r5) # movendo comando para t7
+625 - li $r18 1
+626 - addil $r43 $r44 L26
+627 - bnq $r17 $r18 L26 # jump se t7 != t8
+628 - li $r20 124
+629 - sw $r20 0($r9) # movendo t10 para header
+630 - lw $r19 0($r7) # movendo valorRec para t11
+631 - sw $r19 0($r8) # movendo t11 para valorAns
+632 - addil $r43 $r44 L27
+633 - j L27
+634 - L26: #Nova Label L26
+635 - lw $r18 0($r5) # movendo comando para t12
+636 - li $r20 2
+637 - addil $r43 $r44 L28
+638 - bnq $r18 $r20 L28 # jump se t12 != t13
+639 - li $r22 124
+640 - sw $r22 0($r9) # movendo t15 para header
+641 - lw $r21 0($r7) # movendo valorRec para t16
+642 - sw $r21 0($r8) # movendo t16 para valorAns
+643 - addil $r43 $r44 L29
+644 - j L29
+645 - L28: #Nova Label L28
+646 - lw $r20 0($r5) # movendo comando para t17
+647 - li $r22 3
+648 - addil $r43 $r44 L30
+649 - bnq $r20 $r22 L30 # jump se t17 != t18
+650 - li $r24 124
+651 - lw $r23 0($r6) # movendo flag para t21
+652 - add $r25 $r24 $r23 # salva em t22 (r25) 
+653 - sw $r25 0($r9) # movendo t22 para header
+654 - subi $r1 $r1 1  # aloca espaço para 1 argumentos
+655 - lw $r46 0($r6)    # carrega valor da variável local 'flag' para argument 0
+656 - sw $r46 0($r1)  # salva argument 0 na pilha
+657 - addil $r43 $r44 checkFlags
+658 - jal checkFlags
+659 - addi $r1 $r1 1  # libera espaço de 1 argumentos
+660 - lw $r5 -1($r2)  # recarrega variavel local
+661 - lw $r6 -2($r2)  # recarrega variavel local
+662 - lw $r7 -3($r2)  # recarrega variavel local
+663 - lw $r8 -4($r2)  # recarrega variavel local
+664 - lw $r9 -5($r2)  # recarrega variavel local
+665 - lw $r10 -6($r2)  # recarrega variavel local
+666 - move $r24 $r45 # copia retorno (v0) para t24
+667 - sw $r24 0($r8) # movendo t24 para valorAns
+668 - addil $r43 $r44 L31
+669 - j L31
+670 - L30: #Nova Label L30
+671 - nop 0
+672 - L31: #Nova Label L31
+673 - L29: #Nova Label L29
+674 - L27: #Nova Label L27
+675 - li $r46 1008 # argument 0 (1008)
+676 - lw $r47 0($r9)    # carrega valor da variável local 'header' para argument 1
+677 - sw $r47 0($r46)
+678 - li $r46 1009 # argument 0 (1009)
+679 - lw $r47 0($r5)    # carrega valor da variável local 'comando' para argument 1
+680 - sw $r47 0($r46)
+681 - li $r46 1010 # argument 0 (1010)
+682 - lw $r47 0($r8)    # carrega valor da variável local 'valorAns' para argument 1
+683 - sw $r47 0($r46)
+684 - li $r46 1011 # argument 0 (1011)
+685 - li $r47 1 # argument 1 (1)
+686 - sw $r47 0($r46)
+687 - nop 0
+688 - move $r1 $r2         # restaura stack pointer
+689 - lw $r2 0($r1)       # desempilha registrador
+690 - addi $r1 $r1 1       #desaloca espaço na pilha
+691 - lw $r31 0($r1)       # desempilha registrador
+692 - addi $r1 $r1 1       #desaloca espaço na pilha
+693 - move $r0 $r0
+694 - jr $r31         # retorna (void function end)
+695 - main: # nova função main
+696 - addil $r43 $r44 mapeamento
+697 - jal mapeamento
+698 - li $r46 0 # argument 0 (0)
+699 - msgLcd $r46
+700 - nop 0
+701 - li $r6 0
+702 - move $r44 $r6 # movendo t1 para registrador especial salto
+703 - li $r7 3
+704 - move $r60 $r7 # movendo t2 para registrador especial processosCarregados
+705 - nop 0
+706 - nop 0
+707 - addil $r43 $r44 menuShell
+708 - jal menuShell
+709 - nop 0
+710 - li $r8 0
+711 - move $r44 $r8 # movendo t3 para registrador especial salto
+712 - nop 0
+713 - L32: #Nova Label L32
+714 - move $r9 $r41 # movendo opcao para registrador especial t4
+715 - li $r11 6
+716 - addil $r43 $r44 L33
+717 - bnq $r9 $r11 L33 # jump se !=
+718 - addil $r43 $r44 L34
+719 - j L34
+720 - L33: #Nova Label L33
+721 - addil $r43 $r44 defineProcesso
+722 - jal defineProcesso
+723 - addil $r43 $r44 initDados
+724 - jal initDados
+725 - addil $r43 $r44 initUART
+726 - jal initUART
+727 - addil $r43 $r44 receiveUART
+728 - jal receiveUART
+729 - lw $r11 0($r35) # movendo comandoUart para t7
+730 - li $r13 3
+731 - addil $r43 $r44 L35
+732 - bnq $r11 $r13 L35 # jump se t7 != t8
+733 - addil $r43 $r44 sendUART
+734 - jal sendUART
+735 - addil $r43 $r44 L36
+736 - j L36
+737 - L35: #Nova Label L35
+738 - nop 0
+739 - addil $r43 $r44 execucaoNP
+740 - jal execucaoNP
+741 - addil $r43 $r44 votenaoPreemptivo
+742 - jal votenaoPreemptivo
+743 - addil $r43 $r44 sendUART
+744 - jal sendUART
+745 - L36: #Nova Label L36
+746 - nop 0
+747 - li $r13 0
+748 - move $r44 $r13 # movendo t10 para registrador especial salto
+749 - addil $r43 $r44 menuShell
+750 - jal menuShell
+751 - addil $r43 $r44 L32
+752 - j L32
+753 - L34: #Nova Label L34
+754 - nop 0
+755 - nop 0
+756 - nop 0
+757 - li $r46 28 # argument 0 (28)
+758 - msgLcd $r46
+759 - nop 0
+760 - nop 0
+761 - nop 0
+762 - nop 0
+763 - halt # termina a execução

@@ -4,7 +4,7 @@ int processoAtual;
 int processosCarregados; 
 int programas [ 10 ];
 int halts [ 10 ];
-int comandoUart;
+int qtdHalt;
 int processosExecucao [ 10 ];
 int salto;
 int memdados;
@@ -46,7 +46,7 @@ void limpaVar(){
         i = i+1;    
         nop();
     }
-    comandoUart = 0;
+    qtdHalt = 0;
     sinalsyscall = 0;
     opcao = 0;
     processosCarregados = 0;
@@ -71,56 +71,21 @@ void votenaoPreemptivo(){
     nop();
 }
 
-void execucaoNP(){
-    int i;
-    i = 0;
-    while (i<3){
-        processoAtual = processosExecucao[i+1];
-        nop();
-        msgLcd(12); 
-        salto = processos[processoAtual];
-        memdados = dados[processoAtual];
-        dispatchersavenp(); 
-        dispatcherloadnp(); 
-        nop();
-        salto = 0;
-        nop();
-        output(i);
-        i = i+1;
-    }
+void naoPreemptivo(){
+    msgLcd(17);
+    processoAtual = input();
+    processoAtual = processoAtual - 1;
+    nop();
+    nop();
+    msgLcd(12);
+    salto = processos[processoAtual];
+    memdados = dados[processoAtual];
+    dispatchersavenp(); 
+    dispatcherloadnp(); 
+    
     nop();
     salto = 0;
     nop();
-}
-
-void defineProcesso(){
-    msgLcd(27);
-    nop();
-    nop();
-
-    if(opcao==1){
-        processosExecucao[1] = 0;
-        processosExecucao[2] = 1;
-        processosExecucao[3] = 2;
-    }
-    else if(opcao==2){
-        processosExecucao[1] = 0;
-        processosExecucao[2] = 1;
-        processosExecucao[3] = 3;
-    }
-    else if(opcao==3){
-        processosExecucao[1] = 0;
-        processosExecucao[2] = 3;
-        processosExecucao[3] = 4;
-    }
-    else if(opcao==4){
-        processosExecucao[1] = 3;
-        processosExecucao[2] = 4;
-        processosExecucao[3] = 5;
-    }
-    else{
-        nop();
-    }
 }
 
 void initDados(){
@@ -163,11 +128,19 @@ void receiveUART(){
     saveword(aux+1, 1);
 
     header = loadword(aux+2);
+    output(header);
+    
     flag = loadword(aux+3);
+    output(flag);
+    
     comando = loadword(aux+4);
-    comandoUart = comando;
+    output(comando);
+    
     valor = loadword(aux+5);
+    output(valor);
+
     checksum = loadword(aux+6);
+    output(checksum);
 
     saveword(500, header);
     saveword(501, flag);
@@ -251,19 +224,17 @@ void main(void){
     nop();
 
     while(opcao != 6){
-        defineProcesso();
         initDados();
         initUART();
         receiveUART();
-        if(comandoUart == 3){
-            sendUART();
-        }
-        else{
-            nop();
-            execucaoNP();
-            votenaoPreemptivo();
-            sendUART();
-        }
+        naoPreemptivo();
+        nop();
+        naoPreemptivo();
+        nop();
+        naoPreemptivo();
+        nop();
+        votenaoPreemptivo();
+        sendUART();
         nop();
         salto = 0;
         menuShell();

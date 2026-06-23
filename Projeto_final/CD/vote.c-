@@ -33,13 +33,13 @@ int voteSw(int procUm, int procDois, int procTres){
     return auxValue;
 }
 
-void SaveInfo(int voto, int var, int diff, int pos){
+void SaveInfo(int voto, int var, int diff, int pos, int msg){
     
     if(voto > var + diff) { 
-        msgLcd(35);
+        msgLcd(msg);
         saveword(pos, var);
     } else if (voto < var - diff) {
-        msgLcd(35);
+        msgLcd(msg);
         saveword(pos, var);
     } else {
         saveword(pos, voto);
@@ -76,9 +76,9 @@ void initVote() {
     votos[1] = voteSw(procComb[0], procComb[1], procComb[2]);
     votos[2] = voteSw(procAltura[0], procAltura[1], procAltura[2]);    
     
-    SaveInfo(votos[0], temp, 10, 2000);
-    SaveInfo(votos[1], comb, 30, 2001);
-    SaveInfo(votos[2], altura, 20, 2002);
+    SaveInfo(votos[0], temp, 10, 2000, 35);
+    SaveInfo(votos[1], comb, 30, 2001, 36);
+    SaveInfo(votos[2], altura, 20, 2002, 37);
     
 }
 
